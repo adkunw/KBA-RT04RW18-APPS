@@ -1,0 +1,95 @@
+<h1>Activate Your Account</h1>
+
+<div
+  style="
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-left: 4px solid #28a745;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  "
+>
+  <p style="color: #155724; margin: 0">
+    Welcome, <strong><%= user.name %></strong>! Please set a password to
+    activate your account.
+  </p>
+</div>
+
+<form method="POST" style="max-width: 500px">
+  <div style="margin-bottom: 1rem">
+    <label for="password" style="display: block; margin-bottom: 0.5rem"
+      >Password:</label
+    >
+    <input
+      type="password"
+      id="password"
+      name="password"
+      required
+      autofocus
+      placeholder="At least 6 characters"
+      style="
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      "
+    />
+    <small style="color: #666">Must be at least 6 characters</small>
+  </div>
+
+  <div style="margin-bottom: 1.5rem">
+    <label for="passwordConfirm" style="display: block; margin-bottom: 0.5rem"
+      >Confirm Password:</label
+    >
+    <input
+      type="password"
+      id="passwordConfirm"
+      name="passwordConfirm"
+      required
+      placeholder="Re-enter your password"
+      style="
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      "
+    />
+  </div>
+
+  <button
+    type="submit"
+    style="
+      width: 100%;
+      padding: 0.75rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    "
+    onmouseover="this.style.background = '#5568d3'"
+    onmouseout="this.style.background = '#667eea'"
+  >
+    Activate Account
+  </button>
+</form>
+
+<div
+  style="
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #666;
+  "
+>
+  <p style="margin: 0">
+    After activation, you'll be able to log in with your phone number and the
+    password you set here.
+  </p>
+</div>

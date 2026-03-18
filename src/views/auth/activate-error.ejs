@@ -1,0 +1,80 @@
+<h1>Activation Failed</h1>
+
+<div
+  style="
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-left: 4px solid #dc3545;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  "
+>
+  <p style="color: #721c24; margin: 0">
+    <strong>❌ Error:</strong> <%= error %>
+  </p>
+</div>
+
+<div
+  style="
+    background: white;
+    border: 1px solid #ddd;
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  "
+>
+  <h2 style="color: #333; margin-top: 0">What happened?</h2>
+  <ul style="color: #666; line-height: 1.8">
+    <li>The activation link may have expired (links expire after 24 hours)</li>
+    <li>The link may have already been used</li>
+    <li>The link may be invalid or corrupted</li>
+  </ul>
+</div>
+
+<div
+  style="
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-left: 4px solid #ff9800;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  "
+>
+  <p style="color: #856404; margin: 0; font-size: 0.9rem">
+    <strong>💡 What to do:</strong> Contact your administrator to request a new
+    activation link.
+  </p>
+</div>
+
+<div style="display: flex; gap: 1rem">
+  <a
+    href="/"
+    style="
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 500;
+    "
+  >
+    ← Back to Home
+  </a>
+  <a
+    href="/auth/login"
+    style="
+      display: inline-block;
+      background: #764ba2;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 500;
+    "
+  >
+    Go to Login
+  </a>
+</div>

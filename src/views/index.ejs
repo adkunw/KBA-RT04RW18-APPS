@@ -1,0 +1,35 @@
+<h1>Welcome to RT Management System</h1>
+<p style="color: #666; margin-bottom: 1.5rem;">
+  A modern system for managing RT (Rukun Tetangga) communities with efficient user management and role-based access control.
+</p>
+
+<div style="background: #f0f4ff; padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem;">
+  <h2 style="color: #667eea; margin-bottom: 1rem;">Features</h2>
+  <ul style="list-style: none; color: #555;">
+    <li style="padding: 0.5rem 0;">✓ User & Member Management</li>
+    <li style="padding: 0.5rem 0;">✓ Role-Based Access Control</li>
+    <li style="padding: 0.5rem 0;">✓ Secure Authentication</li>
+    <li style="padding: 0.5rem 0;">✓ Permission Management</li>
+    <li style="padding: 0.5rem 0;">✓ Activity Logging</li>
+  </ul>
+</div>
+
+<div class="text-center">
+  <% if (user) { %>
+    <p style="margin-bottom: 1rem;">You are logged in. <a href="/portal">Go to Portal →</a></p>
+  <% } else { %>
+    <p style="margin-bottom: 1rem;">Ready to get started?</p>
+    <a href="/auth/login" style="
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s ease;
+    " onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
+      Sign In →
+    </a>
+  <% } %>
+</div>

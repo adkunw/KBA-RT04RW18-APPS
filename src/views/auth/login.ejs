@@ -1,0 +1,57 @@
+<h1>Sign In</h1>
+
+<form method="POST">
+  <div>
+    <label for="phone">Phone Number:</label>
+    <input
+      type="text"
+      id="phone"
+      name="phone"
+      required
+      autofocus
+      placeholder="e.g., 08123456789"
+    />
+  </div>
+
+  <div>
+    <label for="password">Password:</label>
+    <input
+      type="password"
+      id="password"
+      name="password"
+      required
+      placeholder="Enter your password"
+    />
+  </div>
+
+  <button type="submit">Sign In</button>
+</form>
+
+<div class="text-center mt-1">
+  <p style="color: #666; font-size: 0.9rem; margin-top: 1rem">
+    Don't have an account? Contact the administrator for access.
+  </p>
+  <p style="color: #666; font-size: 0.9rem">
+    <a href="/">← Back to Home</a>
+  </p>
+</div>
+
+<div
+  style="
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 2rem;
+    border-left: 4px solid #667eea;
+  "
+>
+  <p style="color: #666; font-size: 0.85rem; margin: 0">
+    <strong>Demo Account:</strong> Phone:
+    <code style="background: white; padding: 2px 4px; border-radius: 2px"
+      >admin</code
+    >, Password:
+    <code style="background: white; padding: 2px 4px; border-radius: 2px"
+      >admin123</code
+    >
+  </p>
+</div>
