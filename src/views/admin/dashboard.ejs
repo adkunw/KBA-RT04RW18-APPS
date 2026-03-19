@@ -1,149 +1,606 @@
-<h1>Admin Dashboard</h1>
+<!-- ADMIN LAYOUT (SIDEBAR + MAIN CONTENT) -->
+<div style="display: flex; min-height: 100vh">
+  <%- include('_sidebar.ejs', { currentPage: 'dashboard' }) %>
 
-<div
-  style="
-    background: #f0f4ff;
-    padding: 1.5rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-  "
->
-  <h2 style="color: #667eea; margin-bottom: 0.5rem">
-    Welcome, <%= user.name %>!
-  </h2>
-  <p style="color: #555">
-    You have admin access to the RT Management System. This is your control
-    center.
-  </p>
-  <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem">
-    <strong>Roles:</strong> <%= user.roles.join(', ') %>
-  </p>
-</div>
-
-<div
-  style="
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  "
->
-  <div
+  <!-- MAIN CONTENT -->
+  <main
     style="
-      background: white;
-      border: 1px solid #e0e0e0;
-      padding: 1.5rem;
-      border-radius: 4px;
-      border-left: 4px solid #667eea;
+      margin-left: 260px;
+      flex: 1;
+      padding: 2rem;
+      background: var(--background);
     "
   >
-    <h3 style="color: #333; margin-bottom: 0.5rem">👥 Member Management</h3>
-    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem">
-      Manage RT members and their details
-    </p>
-    <a
-      href="/admin/users"
-      style="
-        display: inline-block;
-        background: #667eea;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 0.9rem;
-      "
-    >
-      Manage Members →
-    </a>
-  </div>
+    <div style="max-width: 1024px; margin: 0 auto">
+      <!-- HERO SECTION -->
+      <div
+        style="
+          background: linear-gradient(
+            135deg,
+            var(--primary) 0%,
+            var(--primary-dark) 100%
+          );
+          color: var(--white);
+          padding: 2rem;
+          border-radius: 8px;
+          margin-bottom: 2rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        "
+      >
+        <h1 style="margin: 0 0 0.5rem 0; font-size: 1.875rem; font-weight: 600">
+          Welcome, <%= user.name %>! 👋
+        </h1>
+        <p
+          style="
+            margin: 0 0 0.75rem 0;
+            font-size: 1rem;
+            opacity: 0.95;
+            line-height: 1.6;
+          "
+        >
+          Control center for managing your RT community.
+        </p>
+        <p style="margin: 0; font-size: 0.95rem; opacity: 0.95">
+          <strong>Your Roles:</strong> <%= user.roles.join(', ') %>
+        </p>
+      </div>
 
-  <div
-    style="
-      background: white;
-      border: 1px solid #e0e0e0;
-      padding: 1.5rem;
-      border-radius: 4px;
-      border-left: 4px solid #764ba2;
-    "
-  >
-    <h3 style="color: #333; margin-bottom: 0.5rem">🔐 Roles & Permissions</h3>
-    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem">
-      Configure roles and access permissions
-    </p>
-    <a
-      href="/admin/roles"
-      style="
-        display: inline-block;
-        background: #764ba2;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 0.9rem;
-      "
-    >
-      Manage Roles →
-    </a>
-  </div>
+      <!-- STATISTICS SECTION -->
+      <div style="margin-bottom: 2rem">
+        <h2
+          style="
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+            color: var(--gray-900);
+            font-weight: 600;
+          "
+        >
+          Summary
+        </h2>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+          "
+        >
+          <!-- STAT CARD 1 -->
+          <div
+            style="
+              background: var(--white);
+              border: 1px solid var(--gray-300);
+              border-left: 4px solid var(--primary);
+              border-radius: 8px;
+              padding: 1.5rem;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <p
+              style="
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin: 0 0 0.5rem 0;
+              "
+            >
+              Total Members
+            </p>
+            <h3
+              style="
+                margin: 0 0 0.5rem 0;
+                color: var(--primary);
+                font-size: 2rem;
+                font-weight: 600;
+              "
+            >
+              1,247
+            </h3>
+            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
+              +12 this month
+            </p>
+          </div>
 
-  <div
-    style="
-      background: white;
-      border: 1px solid #e0e0e0;
-      padding: 1.5rem;
-      border-radius: 4px;
-      border-left: 4px solid #ff9800;
-    "
-  >
-    <h3 style="color: #333; margin-bottom: 0.5rem">📊 System Information</h3>
-    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem">
-      View system statistics and logs
-    </p>
-    <a
-      href="/admin/system"
-      style="
-        display: inline-block;
-        background: #ff9800;
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 0.9rem;
-      "
-    >
-      System Info →
-    </a>
-  </div>
-</div>
+          <!-- STAT CARD 2 -->
+          <div
+            style="
+              background: var(--white);
+              border: 1px solid var(--gray-300);
+              border-left: 4px solid var(--success);
+              border-radius: 8px;
+              padding: 1.5rem;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <p
+              style="
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin: 0 0 0.5rem 0;
+              "
+            >
+              Active Users
+            </p>
+            <h3
+              style="
+                margin: 0 0 0.5rem 0;
+                color: var(--success);
+                font-size: 2rem;
+                font-weight: 600;
+              "
+            >
+              892
+            </h3>
+            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
+              71.6% active rate
+            </p>
+          </div>
 
-<div
-  style="
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    border-radius: 4px;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-  "
->
-  <p style="color: #856404; margin: 0; font-size: 0.9rem">
-    <strong>⚠️ Note:</strong> Admin panel is under construction. Additional
-    features will be available soon.
-  </p>
-</div>
+          <!-- STAT CARD 3 -->
+          <div
+            style="
+              background: var(--white);
+              border: 1px solid var(--gray-300);
+              border-left: 4px solid var(--warning);
+              border-radius: 8px;
+              padding: 1.5rem;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <p
+              style="
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin: 0 0 0.5rem 0;
+              "
+            >
+              Pending Activation
+            </p>
+            <h3
+              style="
+                margin: 0 0 0.5rem 0;
+                color: var(--warning);
+                font-size: 2rem;
+                font-weight: 600;
+              "
+            >
+              24
+            </h3>
+            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
+              Awaiting setup
+            </p>
+          </div>
+        </div>
+      </div>
 
-<div style="text-align: center">
-  <a
-    href="/portal"
-    style="
-      display: inline-block;
-      background: #ddd;
-      color: #333;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      text-decoration: none;
-      font-weight: 500;
-    "
-  >
-    ← Back to Portal
-  </a>
+      <!-- MANAGEMENT TOOLS SECTION -->
+      <div style="margin-bottom: 2rem">
+        <h2
+          style="
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+            color: var(--gray-900);
+            font-weight: 600;
+          "
+        >
+          Management Tools
+        </h2>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+          "
+        >
+          <!-- TOOL CARD 1 -->
+          <div
+            style="
+              background: var(--white);
+              border: 1px solid var(--gray-300);
+              border-left: 4px solid var(--primary);
+              border-radius: 8px;
+              padding: 1.5rem;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <h3
+              style="
+                margin: 0 0 0.5rem 0;
+                font-size: 1.125rem;
+                color: var(--gray-900);
+                font-weight: 600;
+              "
+            >
+              👥 Member Management
+            </h3>
+            <p
+              style="
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin: 0 0 1rem 0;
+              "
+            >
+              Manage RT members and their details
+            </p>
+            <a
+              href="/admin/users"
+              style="
+                display: inline-block;
+                background: var(--primary);
+                color: var(--white);
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                text-decoration: none;
+                font-size: 0.875rem;
+                font-weight: 500;
+              "
+            >
+              Manage Members →
+            </a>
+          </div>
+
+          <!-- TOOL CARD 2 -->
+          <div
+            style="
+              background: var(--white);
+              border: 1px solid var(--gray-300);
+              border-left: 4px solid var(--primary);
+              border-radius: 8px;
+              padding: 1.5rem;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <h3
+              style="
+                margin: 0 0 0.5rem 0;
+                font-size: 1.125rem;
+                color: var(--gray-900);
+                font-weight: 600;
+              "
+            >
+              🔐 Roles & Permissions
+            </h3>
+            <p
+              style="
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin: 0 0 1rem 0;
+              "
+            >
+              Configure roles and access permissions
+            </p>
+            <a
+              href="/admin/roles"
+              style="
+                display: inline-block;
+                background: var(--primary);
+                color: var(--white);
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                text-decoration: none;
+                font-size: 0.875rem;
+                font-weight: 500;
+              "
+            >
+              Manage Roles →
+            </a>
+          </div>
+
+          <!-- TOOL CARD 3 -->
+          <div
+            style="
+              background: var(--white);
+              border: 1px solid var(--gray-300);
+              border-left: 4px solid var(--primary);
+              border-radius: 8px;
+              padding: 1.5rem;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            "
+          >
+            <h3
+              style="
+                margin: 0 0 0.5rem 0;
+                font-size: 1.125rem;
+                color: var(--gray-900);
+                font-weight: 600;
+              "
+            >
+              📊 System Information
+            </h3>
+            <p
+              style="
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin: 0 0 1rem 0;
+              "
+            >
+              View system statistics and logs
+            </p>
+            <a
+              href="/admin/system"
+              style="
+                display: inline-block;
+                background: var(--primary);
+                color: var(--white);
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                text-decoration: none;
+                font-size: 0.875rem;
+                font-weight: 500;
+              "
+            >
+              System Info →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT ACTIVITY SECTION -->
+      <div style="margin-bottom: 2rem">
+        <h2
+          style="
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+            color: var(--gray-900);
+            font-weight: 600;
+          "
+        >
+          📊 Recent Activity
+        </h2>
+        <div
+          style="
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+          "
+        >
+          <table style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr
+                style="
+                  background: var(--gray-100);
+                  border-bottom: 1px solid var(--gray-300);
+                "
+              >
+                <th
+                  style="
+                    padding: 1rem;
+                    text-align: left;
+                    color: var(--gray-900);
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                  "
+                >
+                  Action
+                </th>
+                <th
+                  style="
+                    padding: 1rem;
+                    text-align: left;
+                    color: var(--gray-900);
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                  "
+                >
+                  User
+                </th>
+                <th
+                  style="
+                    padding: 1rem;
+                    text-align: left;
+                    color: var(--gray-900);
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                  "
+                >
+                  Time
+                </th>
+                <th
+                  style="
+                    padding: 1rem;
+                    text-align: left;
+                    color: var(--gray-900);
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                  "
+                >
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--gray-300)">
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-900);
+                    font-size: 0.875rem;
+                  "
+                >
+                  User activated
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Bambang Sutrisno
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Today 09:30 AM
+                </td>
+                <td style="padding: 1rem">
+                  <span
+                    style="
+                      background: #dcfce7;
+                      color: var(--success);
+                      padding: 0.25rem 0.75rem;
+                      border-radius: 20px;
+                      font-size: 0.75rem;
+                      font-weight: 500;
+                    "
+                  >
+                    Success
+                  </span>
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--gray-300)">
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-900);
+                    font-size: 0.875rem;
+                  "
+                >
+                  New user created
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Siti Nurhaliza
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Today 08:15 AM
+                </td>
+                <td style="padding: 1rem">
+                  <span
+                    style="
+                      background: #dbeafe;
+                      color: var(--primary);
+                      padding: 0.25rem 0.75rem;
+                      border-radius: 20px;
+                      font-size: 0.75rem;
+                      font-weight: 500;
+                    "
+                  >
+                    Pending
+                  </span>
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--gray-300)">
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-900);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Role assigned
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Adi Pratama
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Yesterday 05:00 PM
+                </td>
+                <td style="padding: 1rem">
+                  <span
+                    style="
+                      background: #dcfce7;
+                      color: var(--success);
+                      padding: 0.25rem 0.75rem;
+                      border-radius: 20px;
+                      font-size: 0.75rem;
+                      font-weight: 500;
+                    "
+                  >
+                    Success
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-900);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Activation token expired
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Dina Widya
+                </td>
+                <td
+                  style="
+                    padding: 1rem;
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                  "
+                >
+                  Mar 18, 03:20 PM
+                </td>
+                <td style="padding: 1rem">
+                  <span
+                    style="
+                      background: #fee2e2;
+                      color: var(--error);
+                      padding: 0.25rem 0.75rem;
+                      border-radius: 20px;
+                      font-size: 0.75rem;
+                      font-weight: 500;
+                    "
+                  >
+                    Warning
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- INFO MESSAGE -->
+      <div
+        style="
+          background: #dbeafe;
+          border: 1px solid var(--gray-300);
+          border-left: 4px solid var(--primary);
+          border-radius: 8px;
+          padding: 1rem;
+        "
+      >
+        <p style="color: var(--primary); margin: 0; font-size: 0.875rem">
+          <strong>💡 Tip:</strong> Remember to activate pending members
+          promptly. Send them activation links to complete their profile setup.
+        </p>
+      </div>
+    </div>
+  </main>
 </div>

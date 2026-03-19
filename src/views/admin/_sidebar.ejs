@@ -1,0 +1,140 @@
+<!-- SIDEBAR (FIXED LEFT) -->
+<aside
+  style="
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--white);
+    border-right: 1px solid var(--gray-300);
+    padding-top: 1rem;
+    overflow-y: auto;
+    z-index: 100;
+  "
+>
+  <!-- SIDEBAR HEADER -->
+  <div style="padding: 0 1.5rem 1.5rem 1.5rem">
+    <h2
+      style="
+        margin: 0;
+        font-size: 1.25rem;
+        color: var(--primary);
+        font-weight: 600;
+      "
+    >
+      RT Management
+    </h2>
+    <p
+      style="
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        margin: 0.5rem 0 0 0;
+      "
+    >
+      Admin Panel
+    </p>
+  </div>
+
+  <!-- SIDEBAR MENU -->
+  <nav style="display: flex; flex-direction: column">
+    <!-- DASHBOARD MENU -->
+    <a
+      href="/admin"
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        color: <%= currentPage === 'dashboard' ? 'var(--primary)' : 'var(--gray-700)' %>;
+        border-left: 4px solid <%= currentPage === 'dashboard' ? 'var(--primary)' : 'transparent' %>;
+        background: <%= currentPage === 'dashboard' ? 'rgba(37, 99, 235, 0.08)' : 'transparent' %>;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+      "
+      <% if (currentPage !== 'dashboard') { %>
+      onmouseover="
+        this.style.background = 'var(--gray-100)';
+        this.style.borderLeftColor = '#E5E7EB';
+        this.style.color = 'var(--gray-900)';
+      "
+      onmouseout="
+        this.style.background = 'transparent';
+        this.style.borderLeftColor = 'transparent';
+        this.style.color = 'var(--gray-700)';
+      "
+      <% } %>
+    >
+      <span style="font-size: 1.25rem">📊</span>
+      Dashboard
+    </a>
+
+    <!-- WARGA MENU -->
+    <a
+      href="/admin/users"
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        color: <%= currentPage === 'users' ? 'var(--primary)' : 'var(--gray-700)' %>;
+        border-left: 4px solid <%= currentPage === 'users' ? 'var(--primary)' : 'transparent' %>;
+        background: <%= currentPage === 'users' ? 'rgba(37, 99, 235, 0.08)' : 'transparent' %>;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+      "
+      <% if (currentPage !== 'users') { %>
+      onmouseover="
+        this.style.background = 'var(--gray-100)';
+        this.style.borderLeftColor = '#E5E7EB';
+        this.style.color = 'var(--gray-900)';
+      "
+      onmouseout="
+        this.style.background = 'transparent';
+        this.style.borderLeftColor = 'transparent';
+        this.style.color = 'var(--gray-700)';
+      "
+      <% } %>
+    >
+      <span style="font-size: 1.25rem">👥</span>
+      Warga
+    </a>
+
+    <!-- ROLE & PERMISSION MENU -->
+    <a
+      href="/admin/roles"
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        color: <%= currentPage === 'roles' ? 'var(--primary)' : 'var(--gray-700)' %>;
+        border-left: 4px solid <%= currentPage === 'roles' ? 'var(--primary)' : 'transparent' %>;
+        background: <%= currentPage === 'roles' ? 'rgba(37, 99, 235, 0.08)' : 'transparent' %>;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+      "
+      <% if (currentPage !== 'roles') { %>
+      onmouseover="
+        this.style.background = 'var(--gray-100)';
+        this.style.borderLeftColor = '#E5E7EB';
+        this.style.color = 'var(--gray-900)';
+      "
+      onmouseout="
+        this.style.background = 'transparent';
+        this.style.borderLeftColor = 'transparent';
+        this.style.color = 'var(--gray-700)';
+      "
+      <% } %>
+    >
+      <span style="font-size: 1.25rem">🔐</span>
+      Role & Permission
+    </a>
+  </nav>
+</aside>

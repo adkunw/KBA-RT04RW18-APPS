@@ -1,57 +1,129 @@
-<h1>Sign In</h1>
+<!-- CENTERED LOGIN CARD CONTAINER -->
+<div style="max-width: 420px; margin: 0 auto; padding: 2rem">
+  <!-- CARD -->
+  <div
+    style="
+      background: var(--white);
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    "
+  >
+    <!-- HEADER -->
+    <div style="text-align: center; margin-bottom: 2rem">
+      <h1
+        style="margin: 0 0 0.5rem 0; font-size: 1.5rem; color: var(--gray-900)"
+      >
+        Sign In
+      </h1>
+      <p style="color: var(--gray-600); margin: 0">Manage your RT community</p>
+    </div>
 
-<form method="POST">
-  <div>
-    <label for="phone">Phone Number:</label>
-    <input
-      type="text"
-      id="phone"
-      name="phone"
-      required
-      autofocus
-      placeholder="e.g., 08123456789"
-    />
-  </div>
-
-  <div>
-    <label for="password">Password:</label>
-    <input
-      type="password"
-      id="password"
-      name="password"
-      required
-      placeholder="Enter your password"
-    />
-  </div>
-
-  <button type="submit">Sign In</button>
-</form>
-
-<div class="text-center mt-1">
-  <p style="color: #666; font-size: 0.9rem; margin-top: 1rem">
-    Don't have an account? Contact the administrator for access.
-  </p>
-  <p style="color: #666; font-size: 0.9rem">
-    <a href="/">← Back to Home</a>
-  </p>
-</div>
-
-<div
-  style="
-    background: #f9f9f9;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-top: 2rem;
-    border-left: 4px solid #667eea;
-  "
->
-  <p style="color: #666; font-size: 0.85rem; margin: 0">
-    <strong>Demo Account:</strong> Phone:
-    <code style="background: white; padding: 2px 4px; border-radius: 2px"
-      >admin</code
-    >, Password:
-    <code style="background: white; padding: 2px 4px; border-radius: 2px"
-      >admin123</code
+    <!-- FORM -->
+    <form
+      method="POST"
+      style="display: flex; flex-direction: column; gap: 1rem"
     >
-  </p>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem">
+        <label for="phone" style="color: var(--gray-900); font-weight: 500">
+          📱 Phone Number
+        </label>
+        <input
+          type="text"
+          id="phone"
+          name="phone"
+          required
+          autofocus
+          placeholder="08123456789"
+          style="
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            color: var(--gray-900);
+          "
+        />
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.5rem">
+        <label for="password" style="color: var(--gray-900); font-weight: 500">
+          🔐 Password
+        </label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          placeholder="Enter your password"
+          style="
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            color: var(--gray-900);
+          "
+        />
+      </div>
+
+      <button
+        type="submit"
+        style="
+          background: var(--primary);
+          color: var(--white);
+          border: none;
+          border-radius: 6px;
+          padding: 0.75rem;
+          font-size: 1rem;
+          font-weight: 500;
+          cursor: pointer;
+          margin-top: 0.5rem;
+        "
+      >
+        Sign In
+      </button>
+    </form>
+
+    <!-- SEPARATOR -->
+    <div style="border-top: 1px solid var(--gray-300); margin: 1.5rem 0"></div>
+
+    <!-- FOOTER -->
+    <div style="text-align: center">
+      <p
+        style="
+          color: var(--gray-600);
+          font-size: 0.875rem;
+          margin-bottom: 0.5rem;
+        "
+      >
+        Don't have an account?
+      </p>
+      <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
+        Contact administrator for access
+      </p>
+    </div>
+  </div>
+
+  <!-- DEMO INFO -->
+  <div
+    style="
+      background: var(--gray-100);
+      border: 1px solid var(--gray-300);
+      border-left: 4px solid var(--primary);
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+    "
+  >
+    <p style="color: var(--gray-900); font-weight: 500; margin: 0 0 0.5rem 0">
+      Demo Account
+    </p>
+    <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0.25rem 0">
+      Phone: <code style="color: var(--gray-900); font-weight: 500">admin</code>
+    </p>
+    <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0.25rem 0">
+      Password:
+      <code style="color: var(--gray-900); font-weight: 500">admin123</code>
+    </p>
+  </div>
 </div>

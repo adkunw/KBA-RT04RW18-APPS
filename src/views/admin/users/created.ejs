@@ -1,68 +1,85 @@
-<h1>✅ User Created Successfully</h1>
+<!-- ADMIN LAYOUT (SIDEBAR + MAIN CONTENT) -->
+<div style="display: flex; min-height: 100vh">
+  <%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
-<div
-  style="
-    background: #d4edda;
-    border: 1px solid #c3e6cb;
-    border-left: 4px solid #28a745;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
+  <!-- MAIN CONTENT -->
+  <main
+    style="
+      margin-left: 260px;
+      flex: 1;
+      padding: 2rem;
+      background: var(--background);
+    "
+  >
+    <div style="max-width: 1024px; margin: 0 auto">
+      <h1 style="color: var(--gray-900); margin-bottom: 1.5rem;">✅ User Created Successfully</h1>
+
+            <div
+        style="
+          background: #DCFCE7;
+          border: 1px solid var(--gray-300);
+          border-left: 4px solid var(--success);
+          padding: 1rem;
+          border-radius: 8px;
+          margin-bottom: 1.5rem;
+        "
+      >
+        <p style="color: var(--success); margin: 0; font-weight: 500;">
+          User <strong><%= user.name %></strong> has been created with phone
+          <strong><%= user.phone %></strong>.
+        </p>
+      </div>
+
+      <div
+        style="
+          background: white;
+          border: 1px solid var(--gray-300);
+          padding: 1.5rem;
+          border-radius: 8px;
+          margin-bottom: 1.5rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        "
+      >
   "
 >
-  <p style="color: #155724; margin: 0">
-    User <strong><%= user.name %></strong> has been created with phone
-    <strong><%= user.phone %></strong>.
-  </p>
-</div>
-
-<div
-  style="
-    background: white;
-    border: 1px solid #ddd;
-    padding: 1.5rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-  "
->
-  <h2 style="color: #333; margin-top: 0">Activation Link</h2>
-  <p style="color: #666; margin-bottom: 1rem">
+  <h2 style="color: var(--gray-900); margin-top: 0; margin-bottom: 1rem;">Activation Link</h2>
+  <p style="color: var(--gray-600); margin-bottom: 1rem;"
     Share this link with the user so they can activate their account and set a
     password:
   </p>
 
   <div
     style="
-      background: #f5f5f5;
+      background: var(--gray-100);
       padding: 1rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      border: 1px solid var(--gray-300);
+      border-radius: 6px;
       margin-bottom: 1rem;
       word-break: break-all;
     "
   >
-    <code style="color: #333; font-family: monospace"
+    <code style="color: var(--gray-900); font-family: monospace; font-size: 0.875rem;"
       ><%= activationLink %></code
     >
   </div>
 
-  <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem">
+  <p style="color: var(--gray-600); font-size: 0.875rem; margin-bottom: 1rem;">
     <strong>Token:</strong>
-    <code style="background: #f0f0f0; padding: 2px 4px; border-radius: 2px"
+    <code style="background: var(--gray-300); padding: 2px 6px; border-radius: 4px; color: var(--gray-900);"
       ><%= activationToken.substring(0, 16) %>...</code
     >
   </p>
 
   <div
     style="
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-left: 4px solid #ff9800;
+      background: #FEF3C7;
+      border: 1px solid var(--gray-300);
+      border-left: 4px solid var(--warning);
       padding: 1rem;
-      border-radius: 4px;
+      border-radius: 8px;
     "
   >
-    <p style="color: #856404; margin: 0; font-size: 0.9rem">
+    <p style="color: var(--warning); margin: 0; font-size: 0.875rem; font-weight: 500;">
       <strong>⚠️ Important:</strong> This link will expire in 24 hours. The link
       is one-time use only.
     </p>
@@ -72,14 +89,15 @@
 <div
   style="
     background: white;
-    border: 1px solid #ddd;
+    border: 1px solid var(--gray-300);
     padding: 1.5rem;
-    border-radius: 4px;
+    border-radius: 8px;
     margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   "
 >
-  <h2 style="color: #333; margin-top: 0">Next Steps</h2>
-  <ol style="color: #555; line-height: 1.8">
+  <h2 style="color: var(--gray-900); margin-top: 0; margin-bottom: 1rem;">Next Steps</h2>
+  <ol style="color: var(--gray-700); line-height: 1.8;">
     <li>Send the activation link to the user</li>
     <li>User clicks the link and sets their password</li>
     <li>
@@ -94,13 +112,16 @@
     href="/admin/users"
     style="
       display: inline-block;
-      background: #667eea;
+      background: var(--primary);
       color: white;
       padding: 0.75rem 1.5rem;
-      border-radius: 4px;
+      border-radius: 6px;
       text-decoration: none;
       font-weight: 500;
+      transition: background 0.2s ease;
     "
+    onmouseover="this.style.background='var(--primary-dark)'"
+    onmouseout="this.style.background='var(--primary)'"
   >
     Back to User List
   </a>
@@ -108,14 +129,21 @@
     href="/admin/users/create"
     style="
       display: inline-block;
-      background: #764ba2;
-      color: white;
+      background: var(--gray-100);
+      color: var(--gray-900);
       padding: 0.75rem 1.5rem;
-      border-radius: 4px;
+      border-radius: 6px;
       text-decoration: none;
       font-weight: 500;
+      border: 1px solid var(--gray-300);
+      transition: background 0.2s ease;
     "
+    onmouseover="this.style.background='var(--gray-300)'"
+    onmouseout="this.style.background='var(--gray-100)'"
   >
     Create Another User
   </a>
+      </div>
+    </div>
+  </main>
 </div>

@@ -1,89 +1,107 @@
-<h1>User Management</h1>
+<!-- ADMIN LAYOUT (SIDEBAR + MAIN CONTENT) -->
+<div style="display: flex; min-height: 100vh">
+  <%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
-<div style="margin-bottom: 1.5rem;">
-  <a href="/admin/users/create" style="
-    display: inline-block;
-    background: #667eea;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background 0.3s ease;
-  " onmouseover="this.style.background='#5568d3'" onmouseout="this.style.background='#667eea'">
-    + Create New User
-  </a>
-</div>
+  <!-- MAIN CONTENT -->
+  <main
+    style="
+      margin-left: 260px;
+      flex: 1;
+      padding: 2rem;
+      background: var(--background);
+    "
+  >
+    <div style="max-width: 1024px; margin: 0 auto">
+      <h1 style="color: var(--gray-900); margin-bottom: 1.5rem;">👥 User Management</h1>
+
+      <div style="margin-bottom: 1.5rem;">
+        <a href="/admin/users/create" style="
+          display: inline-block;
+          background: var(--primary);
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 6px;
+          text-decoration: none;
+          font-weight: 500;
+          transition: background 0.2s ease;
+        " onmouseover="this.style.background='var(--primary-dark)'" onmouseout="this.style.background='var(--primary)'">
+          + Create New User
+        </a>
+      </div>
 
 <% if (users.length === 0) { %>
   <div style="
-    background: #f0f4ff;
-    border: 1px solid #667eea;
+    background: #DBEAFE;
+    border: 1px solid var(--gray-300);
+    border-left: 4px solid var(--primary);
     padding: 2rem;
-    border-radius: 4px;
+    border-radius: 8px;
     text-align: center;
   ">
-    <p style="color: #666; margin: 0;">No users found. <a href="/admin/users/create">Create one</a></p>
+    <p style="color: var(--gray-900); margin: 0;">No users found. <a href="/admin/users/create" style="color: var(--primary); font-weight: 500; text-decoration: none;">Create one</a></p>
   </div>
 <% } else { %>
   <div style="
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
     overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   ">
     <table style="
       width: 100%;
       border-collapse: collapse;
     ">
       <thead>
-        <tr style="background: #f5f5f5;">
-          <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Name</th>
-          <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Phone</th>
-          <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Status</th>
-          <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Roles</th>
-          <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #ddd;">Created</th>
-          <th style="padding: 1rem; text-align: center; border-bottom: 2px solid #ddd;">Actions</th>
+        <tr style="background: var(--gray-100);">
+          <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--gray-300); font-weight: 600; color: var(--gray-900);">Name</th>
+          <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--gray-300); font-weight: 600; color: var(--gray-900);">Phone</th>
+          <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--gray-300); font-weight: 600; color: var(--gray-900);">Status</th>
+          <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--gray-300); font-weight: 600; color: var(--gray-900);">Roles</th>
+          <th style="padding: 1rem; text-align: left; border-bottom: 1px solid var(--gray-300); font-weight: 600; color: var(--gray-900);">Created</th>
+          <th style="padding: 1rem; text-align: center; border-bottom: 1px solid var(--gray-300); font-weight: 600; color: var(--gray-900);">Actions</th>
         </tr>
       </thead>
       <tbody>
         <% users.forEach(user => { %>
-          <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 1rem;"><%= user.name %></td>
-            <td style="padding: 1rem;"><%= user.phone %></td>
+          <tr style="border-bottom: 1px solid var(--gray-300);">
+            <td style="padding: 1rem; color: var(--gray-900);"><%= user.name %></td>
+            <td style="padding: 1rem; color: var(--gray-600);"><%= user.phone %></td>
             <td style="padding: 1rem;">
               <span style="
                 display: inline-block;
                 padding: 0.25rem 0.75rem;
-                border-radius: 3px;
-                font-size: 0.8rem;
+                border-radius: 20px;
+                font-size: 0.75rem;
                 font-weight: 500;
-                background: <%= user.status === 'active' ? '#d4edda' : '#fff3cd' %>;
-                color: <%= user.status === 'active' ? '#155724' : '#856404' %>;
+                background: <%= user.status === 'active' ? '#DCFCE7' : '#FEF3C7' %>;
+                color: <%= user.status === 'active' ? 'var(--success)' : 'var(--warning)' %>;
               ">
                 <%= user.status.toUpperCase() %>
               </span>
             </td>
-            <td style="padding: 1rem;">
+            <td style="padding: 1rem; color: var(--gray-600);">
               <% if (user.roles.length > 0) { %>
                 <%= user.roles.map(ur => ur.role.name).join(', ') %>
               <% } else { %>
-                <span style="color: #999;">No roles</span>
+                <span style="color: var(--gray-600);">No roles</span>
               <% } %>
             </td>
-            <td style="padding: 1rem; font-size: 0.9rem; color: #666;">
+            <td style="padding: 1rem; font-size: 0.875rem; color: var(--gray-600);">
               <%= new Date(user.createdAt).toLocaleDateString() %>
             </td>
             <td style="padding: 1rem; text-align: center;">
               <a href="/admin/users/<%= user.id %>" style="
                 display: inline-block;
-                background: #667eea;
+                background: var(--primary);
                 color: white;
                 padding: 0.5rem 1rem;
-                border-radius: 3px;
+                border-radius: 6px;
                 text-decoration: none;
-                font-size: 0.8rem;
-              ">
+                font-size: 0.875rem;
+                font-weight: 500;
+                transition: background 0.2s ease;
+              " onmouseover="this.style.background='var(--primary-dark)'" onmouseout="this.style.background='var(--primary)'">
                 View
               </a>
             </td>
@@ -105,9 +123,9 @@
         <% if (page === currentPage) { %>
           <span style="
             padding: 0.5rem 1rem;
-            background: #667eea;
+            background: var(--primary);
             color: white;
-            border-radius: 3px;
+            border-radius: 6px;
             font-weight: 500;
           ">
             <%= page %>
@@ -115,11 +133,13 @@
         <% } else { %>
           <a href="/admin/users?page=<%= page %>" style="
             padding: 0.5rem 1rem;
-            background: #f0f0f0;
-            color: #333;
-            border-radius: 3px;
+            background: var(--gray-100);
+            color: var(--gray-900);
+            border-radius: 6px;
             text-decoration: none;
-          ">
+            border: 1px solid var(--gray-300);
+            transition: background 0.2s ease;
+          " onmouseover="this.style.background='var(--gray-300)'" onmouseout="this.style.background='var(--gray-100)'">
             <%= page %>
           </a>
         <% } %>
@@ -131,13 +151,17 @@
 <div style="margin-top: 2rem; text-align: center;">
   <a href="/admin" style="
     display: inline-block;
-    background: #ddd;
-    color: #333;
+    background: var(--gray-100);
+    color: var(--gray-900);
     padding: 0.75rem 1.5rem;
-    border-radius: 4px;
+    border-radius: 6px;
     text-decoration: none;
     font-weight: 500;
-  ">
+    border: 1px solid var(--gray-300);
+    transition: background 0.2s ease;
+  " onmouseover="this.style.background='var(--gray-300)'" onmouseout="this.style.background='var(--gray-100)'">
     ← Back to Admin Panel
   </a>
+    </div>
+  </main>
 </div>
