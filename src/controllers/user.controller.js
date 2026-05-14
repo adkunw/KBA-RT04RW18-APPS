@@ -11,6 +11,13 @@ const createUserSchema = z.object({
   roleId: z.string().min(1, "Role is required"),
 });
 
+const updateUserSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string().min(1, "Phone is required"),
+  status: z.enum(["created", "active", "inactive", "blocked"]),
+  roleId: z.string().min(1, "Role is required"),
+});
+
 /**
  * GET /admin/users - List all users
  */
@@ -49,6 +56,7 @@ const showCreateForm = async (req, res) => {
   try {
     // Get all available roles
     const roles = await prisma.role.findMany();
+    const flash = req.flash();
 
     res.render("admin/users/create", {
       title: "Create User",
@@ -57,6 +65,8 @@ const showCreateForm = async (req, res) => {
         id: req.session.userId,
         name: req.session.userName,
       },
+      error: flash.error?.[0] || null,
+      success: flash.success?.[0] || null,
     });
   } catch (error) {
     logger.error("Error loading create form", { error: error.message });
@@ -132,10 +142,22 @@ const viewUser = async (req, res) => {
       return res.redirect("/admin/users");
     }
 
+    let activationLink = null;
+    if (user.status === "created") {
+      const tokenRecord = await prisma.activationToken.findFirst({
+        where: { userId: id, usedAt: null },
+        orderBy: { createdAt: "desc" },
+      });
+      if (tokenRecord) {
+        activationLink = `${process.env.APP_URL || "http://localhost:3000"}/activate/${tokenRecord.token}`;
+      }
+    }
+
     res.render("admin/users/view", {
       title: "User Details",
       user,
       viewedUser: user,
+      activationLink,
     });
   } catch (error) {
     logger.error("Error viewing user", { error: error.message });
@@ -144,9 +166,122 @@ const viewUser = async (req, res) => {
   }
 };
 
+/**
+ * POST /admin/users/:id/reset-password - Reset password and generate new token
+ */
+const resetPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userService.getUserById(id);
+
+    if (!user) {
+      req.flash("error", "User not found");
+      return res.redirect("/admin/users");
+    }
+
+    // Set user status to created and wipe password
+    await prisma.user.update({
+      where: { id },
+      data: { status: "created", password: null },
+    });
+
+    // Invalidate old unused tokens
+    await prisma.activationToken.updateMany({
+      where: { userId: id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+
+    // Create new token
+    await activationService.createActivationToken(id);
+
+    req.flash("success", `Password reset for ${user.name}. New activation link generated.`);
+    res.redirect(`/admin/users/${id}`);
+  } catch (error) {
+    logger.error("Error resetting password", { error: error.message });
+    req.flash("error", "Failed to reset password");
+    res.redirect(`/admin/users/${req.params.id}`);
+  }
+};
+
+/**
+ * GET /admin/users/:id/edit - Show edit form
+ */
+const showEditForm = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userService.getUserById(id);
+    if (!user) {
+      req.flash("error", "User not found");
+      return res.redirect("/admin/users");
+    }
+
+    const roles = await prisma.role.findMany();
+    const flash = req.flash();
+
+    res.render("admin/users/edit", {
+      title: "Edit User",
+      editUser: user,
+      roles,
+      user: { id: req.session.userId, name: req.session.userName },
+      error: flash.error?.[0] || null,
+      success: flash.success?.[0] || null,
+    });
+  } catch (error) {
+    logger.error("Error loading edit form", { error: error.message });
+    req.flash("error", "Failed to load edit form");
+    res.redirect("/admin/users");
+  }
+};
+
+/**
+ * POST /admin/users/:id/edit - Update user
+ */
+const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const validation = updateUserSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      req.flash("error", "Invalid input data");
+      return res.redirect(`/admin/users/${id}/edit`);
+    }
+
+    const { name, phone, status, roleId } = validation.data;
+
+    // Check phone uniqueness
+    const existingUser = await prisma.user.findUnique({ where: { phone } });
+    if (existingUser && existingUser.id !== id) {
+      req.flash("error", "Phone number already used by another user");
+      return res.redirect(`/admin/users/${id}/edit`);
+    }
+
+    // Update user basic data
+    await prisma.user.update({
+      where: { id },
+      data: { name, phone, status },
+    });
+
+    // Update role (replace existing roles)
+    await prisma.userRole.deleteMany({ where: { userId: id } });
+    await prisma.userRole.create({
+      data: { userId: id, roleId },
+    });
+
+    req.flash("success", "User updated successfully");
+    res.redirect(`/admin/users/${id}`);
+  } catch (error) {
+    logger.error("Error updating user", { error: error.message });
+    req.flash("error", "Failed to update user");
+    res.redirect(`/admin/users/${req.params.id}/edit`);
+  }
+};
+
 module.exports = {
   listUsers,
   showCreateForm,
   createUser,
   viewUser,
+  showEditForm,
+  updateUser,
+  resetPassword,
 };

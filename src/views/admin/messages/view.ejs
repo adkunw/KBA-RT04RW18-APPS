@@ -1,0 +1,114 @@
+<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
+
+  <main class="admin-main">
+    <div class="admin-content">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <div>
+          <% if (message.type === 'announcement') { %>
+            <h1>📢 <%= message.title %></h1>
+          <% } else if (message.type === 'broadcast') { %>
+            <h1>📡 <%= message.title %></h1>
+          <% } else { %>
+            <h1>✉️ <%= message.title %></h1>
+          <% } %>
+          <p style="margin:0;font-size:0.875rem;color:var(--gray-600);">
+            Sent by <strong><%= message.sender.name %></strong> &nbsp;·&nbsp;
+            <%= new Date(message.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+          </p>
+        </div>
+        <div style="display:flex;gap:0.75rem;">
+          <a href="/admin/messages" class="btn btn-secondary">← Back</a>
+          <form method="POST" action="/admin/messages/<%= message.id %>/delete"
+            onsubmit="return confirm('Delete this message permanently?');">
+            <button type="submit" class="btn" style="background:var(--error);color:#fff;font-size:0.875rem;padding:0.5rem 1rem;">
+              🗑 Delete
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <!-- MESSAGE CONTENT -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+          <% if (message.type === 'announcement') { %>
+            <span class="badge" style="background:#DBEAFE;color:var(--primary);font-size:0.8rem;">📢 Announcement</span>
+          <% } else if (message.type === 'broadcast') { %>
+            <span class="badge" style="background:#F3E8FF;color:#7C3AED;font-size:0.8rem;">📡 Broadcast</span>
+          <% } else { %>
+            <span class="badge badge-created" style="font-size:0.8rem;">✉️ Personal</span>
+          <% } %>
+          <% if (message.type !== 'announcement') { %>
+            <span style="font-size:0.875rem;color:var(--gray-600);">
+              <strong style="color:var(--primary);"><%= readCount %></strong> read &nbsp;·&nbsp;
+              <strong style="color:var(--warning);"><%= unreadCount %></strong> unread
+            </span>
+          <% } %>
+        </div>
+        <div style="background:var(--gray-100);border-radius:6px;padding:1.25rem;line-height:1.7;color:var(--gray-900);white-space:pre-wrap;font-size:0.9375rem;">
+          <%= message.content %>
+        </div>
+      </div>
+
+      <!-- RECIPIENTS TABLE (for personal + broadcast) -->
+      <% if (message.type !== 'announcement') { %>
+        <div class="card">
+          <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
+            👥 Recipients (<%= message.recipients.length %>)
+          </h3>
+
+          <% if (message.recipients.length === 0) { %>
+            <p style="color:var(--gray-600);font-style:italic;">No recipients found</p>
+          <% } else { %>
+            <div class="table-wrapper" style="box-shadow:none;">
+              <table style="border:1px solid var(--gray-300);">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th style="text-align:center">Status</th>
+                    <th>Read At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% message.recipients.forEach(r => { %>
+                    <tr>
+                      <td style="font-weight:500;color:var(--gray-900);"><%= r.user.name %></td>
+                      <td style="color:var(--gray-600);font-size:0.875rem;"><%= r.user.phone %></td>
+                      <td style="text-align:center;">
+                        <% if (r.readAt) { %>
+                          <span class="badge badge-active">✓ Read</span>
+                        <% } else { %>
+                          <span class="badge badge-created">Unread</span>
+                        <% } %>
+                      </td>
+                      <td style="color:var(--gray-600);font-size:0.8rem;">
+                        <% if (r.readAt) { %>
+                          <%= new Date(r.readAt).toLocaleString('id-ID') %>
+                        <% } else { %>
+                          <span style="color:var(--gray-600);font-style:italic;">—</span>
+                        <% } %>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
+      <% } else { %>
+        <div class="info-box">
+          <strong>📢 Announcement</strong> — Pesan ini ditampilkan di halaman portal semua warga sebagai pengumuman publik.
+        </div>
+      <% } %>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
+
+  <main class="admin-main">
+    <div class="admin-content">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header">
+        <h1>📨 Messages</h1>
+        <a href="/admin/messages/create" class="btn btn-primary">+ Compose</a>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+      <% if (success) { %>
+        <div class="alert" style="background:#DCFCE7;border-left-color:var(--success);color:#166534;"><%= success %></div>
+      <% } %>
+
+      <!-- FILTER TABS -->
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+        <a href="/admin/messages" class="btn btn-sm <%= !filterType ? 'btn-primary' : 'btn-secondary' %>">All</a>
+        <a href="/admin/messages?type=announcement" class="btn btn-sm <%= filterType === 'announcement' ? 'btn-primary' : 'btn-secondary' %>">📢 Announcements</a>
+        <a href="/admin/messages?type=broadcast" class="btn btn-sm <%= filterType === 'broadcast' ? 'btn-primary' : 'btn-secondary' %>">📡 Broadcast</a>
+        <a href="/admin/messages?type=personal" class="btn btn-sm <%= filterType === 'personal' ? 'btn-primary' : 'btn-secondary' %>">✉️ Personal</a>
+      </div>
+
+      <% if (messages.length === 0) { %>
+        <div class="card empty-state">
+          <p>No messages found<% if (filterType) { %> for this filter<% } %>.</p>
+          <a href="/admin/messages/create" class="btn btn-primary">Compose first message</a>
+        </div>
+      <% } else { %>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th style="text-align:center">Type</th>
+                <th>Sent by</th>
+                <th style="text-align:center">Recipients</th>
+                <th>Date</th>
+                <th style="text-align:center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% messages.forEach(msg => { %>
+                <tr>
+                  <td style="font-weight:500;color:var(--gray-900);max-width:280px;">
+                    <%= msg.title %>
+                  </td>
+                  <td style="text-align:center;">
+                    <% if (msg.type === 'announcement') { %>
+                      <span class="badge" style="background:#DBEAFE;color:var(--primary);">📢 Announcement</span>
+                    <% } else if (msg.type === 'broadcast') { %>
+                      <span class="badge" style="background:#F3E8FF;color:#7C3AED;">📡 Broadcast</span>
+                    <% } else { %>
+                      <span class="badge badge-created">✉️ Personal</span>
+                    <% } %>
+                  </td>
+                  <td style="color:var(--gray-600);font-size:0.875rem;"><%= msg.sender.name %></td>
+                  <td style="text-align:center;color:var(--gray-600);font-size:0.875rem;">
+                    <% if (msg.type === 'announcement') { %>
+                      <span style="color:var(--gray-600);font-style:italic;">Public</span>
+                    <% } else { %>
+                      <span style="font-weight:600;color:var(--primary);"><%= msg._count.recipients %></span>
+                    <% } %>
+                  </td>
+                  <td style="color:var(--gray-600);font-size:0.875rem;">
+                    <%= new Date(msg.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) %>
+                  </td>
+                  <td style="text-align:center;">
+                    <a href="/admin/messages/<%= msg.id %>" class="btn btn-secondary btn-sm">View</a>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+
+      <div style="margin-top:2rem;">
+        <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

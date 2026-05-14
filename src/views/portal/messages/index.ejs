@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Messages - RT Management System</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    body { background: var(--background); }
+    .portal-nav {
+      background: var(--primary);
+      padding: 0.875rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
+    .portal-nav a:hover { color: white; }
+    .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
+    .portal-content { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
+  </style>
+</head>
+<body>
+
+<nav class="portal-nav">
+  <a href="/portal" class="brand">RT Management</a>
+  <div style="display:flex;align-items:center;gap:1.5rem;">
+    <a href="/portal">🏠 Portal</a>
+    <% if (typeof hasAdminAccess !== 'undefined' && hasAdminAccess) { %>
+      <a href="/admin">⚙️ Admin Panel</a>
+    <% } %>
+    <a href="/auth/logout">Logout →</a>
+  </div>
+</nav>
+
+<div class="portal-content">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>📨 My Messages</h1>
+    <a href="/portal" class="btn btn-secondary">← Portal</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+
+  <% if (messages.length === 0) { %>
+    <div class="card empty-state">
+      <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
+      <p>You have no messages yet.</p>
+    </div>
+  <% } else { %>
+    <div style="display:flex;flex-direction:column;gap:0.625rem;">
+      <% messages.forEach(item => { %>
+        <a href="/portal/messages/<%= item.message.id %>" style="text-decoration:none;">
+          <div style="
+            background:white;
+            border:1px solid <%= item.readAt ? 'var(--gray-300)' : 'var(--primary)' %>;
+            border-left:4px solid <%= item.readAt ? 'var(--gray-300)' : 'var(--primary)' %>;
+            border-radius:8px;
+            padding:1rem 1.25rem;
+            display:flex;align-items:center;justify-content:space-between;gap:1rem;
+            transition:box-shadow 0.15s ease;
+          "
+          onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'"
+          onmouseout="this.style.boxShadow='none'">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+                <% if (!item.readAt) { %>
+                  <span style="width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0;"></span>
+                <% } %>
+                <span style="font-weight:<%= item.readAt ? '400' : '700' %>;color:var(--gray-900);font-size:0.9375rem;">
+                  <%= item.message.title %>
+                </span>
+              </div>
+              <div style="font-size:0.8rem;color:var(--gray-600);">
+                From <strong><%= item.message.sender.name %></strong>
+                &nbsp;·&nbsp;
+                <% if (item.message.type === 'broadcast') { %>
+                  <span style="color:#7C3AED;">📡 Broadcast</span>
+                <% } else { %>
+                  <span style="color:var(--primary);">✉️ Personal</span>
+                <% } %>
+                &nbsp;·&nbsp;
+                <%= new Date(item.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) %>
+              </div>
+            </div>
+            <% if (!item.readAt) { %>
+              <span style="background:var(--primary);color:white;font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:10px;white-space:nowrap;flex-shrink:0;">NEW</span>
+            <% } else { %>
+              <span style="font-size:0.75rem;color:var(--gray-600);flex-shrink:0;">Read ✓</span>
+            <% } %>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  <% } %>
+
+</div>
+</body>
+</html>

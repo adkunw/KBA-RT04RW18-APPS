@@ -1,0 +1,51 @@
+<%- include('../_sidebar.ejs', { currentPage: 'roles' }) %>
+
+  <main class="admin-main">
+    <div class="admin-content">
+
+      <div class="page-header">
+        <h1>➕ Create New Role</h1>
+        <a href="/admin/roles" class="btn btn-secondary">← Back to Roles</a>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <div style="max-width:480px;">
+        <div class="card" style="margin-bottom:1.5rem;">
+          <form method="POST" action="/admin/roles" style="display:flex;flex-direction:column;gap:0;">
+
+            <div class="form-group">
+              <label for="name">Role Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                autofocus
+                placeholder="e.g., ketua_rw, bendahara"
+                style="font-family:monospace;"
+              >
+              <p style="font-size:0.8rem;color:var(--gray-600);margin-top:0.375rem;margin-bottom:0;">
+                Lowercase letters, numbers, and underscores only. Example: <code>ketua_rw</code>
+              </p>
+            </div>
+
+            <div class="form-actions" style="margin-top:1.25rem;">
+              <button type="submit" class="btn btn-primary" style="flex:1;">Create Role</button>
+              <a href="/admin/roles" class="btn btn-secondary" style="flex:1;text-align:center;">Cancel</a>
+            </div>
+          </form>
+        </div>
+
+        <div class="info-box">
+          <strong>💡 Note:</strong> Setelah role dibuat, buka halaman detail role untuk men-assign permissions yang dibutuhkan.
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

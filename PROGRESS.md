@@ -1085,6 +1085,226 @@ All admin pages now follow consistent pattern:
 
 ---
 
+### 🗓️ 2026-05-14 - Hotfix: Admin Pages CSS Not Loading
+
+**Task:**
+Fix admin panel pages rendering without CSS (all white, no buttons visible)
+
+**Detail Perubahan:**
+
+- ✅ Root cause identified: Admin EJS views (`dashboard.ejs`, `users/*.ejs`) hanya berisi partial HTML tanpa `<html>/<head>` — tidak ada cara untuk me-load CSS variables dari `layout.ejs` yang hanya dipakai oleh halaman non-admin
+- ✅ Created `public/css/admin.css` — full stylesheet dengan:
+  - CSS custom properties (theme variables: `--primary`, `--gray-*`, dll)
+  - Base reset & typography
+  - Admin layout classes: `.admin-wrapper`, `.admin-sidebar`, `.admin-main`, `.admin-content`
+  - Sidebar classes: `.admin-sidebar-nav`, `.admin-sidebar-nav a.active`
+  - UI component classes: `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-sm`
+  - `.card`, `.table-wrapper`, `.badge`, `.badge-active`, `.badge-created`
+  - `.page-header`, `.form-group`, `.form-actions`, `.pagination`, `.info-box`
+  - `.hero`, `.stats-grid`, `.stat-card`
+- ✅ Rewrote `src/views/admin/_sidebar.ejs` menjadi full HTML document opener:
+  - Include `<!DOCTYPE html>`, `<html>`, `<head>`, `<link rel="stylesheet" href="/css/admin.css">`
+  - Sidebar markup menggunakan CSS class (bukan inline style)
+  - Semua admin pages otomatis dapat CSS tanpa perubahan per-file
+- ✅ Rewrote `src/views/admin/users/index.ejs`:
+  - Added `</body></html>` di akhir
+  - Added proper `.page-header` dengan tombol **"+ Add User"** di kanan atas
+  - Table rows sekarang punya tombol **"View"** dengan class `.btn .btn-secondary .btn-sm`
+  - Status badge menggunakan class `.badge .badge-{status}`
+- ✅ Rewrote `src/views/admin/users/create.ejs` — clean class-based markup + HTML close tag
+- ✅ Rewrote `src/views/admin/users/view.ejs` — clean class-based markup + HTML close tag
+- ✅ Rewrote `src/views/admin/users/created.ejs` — clean class-based markup + HTML close tag
+- ✅ Updated `src/views/admin/dashboard.ejs` — ganti inline layout style ke `.admin-main` / `.admin-content` + HTML close tag
+
+**File Terdampak:**
+
+- `public/css/admin.css` (new) — Admin panel stylesheet
+- `src/views/admin/_sidebar.ejs` (rewritten) — Full HTML opener dengan CSS link
+- `src/views/admin/dashboard.ejs` (updated) — CSS classes + HTML close tags
+- `src/views/admin/users/index.ejs` (rewritten) — Add User button + View action buttons
+- `src/views/admin/users/create.ejs` (rewritten) — Clean markup
+- `src/views/admin/users/view.ejs` (rewritten) — Clean markup
+- `src/views/admin/users/created.ejs` (rewritten) — Clean markup
+
+**Perubahan Database:**
+
+- Tidak ada
+
+**Perubahan RBAC:**
+
+- Tidak ada
+
+**Catatan:**
+
+- Solusi dipilih: CSS di external file + sidebar sebagai HTML opener, bukan modifikasi Express render pipeline
+- Semua admin page kini valid HTML dengan proper `<html>/<head>/<body>` structure
+- CSS variables sekarang didefinisikan di `admin.css` — tidak bergantung pada `layout.ejs`
+- Bug lain ditemukan: `authMiddleware.js` redirect ke `/login` (404), harusnya `/auth/login` — perlu di-fix terpisah
+
+---
+
+### 🗓️ 2026-05-14 - Step 2: Role & Permission Management
+
+**Task:**
+Implementasi fitur manajemen Role & Permission di admin panel (`/admin/roles`)
+
+**Detail Perubahan:**
+
+**Services (1 file baru):**
+
+- ✅ `src/services/role.service.js`:
+  - `listRoles()` — semua role dengan `_count` permissions & users
+  - `getRoleById(roleId)` — detail role + permissions + users
+  - `createRole(name)` — buat role baru (guard: cek duplicate)
+  - `deleteRole(roleId)` — hapus role (guard: tidak bisa hapus `super_admin`)
+  - `assignPermission(roleId, permissionId)` — assign dengan guard duplicate
+  - `revokePermission(roleId, permissionId)` — revoke dengan guard: `super_admin` minimal 1 permission
+  - `listPermissions()` — semua permission yang tersedia
+
+**Controllers (1 file baru):**
+
+- ✅ `src/controllers/role.controller.js`:
+  - `listRoles()` — render daftar roles
+  - `showCreateForm()` — render form create
+  - `createRole()` — proses create dengan Zod validation (nama: lowercase, huruf/angka/underscore)
+  - `viewRole()` — render detail role + pisahkan assigned vs unassigned permissions
+  - `deleteRole()` — hapus role dengan flash message
+  - `assignPermission()` — assign permission ke role
+  - `revokePermission()` — revoke permission dari role
+
+**Routes (1 file baru):**
+
+- ✅ `src/routes/role.routes.js`:
+  - Semua endpoint dilindungi `isAuthenticated` + `requirePermission('role.manage')`
+  - `GET /admin/roles` — list
+  - `GET /admin/roles/create` — form
+  - `POST /admin/roles` — submit
+  - `GET /admin/roles/:id` — detail
+  - `POST /admin/roles/:id/delete` — hapus
+  - `POST /admin/roles/:id/permissions/assign` — assign
+  - `POST /admin/roles/:id/permissions/revoke` — revoke
+
+**Views (3 file baru):**
+
+- ✅ `src/views/admin/roles/index.ejs`:
+  - Tabel: Role Name, Permissions count, Users count, Type badge (System/Custom), Actions
+  - Tombol "+ Add Role" di page header
+  - `super_admin` diberi badge "Protected"
+  - Bagian bawah: overview semua permissions di sistem
+- ✅ `src/views/admin/roles/create.ejs`:
+  - Form input nama role dengan format hint (lowercase/underscore)
+  - Info note tentang assign permission setelah create
+- ✅ `src/views/admin/roles/view.ejs`:
+  - 2-kolom: kiri = assigned permissions (+ Revoke button), kanan = unassigned (+ radio assign form)
+  - Tabel users yang memiliki role ini
+  - Tombol "Delete Role" merah di header (hidden untuk `super_admin`)
+  - Warning banner untuk `super_admin`
+
+**Routes Index (updated):**
+
+- ✅ `src/routes/index.js` — mount `roleRoutes` di `/admin/roles`
+
+**Bug Fixes:**
+
+- ✅ `src/middlewares/authMiddleware.js` — fix redirect dari `/login` → `/auth/login`
+- ✅ `src/middlewares/rbacMiddleware.js` — fix redirect dari `/login` → `/auth/login`
+
+**File Terdampak:**
+
+- `src/services/role.service.js` (new)
+- `src/controllers/role.controller.js` (new)
+- `src/routes/role.routes.js` (new)
+- `src/routes/index.js` (updated)
+- `src/views/admin/roles/index.ejs` (new)
+- `src/views/admin/roles/create.ejs` (new)
+- `src/views/admin/roles/view.ejs` (new)
+- `src/middlewares/authMiddleware.js` (bug fix)
+- `src/middlewares/rbacMiddleware.js` (bug fix)
+
+**Perubahan Database:**
+
+- Tidak ada perubahan schema
+- Menggunakan tabel `roles`, `permissions`, `role_permissions` yang sudah ada
+
+**Perubahan RBAC:**
+
+- Semua endpoint `/admin/roles/*` memerlukan permission `role.manage`
+- Guard di service: `super_admin` tidak bisa dihapus, tidak bisa kehilangan semua permission
+- Tidak ada hardcoded role check — semua via `requirePermission()`
+
+**Catatan:**
+
+- Permission manage di UI: assign/revoke via radio button (satu per satu)
+- Fitur CRUD permission sendiri tidak diimplementasikan (sesuai scope: permission sudah ter-seed)
+- Validasi nama role: `/^[a-z0-9_]+$/` untuk consistency
+- Flash messages untuk semua operasi sukses/gagal
+
+---
+
+### 🗓️ 2026-05-15 - Step 3: Messages & Announcements
+
+**Task:**
+Implementasi fitur pengiriman pesan (personal/broadcast) dan pengumuman publik (announcements) dari admin ke warga.
+
+**Detail Perubahan:**
+
+**Schema (Database):**
+- ✅ Tambah enum `MessageType` (personal, broadcast, announcement)
+- ✅ Tambah model `Message`
+- ✅ Tambah model `MessageRecipient` (termasuk status tracking `readAt`)
+- ✅ Relasi baru di model `User` (`sentMessages` dan `receivedMessages`)
+
+**Permissions (RBAC):**
+- ✅ Tambah permission `message.create` dan `message.read`
+- ✅ Update seed script untuk memasukkan permission baru ke `super_admin` dan `ketua_rt`
+
+**Services (1 file baru):**
+- ✅ `src/services/message.service.js`:
+  - `createMessage()` — bikin pesan (kalau broadcast, otomatis tarik semua warga aktif ke recipients)
+  - `listMessages()`, `getMessageById()`, `deleteMessage()` — CRUD standar admin
+  - `getInboxForUser()`, `getInboxMessage()`, `markAsRead()` — Fitur portal inbox
+  - `getAnnouncements()` — Ambil pengumuman publik
+  - `getUnreadCount()` — Hitung unread untuk badge UI
+
+**Controllers (2 file baru/diupdate):**
+- ✅ `src/controllers/message.controller.js`: Handle Admin side (list, form compose, submit, view detail, delete)
+- ✅ `src/controllers/portal.controller.js`: Handle Portal side (inbox list, read message)
+
+**Routes:**
+- ✅ `src/routes/message.routes.js`: Protected admin route (`message.read`, `message.create`)
+- ✅ `src/routes/portal.routes.js`: Protected portal route (hanya perlu `isAuthenticated`)
+- ✅ `src/routes/index.js`: Update endpoint mounting
+
+**Views (Admin):**
+- ✅ `src/views/admin/messages/index.ejs`: List pesan terkirim beserta status baca
+- ✅ `src/views/admin/messages/create.ejs`: Form dinamis (opsi recipient checkbox otomatis muncul jika tipe = personal)
+- ✅ `src/views/admin/messages/view.ejs`: Detail dan read receipt per warga
+- ✅ `src/views/admin/_sidebar.ejs`: Tambah link navigasi "Messages"
+
+**Views (Portal):**
+- ✅ `src/views/portal/messages/index.ejs`: Inbox pribadi warga (ada indikator badge NEW)
+- ✅ `src/views/portal/messages/view.ejs`: Detail pesan di sisi warga
+- ✅ `src/views/portal/index.ejs`: Ganti announcement hardcoded menjadi data live dari database (`announcements`) + Badge unread di card messages
+
+**File Terdampak:**
+- `prisma/schema.prisma`
+- `prisma/seed.js`
+- `src/services/message.service.js` (new)
+- `src/controllers/message.controller.js` (new)
+- `src/controllers/portal.controller.js` (new)
+- `src/routes/message.routes.js` (new)
+- `src/routes/portal.routes.js` (new)
+- `src/routes/index.js`
+- `src/views/admin/messages/*` (new)
+- `src/views/portal/messages/*` (new)
+- `src/views/portal/index.ejs`
+- `src/views/admin/_sidebar.ejs`
+- `DATABASE.md`
+- `RBAC.md`
+- `ARCHITECTURE.md`
+
+---
+
 ## 🧠 UPDATE RULES
 
 ### WAJIB:

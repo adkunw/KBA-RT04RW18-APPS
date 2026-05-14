@@ -159,7 +159,8 @@ Menjadi halaman utama user setelah login
 
 ### Future:
 
-- Pengumuman
+- Pengumuman (Dinamis dari DB)
+- Pesan Inbox Warga
 - Iuran
 - Informasi RT
 
@@ -176,6 +177,7 @@ Sebagai control center untuk sistem
 - CRUD Warga
 - Role Management
 - Permission Management
+- Message & Announcement Management
 
 ---
 

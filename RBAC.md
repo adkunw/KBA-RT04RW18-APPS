@@ -85,6 +85,13 @@ resource.action
 
 ---
 
+### MESSAGE MANAGEMENT
+
+- message.create
+- message.read
+
+---
+
 ## 🧩 ROLE DEFAULT MAPPING
 
 ### SUPER ADMIN
@@ -99,6 +106,8 @@ resource.action
 - warga.create
 - warga.read
 - warga.update
+- message.create
+- message.read
 
 ---
 

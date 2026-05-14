@@ -1,0 +1,65 @@
+<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+    <div class="admin-content">
+
+      <div class="page-header">
+        <h1>✏️ Edit User: <%= editUser.name %></h1>
+        <a href="/admin/users/<%= editUser.id %>" class="btn btn-secondary">← Back to Profile</a>
+      </div>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <div class="card" style="max-width: 640px; margin-bottom: 2rem;">
+        <form method="POST" action="/admin/users/<%= editUser.id %>/edit" style="display:flex; flex-direction:column; gap:1.25rem;">
+          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" value="<%= editUser.name %>" required autofocus>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number (Login ID)</label>
+            <input type="text" id="phone" name="phone" value="<%= editUser.phone %>" required>
+          </div>
+
+          <div class="form-group">
+            <label for="status">Account Status</label>
+            <select id="status" name="status" required>
+              <option value="created" <%= editUser.status === 'created' ? 'selected' : '' %>>Created (Pending Activation)</option>
+              <option value="active" <%= editUser.status === 'active' ? 'selected' : '' %>>Active</option>
+              <option value="inactive" <%= editUser.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+              <option value="blocked" <%= editUser.status === 'blocked' ? 'selected' : '' %>>Blocked</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="roleId">Assigned Role</label>
+            <select id="roleId" name="roleId" required>
+              <% 
+                const currentRoleId = editUser.roles.length > 0 ? editUser.roles[0].roleId : '';
+              %>
+              <option value="">-- Select a role --</option>
+              <% roles.forEach(role => { %>
+                <option value="<%= role.id %>" <%= role.id === currentRoleId ? 'selected' : '' %>><%= role.name %></option>
+              <% }); %>
+            </select>
+            <small style="color:var(--gray-500); display:block; margin-top:0.25rem;">Changing the role will replace any existing roles.</small>
+          </div>
+
+          <div class="form-actions" style="margin-top:0.5rem;">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="/admin/users/<%= editUser.id %>" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

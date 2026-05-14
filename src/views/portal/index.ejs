@@ -1,5 +1,43 @@
-<!-- PORTAL CONTAINER (STRICT THEME COMPLIANCE) -->
-<div style="max-width: 1024px; margin: 0 auto; padding: 0 1rem">
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal - RT Management System</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    body { background: var(--background); }
+    .portal-nav {
+      background: var(--primary);
+      padding: 0.875rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin-bottom: 2rem;
+    }
+    .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
+    .portal-nav a:hover { color: white; }
+    .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
+    .portal-content { max-width: 1024px; margin: 0 auto; padding: 0 1rem 2rem 1rem; }
+  </style>
+</head>
+<body>
+
+<nav class="portal-nav">
+  <a href="/portal" class="brand">RT Management</a>
+  <div style="display:flex;align-items:center;gap:1.5rem;">
+    <a href="/portal" style="color:white;font-weight:600;">🏠 Portal</a>
+    <% if (typeof hasAdminAccess !== 'undefined' && hasAdminAccess) { %>
+      <a href="/admin">⚙️ Admin Panel</a>
+    <% } %>
+    <a href="/auth/logout">Logout →</a>
+  </div>
+</nav>
+
+<div class="portal-content">
   <!-- HERO SECTION -->
   <div
     style="
@@ -35,50 +73,10 @@
     >
       Stay connected with your community and never miss important announcements.
     </p>
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap">
-      <button
-        style="
-          background: var(--white);
-          color: var(--primary);
-          border: none;
-          border-radius: 6px;
-          padding: 0.75rem 1.5rem;
-          font-weight: 500;
-          cursor: pointer;
-          font-size: 1rem;
-        "
-      >
-        View Profile
-      </button>
-      <button
-        style="
-          background: transparent;
-          color: var(--white);
-          border: 2px solid var(--white);
-          border-radius: 6px;
-          padding: 0.75rem 1.5rem;
-          font-weight: 500;
-          cursor: pointer;
-          font-size: 1rem;
-        "
-      >
-        Upload Document
-      </button>
-    </div>
   </div>
 
   <!-- QUICK ACTIONS SECTION -->
   <div style="margin-bottom: 2rem">
-    <h2
-      style="
-        margin: 0 0 1rem 0;
-        font-size: 1.5rem;
-        color: var(--gray-900);
-        font-weight: 600;
-      "
-    >
-      Quick Actions
-    </h2>
     <div
       style="
         display: grid;
@@ -87,78 +85,88 @@
       "
     >
       <!-- QUICK ACTION CARD 1 -->
-      <div
-        style="
-          background: var(--white);
-          border: 1px solid var(--gray-300);
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        "
-        onmouseover="
-          this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-          this.style.transform = 'translateY(-2px)';
-        "
-        onmouseout="
-          this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
-          this.style.transform = 'translateY(0)';
-        "
-      >
-        <div style="font-size: 2rem; margin-bottom: 0.75rem">📋</div>
-        <h3
+      <a href="/portal/profile" style="text-decoration: none; color: inherit;">
+        <div
           style="
-            margin: 0 0 0.5rem 0;
-            font-size: 1rem;
-            color: var(--gray-900);
-            font-weight: 600;
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          "
+          onmouseover="
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+            this.style.transform = 'translateY(-2px)';
+          "
+          onmouseout="
+            this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+            this.style.transform = 'translateY(0)';
           "
         >
-          My Profile
-        </h3>
-        <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-          View and edit information
-        </p>
-      </div>
+          <div style="font-size: 2rem; margin-bottom: 0.75rem">📋</div>
+          <h3
+            style="
+              margin: 0 0 0.5rem 0;
+              font-size: 1rem;
+              color: var(--gray-900);
+              font-weight: 600;
+            "
+          >
+            My Profile
+          </h3>
+          <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
+            View and edit information
+          </p>
+        </div>
+      </a>
 
       <!-- QUICK ACTION CARD 2 -->
-      <div
-        style="
-          background: var(--white);
-          border: 1px solid var(--gray-300);
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        "
-        onmouseover="
-          this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
-          this.style.transform = 'translateY(-2px)';
-        "
-        onmouseout="
-          this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
-          this.style.transform = 'translateY(0)';
-        "
-      >
-        <div style="font-size: 2rem; margin-bottom: 0.75rem">📢</div>
-        <h3
+      <a href="/portal/messages" style="text-decoration: none; color: inherit;">
+        <div
           style="
-            margin: 0 0 0.5rem 0;
-            font-size: 1rem;
-            color: var(--gray-900);
-            font-weight: 600;
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+          "
+          onmouseover="
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+            this.style.transform = 'translateY(-2px)';
+          "
+          onmouseout="
+            this.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+            this.style.transform = 'translateY(0)';
           "
         >
-          Messages
-        </h3>
-        <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-          Check community messages
-        </p>
-      </div>
+          <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+            <div style="position:absolute;top:1rem;right:1rem;background:var(--error);color:white;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:10px;">
+              <%= unreadCount %> NEW
+            </div>
+          <% } %>
+          <div style="font-size: 2rem; margin-bottom: 0.75rem">📢</div>
+          <h3
+            style="
+              margin: 0 0 0.5rem 0;
+              font-size: 1rem;
+              color: var(--gray-900);
+              font-weight: 600;
+            "
+          >
+            Messages
+          </h3>
+          <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
+            Check community messages
+          </p>
+        </div>
+      </a>
 
       <!-- QUICK ACTION CARD 3 -->
       <div
@@ -249,156 +257,72 @@
       📢 Latest Announcements
     </h2>
     <div style="display: flex; flex-direction: column; gap: 1rem">
-      <!-- ANNOUNCEMENT CARD 1 -->
-      <div
-        style="
-          background: var(--white);
-          border: 1px solid var(--gray-300);
-          border-left: 4px solid var(--success);
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-          "
-        >
-          <div>
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                font-size: 1.125rem;
-                color: var(--gray-900);
-                font-weight: 600;
-              "
-            >
-              🎉 Community Event This Weekend
-            </h3>
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 0.5rem 0;
-                line-height: 1.6;
-              "
-            >
-              Join us for the weekly community gathering at the RT office.
-            </p>
-            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              Posted on Mar 19, 2026
-            </p>
-          </div>
-          <span
+      <% if (typeof announcements !== 'undefined' && announcements.length > 0) { %>
+        <% announcements.forEach((ann, index) => { %>
+          <div
             style="
-              background: #dcfce7;
-              color: var(--success);
-              padding: 0.25rem 0.75rem;
-              border-radius: 20px;
-              font-size: 0.75rem;
-              font-weight: 500;
-              white-space: nowrap;
+              background: var(--white);
+              border: 1px solid var(--gray-300);
+              border-left: 4px solid var(--primary);
+              border-radius: 8px;
+              padding: 1.5rem;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             "
           >
-            New
-          </span>
-        </div>
-      </div>
-
-      <!-- ANNOUNCEMENT CARD 2 -->
-      <div
-        style="
-          background: var(--white);
-          border: 1px solid var(--gray-300);
-          border-left: 4px solid var(--warning);
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-          "
-        >
-          <div>
-            <h3
+            <div
               style="
-                margin: 0 0 0.5rem 0;
-                font-size: 1.125rem;
-                color: var(--gray-900);
-                font-weight: 600;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
               "
             >
-              ⚠️ Maintenance Notice: Water Supply
-            </h3>
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 0.5rem 0;
-                line-height: 1.6;
-              "
-            >
-              Scheduled water supply maintenance on Mar 25 from 10 AM to 2 PM.
-            </p>
-            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              Posted on Mar 18, 2026
-            </p>
+              <div>
+                <h3
+                  style="
+                    margin: 0 0 0.5rem 0;
+                    font-size: 1.125rem;
+                    color: var(--gray-900);
+                    font-weight: 600;
+                  "
+                >
+                  <%= ann.title %>
+                </h3>
+                <p
+                  style="
+                    color: var(--gray-600);
+                    font-size: 0.875rem;
+                    margin: 0 0 0.5rem 0;
+                    line-height: 1.6;
+                    white-space: pre-wrap;
+                  "
+                ><%= ann.content %></p>
+                <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
+                  Posted on <%= new Date(ann.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %> by <%= ann.sender.name %>
+                </p>
+              </div>
+              <% if (index === 0) { %>
+                <span
+                  style="
+                    background: #dcfce7;
+                    color: var(--success);
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 20px;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                    white-space: nowrap;
+                  "
+                >
+                  New
+                </span>
+              <% } %>
+            </div>
           </div>
+        <% }); %>
+      <% } else { %>
+        <div style="background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:2rem;text-align:center;color:var(--gray-600);">
+          There are no announcements right now.
         </div>
-      </div>
-
-      <!-- ANNOUNCEMENT CARD 3 -->
-      <div
-        style="
-          background: var(--white);
-          border: 1px solid var(--gray-300);
-          border-left: 4px solid var(--primary);
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-          "
-        >
-          <div>
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                font-size: 1.125rem;
-                color: var(--gray-900);
-                font-weight: 600;
-              "
-            >
-              📝 New Regulation: Parking Policy
-            </h3>
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 0.5rem 0;
-                line-height: 1.6;
-              "
-            >
-              Please review the updated parking regulations for common areas.
-            </p>
-            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              Posted on Mar 15, 2026
-            </p>
-          </div>
-        </div>
-      </div>
+      <% } %>
     </div>
   </div>
 
@@ -439,3 +363,5 @@
     </div>
   </div>
 </div>
+</body>
+</html>

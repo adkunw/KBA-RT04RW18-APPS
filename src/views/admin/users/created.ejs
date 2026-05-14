@@ -1,149 +1,57 @@
-<!-- ADMIN LAYOUT (SIDEBAR + MAIN CONTENT) -->
-<div style="display: flex; min-height: 100vh">
-  <%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
   <!-- MAIN CONTENT -->
-  <main
-    style="
-      margin-left: 260px;
-      flex: 1;
-      padding: 2rem;
-      background: var(--background);
-    "
-  >
-    <div style="max-width: 1024px; margin: 0 auto">
-      <h1 style="color: var(--gray-900); margin-bottom: 1.5rem;">✅ User Created Successfully</h1>
+  <main class="admin-main">
+    <div class="admin-content">
 
-            <div
-        style="
-          background: #DCFCE7;
-          border: 1px solid var(--gray-300);
-          border-left: 4px solid var(--success);
-          padding: 1rem;
-          border-radius: 8px;
-          margin-bottom: 1.5rem;
-        "
-      >
-        <p style="color: var(--success); margin: 0; font-weight: 500;">
-          User <strong><%= user.name %></strong> has been created with phone
-          <strong><%= user.phone %></strong>.
+      <div class="page-header">
+        <h1>✅ User Created Successfully</h1>
+        <a href="/admin/users" class="btn btn-secondary">← User List</a>
+      </div>
+
+      <!-- Success Banner -->
+      <div class="alert" style="background:#DCFCE7; border-left-color:var(--success); color:#166534; margin-bottom:1.5rem;">
+        User <strong><%= user.name %></strong> has been created with phone <strong><%= user.phone %></strong>.
+      </div>
+
+      <!-- Activation Link Card -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h2 style="margin-bottom:0.75rem; font-size:1rem;">Activation Link</h2>
+        <p>Share this link with the user so they can activate their account and set a password:</p>
+
+        <div style="background:var(--gray-100); border:1px solid var(--gray-300); border-radius:6px; padding:1rem; margin-bottom:1rem; word-break:break-all;">
+          <code style="color:var(--gray-900); font-size:0.875rem;"><%= activationLink %></code>
+        </div>
+
+        <p style="font-size:0.875rem; margin:0;">
+          <strong>Token (first 16 chars):</strong>
+          <code style="background:var(--gray-100); color:var(--gray-600);"><%= activationToken.substring(0, 16) %>...</code>
         </p>
+
+        <div class="alert" style="background:#FEF3C7; border-left-color:var(--warning); color:#92400E; margin-top:1rem; margin-bottom:0;">
+          <strong>⚠️ Important:</strong> This link will expire in 24 hours and is one-time use only.
+        </div>
       </div>
 
-      <div
-        style="
-          background: white;
-          border: 1px solid var(--gray-300);
-          padding: 1.5rem;
-          border-radius: 8px;
-          margin-bottom: 1.5rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        "
-      >
-  "
->
-  <h2 style="color: var(--gray-900); margin-top: 0; margin-bottom: 1rem;">Activation Link</h2>
-  <p style="color: var(--gray-600); margin-bottom: 1rem;"
-    Share this link with the user so they can activate their account and set a
-    password:
-  </p>
-
-  <div
-    style="
-      background: var(--gray-100);
-      padding: 1rem;
-      border: 1px solid var(--gray-300);
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      word-break: break-all;
-    "
-  >
-    <code style="color: var(--gray-900); font-family: monospace; font-size: 0.875rem;"
-      ><%= activationLink %></code
-    >
-  </div>
-
-  <p style="color: var(--gray-600); font-size: 0.875rem; margin-bottom: 1rem;">
-    <strong>Token:</strong>
-    <code style="background: var(--gray-300); padding: 2px 6px; border-radius: 4px; color: var(--gray-900);"
-      ><%= activationToken.substring(0, 16) %>...</code
-    >
-  </p>
-
-  <div
-    style="
-      background: #FEF3C7;
-      border: 1px solid var(--gray-300);
-      border-left: 4px solid var(--warning);
-      padding: 1rem;
-      border-radius: 8px;
-    "
-  >
-    <p style="color: var(--warning); margin: 0; font-size: 0.875rem; font-weight: 500;">
-      <strong>⚠️ Important:</strong> This link will expire in 24 hours. The link
-      is one-time use only.
-    </p>
-  </div>
-</div>
-
-<div
-  style="
-    background: white;
-    border: 1px solid var(--gray-300);
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  "
->
-  <h2 style="color: var(--gray-900); margin-top: 0; margin-bottom: 1rem;">Next Steps</h2>
-  <ol style="color: var(--gray-700); line-height: 1.8;">
-    <li>Send the activation link to the user</li>
-    <li>User clicks the link and sets their password</li>
-    <li>
-      User's account status automatically changes to <strong>ACTIVE</strong>
-    </li>
-    <li>User can then log in with their phone and password</li>
-  </ol>
-</div>
-
-<div style="display: flex; gap: 1rem">
-  <a
-    href="/admin/users"
-    style="
-      display: inline-block;
-      background: var(--primary);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: background 0.2s ease;
-    "
-    onmouseover="this.style.background='var(--primary-dark)'"
-    onmouseout="this.style.background='var(--primary)'"
-  >
-    Back to User List
-  </a>
-  <a
-    href="/admin/users/create"
-    style="
-      display: inline-block;
-      background: var(--gray-100);
-      color: var(--gray-900);
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 500;
-      border: 1px solid var(--gray-300);
-      transition: background 0.2s ease;
-    "
-    onmouseover="this.style.background='var(--gray-300)'"
-    onmouseout="this.style.background='var(--gray-100)'"
-  >
-    Create Another User
-  </a>
+      <!-- Next Steps Card -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h2 style="margin-bottom:0.75rem; font-size:1rem;">Next Steps</h2>
+        <ol style="color:var(--gray-700); line-height:2; padding-left:1.25rem;">
+          <li>Send the activation link to the user</li>
+          <li>User clicks the link and sets their password</li>
+          <li>User's account status automatically changes to <strong>ACTIVE</strong></li>
+          <li>User can then log in with their phone and password</li>
+        </ol>
       </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <a href="/admin/users" class="btn btn-primary">Back to User List</a>
+        <a href="/admin/users/create" class="btn btn-secondary">Create Another User</a>
+      </div>
+
     </div>
   </main>
 </div>
+</body>
+</html>

@@ -16,6 +16,8 @@ async function main() {
     { name: "warga.delete" },
     { name: "role.manage" },
     { name: "permission.manage" },
+    { name: "message.create" },
+    { name: "message.read" },
   ];
 
   const createdPermissions = await Promise.all(
@@ -77,9 +79,14 @@ async function main() {
   // Assign permissions to ketua_rt
   console.log("Assigning permissions to ketua_rt...");
   const ketuaPermissions = createdPermissions.filter((p) =>
-    ["dashboard.view", "warga.create", "warga.read", "warga.update"].includes(
-      p.name,
-    ),
+    [
+      "dashboard.view",
+      "warga.create",
+      "warga.read",
+      "warga.update",
+      "message.create",
+      "message.read",
+    ].includes(p.name)
   );
 
   await Promise.all(

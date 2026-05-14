@@ -12,7 +12,7 @@ const isAuthenticated = (req, res, next) => {
     ip: req.ip,
     path: req.path,
   });
-  res.redirect("/login");
+  res.redirect("/auth/login");
 };
 
 /**

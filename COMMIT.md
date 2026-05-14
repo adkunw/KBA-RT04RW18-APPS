@@ -252,3 +252,34 @@ COMPLIANCE:
 ✅ Sidebar layout per THEME.md requirement
 ✅ Consistent card design across pages
 ✅ Professional admin control center with sidebar navigation
+
+### fix: Hotfixes for UI rendering and layout issues
+
+- Remove duplicate content from portal & admin pages caused by malformed HTML replacement
+- Fix admin pages CSS not loading by creating a dedicated `admin.css` and converting sidebar to full HTML opener
+- Extract sidebar into a reusable partial `_sidebar.ejs` to DRY the code
+- Apply consistent theme to all user management pages (create, view, index) following THEME.md guidelines
+
+### feat: Step 2 - Implement Role & Permission Management
+
+- Create role.service.js to handle role CRUD and permission assignment
+- Create role.controller.js with validation and proper views
+- Setup role.routes.js protected by `role.manage` permission
+- Add views for roles list, creation, and detailed view to assign/revoke permissions
+- Ensure system safeguards (super_admin cannot be deleted, cannot lose all permissions)
+
+### feat: Step 3 - Implement Messages & Announcements
+
+- Add Message and MessageRecipient models to schema for personal, broadcast, and announcement types
+- Update seed.js to include `message.create` and `message.read` permissions
+- Create message.service.js and message.controller.js for admin to manage and send messages
+- Create portal.controller.js and views for warga to view their inbox and announcements
+- Add dynamic unread badges to the portal dashboard
+- Setup related routes in message.routes.js and portal.routes.js
+
+### feat: Implement User Profile and Management Enhancements
+
+- Add real-time user statistics and recent members to admin dashboard
+- Add Edit User feature in admin panel (update name, phone, status, and role)
+- Add Reset Password feature for users to generate new activation tokens
+- Create portal profile page view for users

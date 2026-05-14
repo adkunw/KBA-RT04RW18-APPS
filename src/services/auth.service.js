@@ -91,20 +91,11 @@ const updateLastLogin = async (userId) => {
 };
 
 /**
- * Determine redirect URL based on user roles
- * @param {string[]} roles - Array of user role names
+ * Determine redirect URL after login
  * @returns {string} Redirect URL
  */
 const getRedirectUrl = (roles) => {
-  // If user has admin roles, redirect to admin panel
-  const adminRoles = ["super_admin", "ketua_rt"];
-  const isAdmin = roles.some((role) => adminRoles.includes(role));
-
-  if (isAdmin) {
-    return "/admin";
-  }
-
-  // Default redirect for regular users
+  // Always redirect to portal first for all roles
   return "/portal";
 };
 

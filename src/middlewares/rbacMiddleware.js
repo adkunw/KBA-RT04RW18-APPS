@@ -10,7 +10,7 @@ const requirePermission = (requiredPermission) => {
     // First check if user is authenticated
     if (!req.session || !req.session.userId) {
       logger.error("Permission check failed: user not authenticated");
-      return res.status(401).redirect("/login");
+      return res.status(401).redirect("/auth/login");
     }
 
     // Check if user has the required permission

@@ -1,17 +1,8 @@
-<!-- ADMIN LAYOUT (SIDEBAR + MAIN CONTENT) -->
-<div style="display: flex; min-height: 100vh">
-  <%- include('_sidebar.ejs', { currentPage: 'dashboard' }) %>
+<%- include('_sidebar.ejs', { currentPage: 'dashboard' }) %>
 
   <!-- MAIN CONTENT -->
-  <main
-    style="
-      margin-left: 260px;
-      flex: 1;
-      padding: 2rem;
-      background: var(--background);
-    "
-  >
-    <div style="max-width: 1024px; margin: 0 auto">
+  <main class="admin-main">
+    <div class="admin-content">
       <!-- HERO SECTION -->
       <div
         style="
@@ -92,10 +83,10 @@
                 font-weight: 600;
               "
             >
-              1,247
+              <%= stats.totalUsers %>
             </h3>
             <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              +12 this month
+              Total registered
             </p>
           </div>
 
@@ -127,10 +118,10 @@
                 font-weight: 600;
               "
             >
-              892
+              <%= stats.activeUsers %>
             </h3>
             <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              71.6% active rate
+              <%= stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0 %>% active rate
             </p>
           </div>
 
@@ -162,7 +153,7 @@
                 font-weight: 600;
               "
             >
-              24
+              <%= stats.pendingUsers %>
             </h3>
             <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
               Awaiting setup
@@ -343,7 +334,7 @@
             font-weight: 600;
           "
         >
-          📊 Recent Activity
+          👤 Recent Members Updates
         </h2>
         <div
           style="
@@ -409,178 +400,32 @@
               </tr>
             </thead>
             <tbody>
-              <tr style="border-bottom: 1px solid var(--gray-300)">
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-900);
-                    font-size: 0.875rem;
-                  "
-                >
-                  User activated
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Bambang Sutrisno
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Today 09:30 AM
-                </td>
-                <td style="padding: 1rem">
-                  <span
-                    style="
-                      background: #dcfce7;
-                      color: var(--success);
-                      padding: 0.25rem 0.75rem;
-                      border-radius: 20px;
-                      font-size: 0.75rem;
-                      font-weight: 500;
-                    "
-                  >
-                    Success
-                  </span>
-                </td>
-              </tr>
-              <tr style="border-bottom: 1px solid var(--gray-300)">
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-900);
-                    font-size: 0.875rem;
-                  "
-                >
-                  New user created
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Siti Nurhaliza
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Today 08:15 AM
-                </td>
-                <td style="padding: 1rem">
-                  <span
-                    style="
-                      background: #dbeafe;
-                      color: var(--primary);
-                      padding: 0.25rem 0.75rem;
-                      border-radius: 20px;
-                      font-size: 0.75rem;
-                      font-weight: 500;
-                    "
-                  >
-                    Pending
-                  </span>
-                </td>
-              </tr>
-              <tr style="border-bottom: 1px solid var(--gray-300)">
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-900);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Role assigned
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Adi Pratama
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Yesterday 05:00 PM
-                </td>
-                <td style="padding: 1rem">
-                  <span
-                    style="
-                      background: #dcfce7;
-                      color: var(--success);
-                      padding: 0.25rem 0.75rem;
-                      border-radius: 20px;
-                      font-size: 0.75rem;
-                      font-weight: 500;
-                    "
-                  >
-                    Success
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-900);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Activation token expired
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Dina Widya
-                </td>
-                <td
-                  style="
-                    padding: 1rem;
-                    color: var(--gray-600);
-                    font-size: 0.875rem;
-                  "
-                >
-                  Mar 18, 03:20 PM
-                </td>
-                <td style="padding: 1rem">
-                  <span
-                    style="
-                      background: #fee2e2;
-                      color: var(--error);
-                      padding: 0.25rem 0.75rem;
-                      border-radius: 20px;
-                      font-size: 0.75rem;
-                      font-weight: 500;
-                    "
-                  >
-                    Warning
-                  </span>
-                </td>
-              </tr>
+              <% if (recentUsers && recentUsers.length > 0) { %>
+                <% recentUsers.forEach(ru => { %>
+                  <tr style="border-bottom: 1px solid var(--gray-300)">
+                    <td style="padding: 1rem; color: var(--gray-900); font-size: 0.875rem;">
+                      Profile Update
+                    </td>
+                    <td style="padding: 1rem; color: var(--gray-600); font-size: 0.875rem;">
+                      <%= ru.name %>
+                    </td>
+                    <td style="padding: 1rem; color: var(--gray-600); font-size: 0.875rem;">
+                      <%= new Date(ru.updatedAt).toLocaleString('id-ID') %>
+                    </td>
+                    <td style="padding: 1rem">
+                      <span class="badge badge-<%= ru.status %>">
+                        <%= ru.status %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray-500);">
+                    No recent activity found.
+                  </td>
+                </tr>
+              <% } %>
             </tbody>
           </table>
         </div>
@@ -604,3 +449,5 @@
     </div>
   </main>
 </div>
+</body>
+</html>

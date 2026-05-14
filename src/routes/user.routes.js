@@ -41,4 +41,28 @@ router.get(
   userController.viewUser,
 );
 
+// GET /admin/users/:id/edit - Show edit form
+router.get(
+  "/:id/edit",
+  isAuthenticated,
+  requirePermission("warga.update"),
+  userController.showEditForm,
+);
+
+// POST /admin/users/:id/edit - Process update
+router.post(
+  "/:id/edit",
+  isAuthenticated,
+  requirePermission("warga.update"),
+  userController.updateUser,
+);
+
+// POST /admin/users/:id/reset-password - Reset user password
+router.post(
+  "/:id/reset-password",
+  isAuthenticated,
+  requirePermission("warga.update"),
+  userController.resetPassword,
+);
+
 module.exports = router;

@@ -12,18 +12,20 @@ datasource db {
 
 // Users table - main user data
 model User {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  phone     String?  @unique
+  phone     String?    @unique
   password  String?
   status    UserStatus @default(created)
   lastLogin DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   // Relations
   roles              UserRole[]
   activationTokens   ActivationToken[]
+  sentMessages       Message[]
+  receivedMessages   MessageRecipient[]
 
   @@map("users")
 }
@@ -85,14 +87,52 @@ model RolePermission {
 
 // Activation Tokens for user account activation
 model ActivationToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  token     String   @unique
+  token     String    @unique
   expiredAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("activation_tokens")
+}
+
+// Message type enum
+enum MessageType {
+  personal      // sent to specific user(s)
+  broadcast     // sent to all active warga
+  announcement  // public announcement shown in portal home
+}
+
+// Messages table
+model Message {
+  id        String      @id @default(cuid())
+  senderId  String
+  title     String
+  content   String
+  type      MessageType @default(personal)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  sender     User               @relation(fields: [senderId], references: [id])
+  recipients MessageRecipient[]
+
+  @@map("messages")
+}
+
+// Message recipients (for personal & broadcast types)
+model MessageRecipient {
+  id        String    @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("message_recipients")
 }

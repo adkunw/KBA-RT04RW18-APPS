@@ -85,16 +85,52 @@ Relasi many-to-many antara role dan permission
 
 ### 6. ACTIVATION_TOKENS
 
-Digunakan untuk aktivasi akun user
+Tabel ini menyimpan token unik yang digunakan warga untuk pertama kali aktivasi akun dan set password.
 
-| Field      | Type     | Notes         |
-| ---------- | -------- | ------------- |
-| id         | uuid     | primary key   |
-| user_id    | uuid     | FK → users.id |
-| token      | string   | unique        |
-| expired_at | datetime | wajib         |
-| used_at    | datetime | nullable      |
-| created_at | datetime | auto          |
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `userId` | String | FK | Reference ke tabel `users` (Cascade delete) |
+| `token` | String | UNIQUE | Random string yang dikirim ke user |
+| `expiredAt` | DateTime | | Batas waktu berlakunya token (misal: 24 jam) |
+| `usedAt` | DateTime? | | Null jika belum dipakai, diisi waktu jika sudah dipakai |
+| `createdAt` | DateTime | DEFAULT(now())| Waktu token dibuat |
+
+---
+
+## Fitur Komunikasi (Messages & Announcements)
+
+### Tipe Pesan (`MessageType` Enum)
+Digunakan pada tabel `messages` untuk membedakan target pesan.
+- `personal`: Dikirim secara personal ke 1 atau beberapa warga tertentu. Masuk ke inbox.
+- `broadcast`: Dikirim ke seluruh warga yang berstatus `active`. Masuk ke inbox.
+- `announcement`: Pengumuman publik. Tampil di halaman depan Portal warga.
+
+### Pesan (`messages`)
+Menyimpan informasi inti dari sebuah pesan atau pengumuman.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `senderId` | String | FK | Reference ke tabel `users` (pengirim pesan) |
+| `title` | String | | Judul pesan / pengumuman |
+| `content` | String | | Isi lengkap pesan |
+| `type` | MessageType | DEFAULT(personal)| Tipe pesan (personal, broadcast, announcement) |
+| `createdAt` | DateTime | DEFAULT(now())| Waktu pesan dikirim |
+| `updatedAt` | DateTime | updatedAt | Waktu pesan diupdate |
+
+### Penerima Pesan (`message_recipients`)
+Menyimpan data penerima pesan (hanya untuk tipe `personal` dan `broadcast`), sekaligus tracking status baca (read receipt).
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `messageId` | String | FK | Reference ke `messages` (Cascade delete) |
+| `userId` | String | FK | Reference ke `users` sebagai penerima (Cascade delete) |
+| `readAt` | DateTime? | | Null jika belum dibaca, diisi waktu pertama kali dibuka |
+| `createdAt` | DateTime | DEFAULT(now())| Waktu record dibuat |
+
+**Catatan Relasi:** Kombinasi `[messageId, userId]` bersifat unik. Pesan tipe `announcement` tidak disimpan ke tabel ini.
 
 ---
 
