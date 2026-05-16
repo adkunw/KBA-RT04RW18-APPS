@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - RT Management</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-layout">
+  <%- include('../_sidebar', { currentPage: currentPage }) %>
+
+  <main class="admin-main">
+    <header class="admin-header">
+      <div class="header-info">
+        <h1><%= title %></h1>
+      </div>
+      <div class="header-actions">
+        <a href="/portal" class="btn btn-outline">🏠 Portal Warga</a>
+      </div>
+    </header>
+
+    <div class="admin-content">
+      <% if (error) { %>
+        <div class="alert alert-error" style="margin-bottom: 1.5rem;"><%= error %></div>
+      <% } %>
+      <% if (success) { %>
+        <div class="alert alert-success" style="margin-bottom: 1.5rem;"><%= success %></div>
+      <% } %>
+
+      <div class="card" style="max-width: 600px;">
+        <h2 style="margin-top: 0;">Pengaturan Website</h2>
+        <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Perbarui informasi yang akan tampil di halaman Portal Warga.</p>
+
+        <form action="/admin/settings" method="POST">
+          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+          
+          <div class="form-group">
+            <label class="form-label">Nomor Telepon Darurat</label>
+            <input type="text" name="emergency_phone" class="form-control" value="<%= settings.emergency_phone || '' %>" required placeholder="Contoh: +62-812-3456-7890">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email RT</label>
+            <input type="email" name="emergency_email" class="form-control" value="<%= settings.emergency_email || '' %>" required placeholder="Contoh: rt@example.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Jam Operasional / Pelayanan</label>
+            <input type="text" name="emergency_hours" class="form-control" value="<%= settings.emergency_hours || '' %>" required placeholder="Contoh: Mon-Fri, 8 AM - 5 PM">
+          </div>
+
+          <div style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

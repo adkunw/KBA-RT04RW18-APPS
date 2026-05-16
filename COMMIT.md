@@ -283,3 +283,32 @@ COMPLIANCE:
 - Add Edit User feature in admin panel (update name, phone, status, and role)
 - Add Reset Password feature for users to generate new activation tokens
 - Create portal profile page view for users
+
+### feat: Step 4 - Implement Document Management System
+
+- Add `Document` model to Prisma schema with relations to `User` (uploader and reviewer)
+- Add `DocumentType` (KTP, KK, Surat Keterangan, Other) and `DocumentStatus` (Pending, Approved, Rejected) enums
+- Create `document.service.js` and `document.controller.js` to handle document uploads, listing, and approval workflows
+- Implement secure file uploads using `multer` with a 5MB size limit and allowed MIME types (JPEG, PNG, PDF)
+- Add document submission and viewing interfaces in the Warga Portal (`/portal/documents`)
+- Add document management and verification interfaces in the Admin Panel (`/admin/documents`)
+- Add new `document.manage` permission and assign it to `super_admin` and `ketua_rt` roles in `seed.js`
+
+### feat: Step 5 - Implement Financial & Dues Management System
+
+- Add `FinancePeriod` and `PaymentReport` models to Prisma schema to handle monthly reporting and user payments.
+- Add `finance.manage` permission and a new `bendahara` role in `seed.js`.
+- Create `finance.service.js` and `finance.controller.js` handling logic for calculating totals, setting periods, and validating uploads.
+- Create `/admin/finance` views for `bendahara` to open/close periods, set fixed dues amount, track paid/unpaid residents, and review payment proofs.
+- Create `/portal/finance` views for residents to view their active dues, previous payment history, and dynamically calculate their payments (Fixed Dues, Kas, and Other).
+- Configure `multer` for storing payment proofs in `/public/uploads/payments`.
+
+### feat: Step 6 - Implement Lapor RT (Forum) Feature
+
+- Add `Report` and `ReportReply` models to Prisma schema along with `ReportStatus` enum.
+- Update `DATABASE.md` and `RBAC.md` to reflect new tables and `report.*` permissions.
+- Create `report.service.js` with forum CRUD logic, reply management, and stat aggregation.
+- Create `report.controller.js` to handle portal requests for listing, creating, replying, and managing reports.
+- Configure routes in `report.routes.js` and mount them at `/portal/reports`.
+- Build forum views in `/portal/reports/` (`index.ejs`, `create.ejs`, `detail.ejs`).
+- Allow specific roles (super_admin, ketua_rt) and owners to delete/manage posts, while any user can reply.

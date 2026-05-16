@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - RT Management System</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    body { background: var(--background); }
+    .portal-nav {
+      background: var(--primary);
+      padding: 0.875rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin-bottom: 2rem;
+    }
+    .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
+    .portal-nav a:hover { color: white; }
+    .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
+    .portal-content { max-width: 800px; margin: 0 auto; padding: 0 1rem 2rem 1rem; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-open { background: #dbeafe; color: #1e40af; }
+    .status-in_progress { background: #fef3c7; color: #92400e; }
+    .status-resolved { background: #dcfce7; color: #166534; }
+    .status-closed { background: #f3f4f6; color: #374151; }
+
+    .role-badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: bold; background: #e5e7eb; color: #374151; margin-left: 0.5rem; }
+    .role-admin { background: #fecdd3; color: #9f1239; }
+    .role-ketuart { background: #fed7aa; color: #9a3412; }
+
+    .btn { display: inline-block; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.875rem; font-weight: 500; cursor: pointer; text-align: center; border: none; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { border: 1px solid var(--gray-300); background: white; color: var(--gray-700); }
+    .btn-outline:hover { background: var(--gray-100); }
+    .btn-danger { background: var(--error); color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 1rem; }
+    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+  </style>
+</head>
+<body>
+
+<nav class="portal-nav">
+  <a href="/portal" class="brand">RT Management</a>
+  <div style="display:flex;align-items:center;gap:1.5rem;">
+    <a href="/portal/reports">⬅ Kembali ke Forum</a>
+  </div>
+</nav>
+
+<div class="portal-content">
+  <% if (error) { %>
+    <div style="background: #fee2e2; border-left: 4px solid var(--error); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+      <p style="color: var(--error); margin: 0; font-weight: 500;"><%= error %></p>
+    </div>
+  <% } %>
+  <% if (success) { %>
+    <div style="background: #dcfce7; border-left: 4px solid var(--success); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+      <p style="color: var(--success); margin: 0; font-weight: 500;"><%= success %></p>
+    </div>
+  <% } %>
+
+  <!-- MAIN POST -->
+  <div style="background: white; border-radius: 8px; border: 1px solid var(--gray-300); padding: 2rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+      <div>
+        <h1 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; color: var(--gray-900); font-weight: 600;"><%= report.title %></h1>
+        <div style="display: flex; align-items: center; color: var(--gray-600); font-size: 0.875rem;">
+          <% 
+            const isAuthorAdmin = report.author.roles.some(r => r.role.name === 'super_admin');
+            const isAuthorKetua = report.author.roles.some(r => r.role.name === 'ketua_rt');
+          %>
+          <span style="font-weight: 600; color: var(--gray-900);"><%= report.author.name %></span>
+          <% if (isAuthorAdmin) { %> <span class="role-badge role-admin">ADMIN</span> <% } %>
+          <% if (isAuthorKetua) { %> <span class="role-badge role-ketuart">KETUA RT</span> <% } %>
+          <span style="margin: 0 0.5rem;">•</span>
+          <span><%= new Date(report.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></span>
+        </div>
+      </div>
+      <div>
+        <span class="status-badge status-<%= report.status %>">
+          <%= report.status === 'open' ? 'Baru' : report.status === 'in_progress' ? 'Diproses' : report.status === 'resolved' ? 'Selesai' : 'Ditutup' %>
+        </span>
+      </div>
+    </div>
+
+    <div style="color: var(--gray-800); font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem; white-space: pre-wrap;"><%= report.content %></div>
+
+    <% if (report.mediaPath) { %>
+      <div style="margin-bottom: 1.5rem;">
+        <a href="<%= report.mediaPath %>" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--gray-100); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; color: var(--gray-700); font-size: 0.875rem;">
+          📎 Lihat Lampiran
+        </a>
+      </div>
+    <% } %>
+
+    <!-- ACTIONS FOR ADMIN / OWNER -->
+    <% if (canManageReport || canDeleteAny || report.authorId === user.id) { %>
+      <div style="border-top: 1px solid var(--gray-200); padding-top: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+        
+        <% if (canManageReport) { %>
+          <form action="/portal/reports/<%= report.id %>/status" method="POST" style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+            <select name="status" class="form-control" style="width: auto; padding: 0.5rem;">
+              <option value="open" <%= report.status === 'open' ? 'selected' : '' %>>Baru</option>
+              <option value="in_progress" <%= report.status === 'in_progress' ? 'selected' : '' %>>Diproses</option>
+              <option value="resolved" <%= report.status === 'resolved' ? 'selected' : '' %>>Selesai</option>
+              <option value="closed" <%= report.status === 'closed' ? 'selected' : '' %>>Ditutup</option>
+            </select>
+            <button type="submit" class="btn btn-outline" style="padding: 0.5rem;">Update Status</button>
+          </form>
+        <% } %>
+
+        <% if (report.authorId === user.id) { %>
+          <form action="/portal/reports/<%= report.id %>/delete" method="POST" onsubmit="return confirm('Yakin ingin menghapus laporan ini?');" style="margin-left: auto;">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+            <button type="submit" class="btn btn-danger">🗑️ Hapus Laporan</button>
+          </form>
+        <% } else if (canDeleteAny) { %>
+          <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteModal').style.display='flex';" style="margin-left: auto;">🗑️ Hapus Laporan</button>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- DELETE MODAL -->
+  <% if (canDeleteAny && report.authorId !== user.id) { %>
+  <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 8px; padding: 2rem; max-width: 400px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0 0 1rem 0; color: var(--gray-900);">Hapus Post Warga</h3>
+      <p style="color: var(--gray-600); margin-bottom: 1.5rem; font-size: 0.875rem;">Silakan berikan alasan mengapa post ini dihapus. Pesan ini akan dikirimkan ke kotak masuk pembuat post.</p>
+      
+      <form action="/portal/reports/<%= report.id %>/delete" method="POST">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        <div style="margin-bottom: 1.5rem;">
+          <textarea name="reason" class="form-control" rows="3" required placeholder="Contoh: Post ini melanggar pedoman komunitas..."></textarea>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('deleteModal').style.display='none';">Batal</button>
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <% } %>
+
+  <!-- REPLIES SECTION -->
+  <div style="margin-bottom: 2rem;">
+    <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; color: var(--gray-900); font-weight: 600;">Balasan (<%= report.replies.length %>)</h3>
+    
+    <div style="display: grid; gap: 1rem;">
+      <% report.replies.forEach(reply => { %>
+        <% 
+          const replyIsAdmin = reply.author.roles.some(r => r.role.name === 'super_admin');
+          const replyIsKetua = reply.author.roles.some(r => r.role.name === 'ketua_rt');
+          const isHighlighted = replyIsAdmin || replyIsKetua || reply.author.id === report.authorId;
+        %>
+        <div style="background: <%= isHighlighted ? '#f8fafc' : 'white' %>; border: 1px solid <%= isHighlighted ? '#cbd5e1' : 'var(--gray-300)' %>; border-radius: 8px; padding: 1.5rem;">
+          <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+            <div style="font-weight: 600; color: var(--gray-900); font-size: 0.875rem;"><%= reply.author.name %></div>
+            <% if (reply.author.id === report.authorId) { %>
+              <span class="role-badge" style="background: var(--primary); color: white;">PEMILIK POST</span>
+            <% } %>
+            <% if (replyIsAdmin) { %> <span class="role-badge role-admin">ADMIN</span> <% } %>
+            <% if (replyIsKetua) { %> <span class="role-badge role-ketuart">KETUA RT</span> <% } %>
+            <div style="color: var(--gray-500); font-size: 0.75rem; margin-left: auto;">
+              <%= new Date(reply.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+            </div>
+          </div>
+          <div style="color: var(--gray-800); font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;"><%= reply.content %></div>
+          <% if (reply.mediaPath) { %>
+            <div style="margin-top: 1rem;">
+              <a href="<%= reply.mediaPath %>" target="_blank" style="color: var(--primary); font-size: 0.875rem; text-decoration: none;">📎 Lampiran</a>
+            </div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- REPLY FORM -->
+  <% if (report.status !== 'closed') { %>
+    <div style="background: #f8fafc; border-radius: 8px; border: 1px dashed var(--gray-400); padding: 1.5rem;">
+      <h4 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--gray-900);">Tulis Balasan</h4>
+      <form action="/portal/reports/<%= report.id %>/reply" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        <div style="margin-bottom: 1rem;">
+          <textarea name="content" class="form-control" rows="4" required placeholder="Ketik balasan Anda..." minlength="1"></textarea>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <input type="file" name="replyMedia" accept="image/*,video/*" style="font-size: 0.875rem;">
+          <button type="submit" class="btn btn-primary">Kirim Balasan</button>
+        </div>
+      </form>
+    </div>
+  <% } else { %>
+    <div style="text-align: center; padding: 1.5rem; background: var(--gray-100); border-radius: 8px; color: var(--gray-600);">
+      Laporan ini sudah ditutup, tidak dapat menerima balasan baru.
+    </div>
+  <% } %>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<%- include('../_sidebar', { currentPage: 'documents' }) %>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+    <!-- TOPBAR -->
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-topbar-title">📄 Review Dokumen</h1>
+        <p class="admin-topbar-sub">
+          <a href="/admin/documents" style="color:var(--gray-600);text-decoration:none;">← Kembali ke Daftar Dokumen</a>
+        </p>
+      </div>
+      <span style="font-size:0.875rem;color:var(--gray-600);">👤 <%= user.name %></span>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    <% if (error) { %>
+      <div class="flash-error">⚠️ <%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="flash-success">✅ <%= success %></div>
+    <% } %>
+
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:1.5rem;align-items:start;">
+
+      <!-- LEFT: DOCUMENT PREVIEW -->
+      <div>
+        <div class="admin-card" style="margin-bottom:1.25rem;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+            <div>
+              <h2 style="font-size:1.25rem;font-weight:700;color:var(--gray-900);margin:0 0 0.5rem 0;"><%= document.title %></h2>
+              <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                <span style="display:inline-block;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.75rem;font-weight:600;background:#eff6ff;color:var(--primary-dark);text-transform:uppercase;letter-spacing:0.05em;">
+                  <%= document.type.replace('_', ' ') %>
+                </span>
+                <span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.875rem;border-radius:20px;font-size:0.8125rem;font-weight:700;<%= document.status === 'pending' ? 'background:#fef3c7;color:#92400e;' : document.status === 'approved' ? 'background:#dcfce7;color:#166534;' : 'background:#fee2e2;color:#991b1b;' %>">
+                  <%= document.status === 'pending' ? '⏳ Menunggu Verifikasi' : document.status === 'approved' ? '✅ Disetujui' : '❌ Ditolak' %>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- METADATA -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;padding:1rem;background:#f8fafc;border-radius:8px;margin-bottom:1.25rem;">
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Warga</div>
+              <div style="font-weight:600;color:var(--gray-900);"><%= document.uploader.name %></div>
+              <div style="font-size:0.8125rem;color:var(--gray-600);"><%= document.uploader.phone || '-' %></div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">File</div>
+              <div style="font-size:0.875rem;color:var(--gray-700);">📎 <%= document.fileName %></div>
+            </div>
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Tanggal Upload</div>
+              <div style="font-size:0.875rem;color:var(--gray-700);">
+                <%= new Date(document.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+              </div>
+            </div>
+            <% if (document.reviewedAt) { %>
+              <div>
+                <div style="font-size:0.75rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">Direview oleh</div>
+                <div style="font-size:0.875rem;color:var(--gray-700);">
+                  <%= document.reviewer ? document.reviewer.name : '-' %> —
+                  <%= new Date(document.reviewedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- EXISTING NOTES -->
+          <% if (document.notes) { %>
+            <div style="background:#f8fafc;border:1px solid var(--gray-200);border-left:4px solid var(--primary);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;">
+              <div style="font-size:0.8125rem;font-weight:700;color:var(--gray-700);margin-bottom:0.375rem;">📋 Catatan Review Sebelumnya</div>
+              <div style="font-size:0.875rem;color:var(--gray-600);"><%= document.notes %></div>
+            </div>
+          <% } %>
+
+          <!-- FILE PREVIEW -->
+          <div style="background:#f8fafc;border:1px solid var(--gray-200);border-radius:8px;padding:1.5rem;text-align:center;">
+            <% const ext = document.fileName.split('.').pop().toLowerCase(); %>
+            <% if (['jpg','jpeg','png'].includes(ext)) { %>
+              <img src="<%= document.filePath %>" alt="<%= document.title %>" style="max-width:100%;max-height:500px;border-radius:6px;box-shadow:0 2px 12px rgba(0,0,0,0.1);">
+            <% } else { %>
+              <div style="font-size:3rem;margin-bottom:1rem;">📋</div>
+              <p style="color:var(--gray-600);font-size:0.875rem;margin-bottom:1rem;">File PDF</p>
+              <a href="<%= document.filePath %>" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;background:var(--primary);color:white;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.9375rem;">
+                🔗 Buka File PDF
+              </a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: ACTION PANEL -->
+      <div>
+        <!-- APPROVE FORM -->
+        <% if (document.status !== 'approved') { %>
+          <div class="admin-card" style="margin-bottom:1.25rem;border-left:4px solid #16a34a;">
+            <h3 style="font-size:1rem;font-weight:700;color:#166534;margin:0 0 1rem 0;">✅ Setujui Dokumen</h3>
+            <form action="/admin/documents/<%= document.id %>/approve" method="POST">
+              <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+              <div style="margin-bottom:1rem;">
+                <label style="display:block;font-size:0.8125rem;font-weight:600;color:var(--gray-700);margin-bottom:0.375rem;">Catatan (opsional)</label>
+                <textarea name="notes" rows="3" placeholder="Catatan persetujuan..." style="width:100%;padding:0.625rem 0.75rem;border:1px solid var(--gray-300);border-radius:6px;font-size:0.875rem;font-family:inherit;resize:vertical;" maxlength="500"></textarea>
+              </div>
+              <button type="submit" style="width:100%;padding:0.75rem;background:#16a34a;color:white;border:none;border-radius:6px;font-size:0.9375rem;font-weight:700;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">
+                ✅ Setujui Dokumen
+              </button>
+            </form>
+          </div>
+        <% } %>
+
+        <!-- REJECT FORM -->
+        <% if (document.status !== 'rejected') { %>
+          <div class="admin-card" style="margin-bottom:1.25rem;border-left:4px solid #dc2626;">
+            <h3 style="font-size:1rem;font-weight:700;color:#991b1b;margin:0 0 1rem 0;">❌ Tolak Dokumen</h3>
+            <form action="/admin/documents/<%= document.id %>/reject" method="POST">
+              <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+              <div style="margin-bottom:1rem;">
+                <label style="display:block;font-size:0.8125rem;font-weight:600;color:var(--gray-700);margin-bottom:0.375rem;">Alasan penolakan (disarankan)</label>
+                <textarea name="notes" rows="3" placeholder="Contoh: Dokumen tidak terbaca, harap upload ulang..." style="width:100%;padding:0.625rem 0.75rem;border:1px solid var(--gray-300);border-radius:6px;font-size:0.875rem;font-family:inherit;resize:vertical;" maxlength="500"></textarea>
+              </div>
+              <button type="submit" style="width:100%;padding:0.75rem;background:#dc2626;color:white;border:none;border-radius:6px;font-size:0.9375rem;font-weight:700;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                ❌ Tolak Dokumen
+              </button>
+            </form>
+          </div>
+        <% } %>
+
+        <!-- DELETE -->
+        <div class="admin-card" style="border-left:4px solid var(--gray-400);">
+          <h3 style="font-size:1rem;font-weight:700;color:var(--gray-700);margin:0 0 0.75rem 0;">🗑️ Hapus Dokumen</h3>
+          <p style="font-size:0.8125rem;color:var(--gray-600);margin-bottom:1rem;">Menghapus dokumen secara permanen termasuk filenya. Tindakan ini tidak bisa dibatalkan.</p>
+          <form action="/admin/documents/<%= document.id %>/delete" method="POST" onsubmit="return confirm('Hapus dokumen ini secara permanen?')">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+            <button type="submit" style="width:100%;padding:0.6875rem;background:white;color:var(--error);border:1.5px solid var(--error);border-radius:6px;font-size:0.9375rem;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='white'">
+              🗑️ Hapus Permanen
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

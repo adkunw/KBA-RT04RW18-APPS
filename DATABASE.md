@@ -33,6 +33,7 @@ Menyimpan data utama user (warga & admin)
 | phone      | string   | nomor HP            |
 | password   | string   | hashed password     |
 | status     | enum     | `created`, `active` |
+| language   | string   | default: `id`       |
 | last_login | datetime | optional            |
 | created_at | datetime | auto                |
 | updated_at | datetime | auto                |
@@ -131,6 +132,56 @@ Menyimpan data penerima pesan (hanya untuk tipe `personal` dan `broadcast`), sek
 | `createdAt` | DateTime | DEFAULT(now())| Waktu record dibuat |
 
 **Catatan Relasi:** Kombinasi `[messageId, userId]` bersifat unik. Pesan tipe `announcement` tidak disimpan ke tabel ini.
+
+---
+
+## Fitur Lapor RT (Forum)
+
+### Tipe Status Laporan (`ReportStatus` Enum)
+- `open`: Laporan baru
+- `in_progress`: Sedang ditindaklanjuti
+- `resolved`: Sudah diselesaikan
+- `closed`: Ditutup (misal karena duplikat atau selesai)
+
+### Laporan (`reports`)
+Menyimpan post laporan warga.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `authorId` | String | FK | Reference ke tabel `users` (Cascade delete) |
+| `title` | String | | Judul laporan |
+| `content` | String | | Isi laporan |
+| `mediaPath` | String? | | Path file media (foto/video) jika ada |
+| `status` | ReportStatus | DEFAULT(open)| Status penanganan laporan |
+| `createdAt` | DateTime | DEFAULT(now())| Waktu post dibuat |
+| `updatedAt` | DateTime | updatedAt | Waktu post diupdate |
+
+### Balasan Laporan (`report_replies`)
+Menyimpan komentar/balasan pada sebuah laporan.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `reportId` | String | FK | Reference ke `reports` (Cascade delete) |
+| `authorId` | String | FK | Reference ke `users` (Cascade delete) |
+| `content` | String | | Isi balasan |
+| `mediaPath` | String? | | Path file media (foto/video) jika ada |
+| `createdAt` | DateTime | DEFAULT(now())| Waktu balasan dibuat |
+| `updatedAt` | DateTime | updatedAt | Waktu balasan diupdate |
+
+---
+
+## System Settings
+
+### Setting (`settings`)
+Menyimpan konfigurasi web dinamis seperti info darurat.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `key` | String | PK | Kunci setting (cth: `emergency_phone`) |
+| `value` | String | | Nilai setting |
+| `updatedAt` | DateTime | updatedAt | |
 
 ---
 

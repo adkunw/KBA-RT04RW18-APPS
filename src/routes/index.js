@@ -6,13 +6,18 @@ const adminRoutes = require("./admin.routes");
 const userRoutes = require("./user.routes");
 const roleRoutes = require("./role.routes");
 const messageRoutes = require("./message.routes");
-const portalRoutes = require("./portal.routes");
+const documentRoutes = require("./document.routes");
+const adminDocumentRoutes = require("./admin.document.routes");
 const activationRoutes = require("./activation.routes");
+const financeRoutes = require("./finance.routes");
+const adminFinanceRoutes = require("./admin.finance.routes");
+const adminSettingRoutes = require("./admin.setting.routes");
+const portalRoutes = require("./portal.routes");
+const reportRoutes = require("./report.routes");
 const { isAuthenticated } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-// Home routes
 router.get("/", homeController.getLanding);
 router.get("/portal", isAuthenticated, portalController.getPortal);
 
@@ -22,20 +27,19 @@ router.use("/auth", authRoutes);
 // Activation routes (mounted at /activate)
 router.use("/activate", activationRoutes);
 
-// Admin routes (mounted at /admin)
+// Admin routes
 router.use("/admin", adminRoutes);
-
-// User routes (mounted at /admin/users)
 router.use("/admin/users", userRoutes);
-
-// Role & Permission routes (mounted at /admin/roles)
 router.use("/admin/roles", roleRoutes);
-
-// Message routes (mounted at /admin/messages)
 router.use("/admin/messages", messageRoutes);
+router.use("/admin/documents", adminDocumentRoutes);
+router.use("/admin/finance", adminFinanceRoutes);
+router.use("/admin/settings", adminSettingRoutes);
 
-// Portal sub-routes (inbox, etc.)
+// Portal routes
 router.use("/portal", portalRoutes);
+router.use("/portal/documents", documentRoutes);
+router.use("/portal/finance", financeRoutes);
+router.use("/portal/reports", reportRoutes);
 
 module.exports = router;
-

@@ -1,0 +1,107 @@
+<%- include('../_sidebar', { currentPage: 'documents' }) %>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+    <!-- TOPBAR -->
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-topbar-title">📄 Manajemen Dokumen</h1>
+        <p class="admin-topbar-sub">Verifikasi dan kelola dokumen yang diupload warga</p>
+      </div>
+      <span style="font-size:0.875rem;color:var(--gray-600);">👤 <%= user.name %></span>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    <% if (error) { %>
+      <div class="flash-error">⚠️ <%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="flash-success">✅ <%= success %></div>
+    <% } %>
+
+    <!-- STATS ROW -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;">
+      <div style="background:white;border:1px solid var(--gray-200);border-radius:10px;padding:1.25rem;text-align:center;">
+        <div style="font-size:1.875rem;font-weight:700;color:var(--gray-900);"><%= stats.total %></div>
+        <div style="font-size:0.8125rem;color:var(--gray-600);margin-top:0.25rem;">Total Dokumen</div>
+      </div>
+      <div style="background:white;border:1px solid #fde68a;border-radius:10px;padding:1.25rem;text-align:center;">
+        <div style="font-size:1.875rem;font-weight:700;color:#92400e;"><%= stats.pending %></div>
+        <div style="font-size:0.8125rem;color:#92400e;margin-top:0.25rem;">⏳ Menunggu</div>
+      </div>
+      <div style="background:white;border:1px solid #bbf7d0;border-radius:10px;padding:1.25rem;text-align:center;">
+        <div style="font-size:1.875rem;font-weight:700;color:#166534;"><%= stats.approved %></div>
+        <div style="font-size:0.8125rem;color:#166534;margin-top:0.25rem;">✅ Disetujui</div>
+      </div>
+      <div style="background:white;border:1px solid #fecaca;border-radius:10px;padding:1.25rem;text-align:center;">
+        <div style="font-size:1.875rem;font-weight:700;color:#991b1b;"><%= stats.rejected %></div>
+        <div style="font-size:0.8125rem;color:#991b1b;margin-top:0.25rem;">❌ Ditolak</div>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div style="background:white;border:1px solid var(--gray-200);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <span style="font-size:0.875rem;font-weight:600;color:var(--gray-700);">Filter Status:</span>
+      <a href="/admin/documents" style="padding:0.3rem 0.875rem;border-radius:20px;font-size:0.8125rem;font-weight:600;text-decoration:none;<%= !filterStatus ? 'background:var(--primary);color:white;' : 'background:var(--gray-100);color:var(--gray-700);' %>">Semua</a>
+      <a href="/admin/documents?status=pending" style="padding:0.3rem 0.875rem;border-radius:20px;font-size:0.8125rem;font-weight:600;text-decoration:none;<%= filterStatus === 'pending' ? 'background:#fef3c7;color:#92400e;' : 'background:var(--gray-100);color:var(--gray-700);' %>">⏳ Menunggu</a>
+      <a href="/admin/documents?status=approved" style="padding:0.3rem 0.875rem;border-radius:20px;font-size:0.8125rem;font-weight:600;text-decoration:none;<%= filterStatus === 'approved' ? 'background:#dcfce7;color:#166534;' : 'background:var(--gray-100);color:var(--gray-700);' %>">✅ Disetujui</a>
+      <a href="/admin/documents?status=rejected" style="padding:0.3rem 0.875rem;border-radius:20px;font-size:0.8125rem;font-weight:600;text-decoration:none;<%= filterStatus === 'rejected' ? 'background:#fee2e2;color:#991b1b;' : 'background:var(--gray-100);color:var(--gray-700);' %>">❌ Ditolak</a>
+    </div>
+
+    <!-- DOCUMENTS TABLE -->
+    <div class="admin-card">
+      <% if (documents.length === 0) { %>
+        <div style="text-align:center;padding:3rem;color:var(--gray-600);">
+          <div style="font-size:2.5rem;margin-bottom:1rem;">📂</div>
+          <div style="font-size:1rem;font-weight:600;color:var(--gray-900);margin-bottom:0.5rem;">Tidak ada dokumen</div>
+          <div style="font-size:0.875rem;">Belum ada dokumen yang diupload warga<%= filterStatus ? ' dengan status ini' : '' %>.</div>
+        </div>
+      <% } else { %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Dokumen</th>
+              <th>Warga</th>
+              <th>Tipe</th>
+              <th>Tanggal Upload</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% documents.forEach(doc => { %>
+              <tr>
+                <td>
+                  <div style="font-weight:600;color:var(--gray-900);"><%= doc.title %></div>
+                  <div style="font-size:0.8125rem;color:var(--gray-500);">📎 <%= doc.fileName %></div>
+                </td>
+                <td>
+                  <div style="font-weight:500;"><%= doc.uploader.name %></div>
+                  <div style="font-size:0.8125rem;color:var(--gray-500);"><%= doc.uploader.phone || '-' %></div>
+                </td>
+                <td>
+                  <span style="display:inline-block;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.75rem;font-weight:600;background:var(--blue-50, #eff6ff);color:var(--primary-dark);text-transform:uppercase;letter-spacing:0.05em;">
+                    <%= doc.type.replace('_', ' ') %>
+                  </span>
+                </td>
+                <td style="font-size:0.875rem;color:var(--gray-600);">
+                  <%= new Date(doc.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                </td>
+                <td>
+                  <span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;<%= doc.status === 'pending' ? 'background:#fef3c7;color:#92400e;' : doc.status === 'approved' ? 'background:#dcfce7;color:#166534;' : 'background:#fee2e2;color:#991b1b;' %>">
+                    <%= doc.status === 'pending' ? '⏳ Menunggu' : doc.status === 'approved' ? '✅ Disetujui' : '❌ Ditolak' %>
+                  </span>
+                </td>
+                <td>
+                  <a href="/admin/documents/<%= doc.id %>" class="btn-table-action btn-view">Review</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

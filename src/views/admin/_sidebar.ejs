@@ -43,6 +43,24 @@
         <span class="nav-icon">📨</span>
         Messages
       </a>
+
+      <!-- DOCUMENTS -->
+      <a href="/admin/documents" class="<%= currentPage === 'documents' ? 'active' : '' %>">
+        <span class="nav-icon">📄</span>
+        Dokumen
+      </a>
+
+      <!-- FINANCE -->
+      <a href="/admin/finance" class="<%= typeof currentPage !== 'undefined' && currentPage === 'finance' ? 'active' : '' %>">
+        <span class="nav-icon">💰</span>
+        Keuangan
+      </a>
+
+      <!-- SETTINGS -->
+      <a href="/admin/settings" class="<%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
+        <span class="nav-icon">⚙️</span>
+        Pengaturan
+      </a>
     </nav>
 
     <!-- SIDEBAR FOOTER (PORTAL & LOGOUT) -->

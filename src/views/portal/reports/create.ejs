@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - RT Management System</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    body { background: var(--background); }
+    .portal-nav {
+      background: var(--primary);
+      padding: 0.875rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin-bottom: 2rem;
+    }
+    .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
+    .portal-nav a:hover { color: white; }
+    .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
+    .portal-content { max-width: 800px; margin: 0 auto; padding: 0 1rem 2rem 1rem; }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--gray-700); }
+    .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 1rem; }
+    .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+    
+    .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-size: 1rem; font-weight: 500; cursor: pointer; text-align: center; border: none; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { border: 1px solid var(--gray-300); background: white; color: var(--gray-700); }
+    .btn-outline:hover { background: var(--gray-100); }
+  </style>
+</head>
+<body>
+
+<nav class="portal-nav">
+  <a href="/portal" class="brand">RT Management</a>
+  <div style="display:flex;align-items:center;gap:1.5rem;">
+    <a href="/portal/reports">⬅ Kembali ke Forum</a>
+  </div>
+</nav>
+
+<div class="portal-content">
+  <div style="margin-bottom: 2rem;">
+    <h1 style="margin: 0 0 0.5rem 0; font-size: 1.875rem; color: var(--gray-900); font-weight: 600;">Buat Laporan / Post Baru</h1>
+    <p style="color: var(--gray-600); margin: 0;">Sampaikan keluhan, ide, atau informasi untuk warga RT.</p>
+  </div>
+
+  <% if (error) { %>
+    <div style="background: #fee2e2; border-left: 4px solid var(--error); padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+      <p style="color: var(--error); margin: 0; font-weight: 500;"><%= error %></p>
+    </div>
+  <% } %>
+
+  <div style="background: white; border-radius: 8px; border: 1px solid var(--gray-300); padding: 2rem;">
+    <form action="/portal/reports/create" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+      
+      <div class="form-group">
+        <label for="title" class="form-label">Judul Post</label>
+        <input type="text" id="title" name="title" class="form-control" required placeholder="Contoh: Lampu jalan mati di Blok A" minlength="3" maxlength="100">
+      </div>
+      
+      <div class="form-group">
+        <label for="content" class="form-label">Isi Post / Laporan</label>
+        <textarea id="content" name="content" class="form-control" rows="8" required placeholder="Ceritakan detailnya di sini..." minlength="10"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="reportMedia" class="form-label">Lampiran Foto/Video (Opsional)</label>
+        <input type="file" id="reportMedia" name="reportMedia" class="form-control" accept="image/*,video/*">
+        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 0.5rem;">Maksimal ukuran file: 5MB.</p>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary" style="flex: 1;">Kirim Post</button>
+        <a href="/portal/reports" class="btn btn-outline" style="flex: 1;">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

@@ -92,6 +92,23 @@ resource.action
 
 ---
 
+### REPORT MANAGEMENT (LAPOR RT)
+
+- report.create
+- report.read
+- report.update
+- report.delete
+- report.delete_any
+- report.manage
+
+---
+
+### SETTING MANAGEMENT
+
+- setting.manage
+
+---
+
 ## 🧩 ROLE DEFAULT MAPPING
 
 ### SUPER ADMIN
@@ -108,6 +125,19 @@ resource.action
 - warga.update
 - message.create
 - message.read
+- report.create
+- report.read
+- report.update
+- report.delete
+- report.delete_any
+- report.manage
+
+---
+
+### SEKRETARIS
+
+- dashboard.view
+- report.delete_any
 
 ---
 
@@ -115,6 +145,10 @@ resource.action
 
 - (saat ini tidak ada permission khusus)
 - hanya akses portal
+- report.read
+- report.create
+- report.update (own only)
+- report.delete (own only)
 
 ---
 

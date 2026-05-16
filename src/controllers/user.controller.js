@@ -1,6 +1,7 @@
 const logger = require("../utils/logger");
 const userService = require("../services/user.service");
 const activationService = require("../services/activation.service");
+const documentService = require("../services/document.service");
 const prisma = require("../config/database");
 const { z } = require("zod");
 
@@ -142,6 +143,8 @@ const viewUser = async (req, res) => {
       return res.redirect("/admin/users");
     }
 
+    const approvedDocuments = await documentService.getDocumentsByUser(id, "approved");
+
     let activationLink = null;
     if (user.status === "created") {
       const tokenRecord = await prisma.activationToken.findFirst({
@@ -158,6 +161,7 @@ const viewUser = async (req, res) => {
       user,
       viewedUser: user,
       activationLink,
+      approvedDocuments,
     });
   } catch (error) {
     logger.error("Error viewing user", { error: error.message });

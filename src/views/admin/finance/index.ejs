@@ -1,0 +1,112 @@
+<%- include('../_sidebar', { currentPage: 'finance' }) %>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-topbar-title">💰 Keuangan & Iuran</h1>
+        <p class="admin-topbar-sub">Kelola periode laporan dan iuran warga</p>
+      </div>
+      <span style="font-size:0.875rem;color:var(--gray-600);">👤 <%= user.name %></span>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    <% if (error) { %>
+      <div class="flash-error">⚠️ <%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="flash-success">✅ <%= success %></div>
+    <% } %>
+
+    <div style="display:grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start;">
+      
+      <!-- PERIODS LIST -->
+      <div class="admin-card">
+        <h2 style="font-size:1.125rem; font-weight:700; color:var(--gray-900); margin:0 0 1rem 0;">Daftar Periode</h2>
+        
+        <% if (periods.length === 0) { %>
+          <div style="text-align:center; padding:2rem; color:var(--gray-600);">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">📅</div>
+            Belum ada periode keuangan.
+          </div>
+        <% } else { %>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Periode</th>
+                <th>Bulan/Tahun</th>
+                <th>Iuran Tetap</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% periods.forEach(period => { %>
+                <tr>
+                  <td style="font-weight:600;"><%= period.name %></td>
+                  <td><%= period.month %> / <%= period.year %></td>
+                  <td>Rp <%= period.fixedDuesAmount.toLocaleString('id-ID') %></td>
+                  <td>
+                    <% if (period.isActive) { %>
+                      <span style="padding:0.25rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:700; background:#dcfce7; color:#166534;">🟢 Aktif</span>
+                    <% } else { %>
+                      <span style="padding:0.25rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:700; background:#f1f5f9; color:#475569;">⚫ Ditutup</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div style="display:flex; gap:0.5rem;">
+                      <a href="/admin/finance/period/<%= period.id %>" class="btn-table-action btn-view">Detail</a>
+                      <form action="/admin/finance/periods/<%= period.id %>/toggle" method="POST" style="margin:0;">
+                        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                        <button type="submit" class="btn-table-action <%= period.isActive ? 'btn-delete' : 'btn-edit' %>">
+                          <%= period.isActive ? 'Tutup' : 'Buka' %>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
+      </div>
+
+      <!-- CREATE PERIOD -->
+      <div class="admin-card">
+        <h2 style="font-size:1.125rem; font-weight:700; color:var(--gray-900); margin:0 0 1rem 0;">Buat Periode Baru</h2>
+        <form action="/admin/finance/periods" method="POST">
+          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+          
+          <div style="margin-bottom:1rem;">
+            <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Nama Periode</label>
+            <input type="text" name="name" required placeholder="Cth: Januari 2024" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
+          </div>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
+            <div>
+              <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Bulan (1-12)</label>
+              <input type="number" name="month" required min="1" max="12" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Tahun</label>
+              <input type="number" name="year" required min="2020" max="2050" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
+            </div>
+          </div>
+          
+          <div style="margin-bottom:1.25rem;">
+            <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Iuran Tetap (Rp)</label>
+            <input type="number" name="fixedDuesAmount" required min="0" value="50000" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
+            <div style="font-size:0.75rem; color:var(--gray-500); margin-top:0.25rem;">Biaya rutin default (kebersihan, dll) untuk periode ini.</div>
+          </div>
+          
+          <button type="submit" style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer;">
+            ➕ Buat Periode
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

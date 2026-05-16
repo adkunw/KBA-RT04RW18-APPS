@@ -17,6 +17,7 @@ model User {
   phone     String?    @unique
   password  String?
   status    UserStatus @default(created)
+  language  String     @default("id")
   lastLogin DateTime?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -26,6 +27,13 @@ model User {
   activationTokens   ActivationToken[]
   sentMessages       Message[]
   receivedMessages   MessageRecipient[]
+  uploadedDocuments  Document[]         @relation("DocumentUploader")
+  reviewedDocuments  Document[]         @relation("DocumentReviewer")
+  uploadedPayments   PaymentReport[]    @relation("PaymentUploader")
+  reviewedPayments   PaymentReport[]    @relation("PaymentReviewer")
+
+  reports            Report[]
+  reportReplies      ReportReply[]
 
   @@map("users")
 }
@@ -135,4 +143,149 @@ model MessageRecipient {
 
   @@unique([messageId, userId])
   @@map("message_recipients")
+}
+
+// Document type enum
+enum DocumentType {
+  ktp
+  kk
+  surat_keterangan
+  other
+}
+
+// Document status enum
+enum DocumentStatus {
+  pending
+  approved
+  rejected
+}
+
+// Documents table - warga document management
+model Document {
+  id         String         @id @default(cuid())
+  userId     String
+  reviewedBy String?
+  title      String
+  type       DocumentType   @default(other)
+  fileName   String
+  filePath   String
+  status     DocumentStatus @default(pending)
+  notes      String?
+  reviewedAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  uploader User  @relation("DocumentUploader", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("DocumentReviewer", fields: [reviewedBy], references: [id])
+
+  @@map("documents")
+}
+
+// ==========================================
+// KEUANGAN (FINANCE) MODELS
+// ==========================================
+
+model FinancePeriod {
+  id              String   @id @default(cuid())
+  name            String   // e.g., "Januari 2024"
+  month           Int
+  year            Int
+  fixedDuesAmount Int      // Nominal Iuran Tetap untuk periode ini
+  isActive        Boolean  @default(true) // Whether residents can still pay
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments        PaymentReport[]
+}
+
+model PaymentReport {
+  id               String   @id @default(cuid())
+  userId           String
+  periodId         String
+  
+  // Rincian Pembayaran
+  hasFixedDues     Boolean  @default(false)
+  fixedDuesAmount  Int      @default(0)
+  
+  hasKas           Boolean  @default(false)
+  kasAmount        Int      @default(0)
+  
+  otherDescription String?  // Info untuk pembayaran apa
+  otherAmount      Int      @default(0)
+  
+  totalAmount      Int      // Kalkulasi total
+  proofFilePath    String   // Path ke file gambar bukti transfer
+  
+  status           PaymentStatus @default(pending)
+  notes            String?  // Catatan persetujuan / penolakan
+  
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User          @relation("PaymentUploader", fields: [userId], references: [id])
+  reviewer         User?         @relation("PaymentReviewer", fields: [reviewedBy], references: [id])
+  period           FinancePeriod @relation(fields: [periodId], references: [id])
+}
+
+enum PaymentStatus {
+  pending
+  approved
+  rejected
+}
+
+// ==========================================
+// LAPOR RT (FORUM) MODELS
+// ==========================================
+
+enum ReportStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+model Report {
+  id        String       @id @default(cuid())
+  authorId  String
+  title     String
+  content   String
+  mediaPath String?
+  status    ReportStatus @default(open)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies   ReportReply[]
+
+  @@map("reports")
+}
+
+model ReportReply {
+  id        String   @id @default(cuid())
+  reportId  String
+  authorId  String
+  content   String
+  mediaPath String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("report_replies")
+}
+
+// ==========================================
+// SYSTEM SETTINGS MODELS
+// ==========================================
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
 }

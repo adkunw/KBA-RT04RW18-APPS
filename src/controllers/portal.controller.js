@@ -1,6 +1,7 @@
 const logger = require("../utils/logger");
 const messageService = require("../services/message.service");
 const userService = require("../services/user.service");
+const settingService = require("../services/setting.service");
 const bcrypt = require("bcrypt");
 const { z } = require("zod");
 
@@ -14,27 +15,30 @@ const updateProfileSchema = z.object({
  */
 const getPortal = async (req, res) => {
   try {
-    const [announcements, unreadCount] = await Promise.all([
+    const [announcements, unreadCount, settings] = await Promise.all([
       messageService.getAnnouncements(5),
       messageService.getUnreadCount(req.session.userId),
+      settingService.getAllSettings()
     ]);
 
     const hasAdminAccess = req.session.userPermissions?.includes("dashboard.view") || false;
 
     res.render("portal/index", {
       title: "Portal",
-      user: { id: req.session.userId, name: req.session.userName },
+      user: { id: req.session.userId, name: req.session.userName, language: req.session.userLanguage || "id" },
       announcements,
       unreadCount,
+      settings,
       hasAdminAccess,
     });
   } catch (error) {
     logger.error("Error loading portal", { error: error.message });
     res.render("portal/index", {
       title: "Portal",
-      user: { id: req.session.userId, name: req.session.userName },
+      user: { id: req.session.userId, name: req.session.userName, language: req.session.userLanguage || "id" },
       announcements: [],
       unreadCount: 0,
+      settings: {},
     });
   }
 };
@@ -160,10 +164,28 @@ const updateProfile = async (req, res) => {
   }
 };
 
+/**
+ * POST /portal/settings/language - Update user language
+ */
+const postChangeLanguage = async (req, res) => {
+  try {
+    const { language } = req.body;
+    if (["id", "en"].includes(language)) {
+      await userService.updateUser(req.session.userId, { language });
+      req.session.userLanguage = language;
+    }
+    res.redirect("back"); // Return to the page they were on
+  } catch (error) {
+    logger.error("Error updating language", { error: error.message });
+    res.redirect("/portal");
+  }
+};
+
 module.exports = {
   getPortal,
   getInbox,
   readMessage,
   getProfile,
   updateProfile,
+  postChangeLanguage,
 };

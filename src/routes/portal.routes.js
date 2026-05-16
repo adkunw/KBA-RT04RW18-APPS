@@ -16,4 +16,7 @@ router.get("/profile", isAuthenticated, portalController.getProfile);
 // POST /portal/profile - Update profile
 router.post("/profile", isAuthenticated, portalController.updateProfile);
 
+// POST /portal/settings/language - Update language
+router.post("/settings/language", isAuthenticated, portalController.postChangeLanguage);
+
 module.exports = router;

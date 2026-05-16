@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - RT Management System</title>
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    body { background: var(--background); }
+    .portal-nav {
+      background: var(--primary);
+      padding: 0.875rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin-bottom: 2rem;
+    }
+    .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
+    .portal-nav a:hover { color: white; }
+    .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
+    .portal-content { max-width: 1024px; margin: 0 auto; padding: 0 1rem 2rem 1rem; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-open { background: #dbeafe; color: #1e40af; }
+    .status-in_progress { background: #fef3c7; color: #92400e; }
+    .status-resolved { background: #dcfce7; color: #166534; }
+    .status-closed { background: #f3f4f6; color: #374151; }
+
+    .btn { display: inline-block; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.875rem; font-weight: 500; cursor: pointer; text-align: center; border: none; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { border: 1px solid var(--gray-300); background: white; color: var(--gray-700); }
+    .btn-outline:hover { background: var(--gray-100); }
+  </style>
+</head>
+<body>
+
+<nav class="portal-nav">
+  <a href="/portal" class="brand">RT Management</a>
+  <div style="display:flex;align-items:center;gap:1.5rem;">
+    <a href="/portal">🏠 Portal</a>
+    <% if (hasAdminAccess) { %>
+      <a href="/admin">⚙️ Admin Panel</a>
+    <% } %>
+    <a href="/auth/logout">Logout →</a>
+  </div>
+</nav>
+
+<div class="portal-content">
+  <% if (error) { %>
+    <div style="background: #fee2e2; border-left: 4px solid var(--error); padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+      <p style="color: var(--error); margin: 0; font-weight: 500;"><%= error %></p>
+    </div>
+  <% } %>
+  <% if (success) { %>
+    <div style="background: #dcfce7; border-left: 4px solid var(--success); padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+      <p style="color: var(--success); margin: 0; font-weight: 500;"><%= success %></p>
+    </div>
+  <% } %>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+      <h1 style="margin: 0 0 0.5rem 0; font-size: 1.875rem; color: var(--gray-900); font-weight: 600;">🗣️ Lapor RT</h1>
+      <p style="color: var(--gray-600); margin: 0;">Forum komunikasi dan pelaporan warga RT.</p>
+    </div>
+    <div>
+      <a href="/portal/reports/create" class="btn btn-primary">+ Buat Laporan</a>
+    </div>
+  </div>
+
+  <div style="background: white; border-radius: 8px; border: 1px solid var(--gray-300); padding: 1rem; margin-bottom: 2rem; display: flex; gap: 1rem;">
+    <a href="/portal/reports?status=all" class="btn <%= filterStatus === 'all' ? 'btn-primary' : 'btn-outline' %>">Semua (<%= stats.total || 0 %>)</a>
+    <a href="/portal/reports?status=open" class="btn <%= filterStatus === 'open' ? 'btn-primary' : 'btn-outline' %>">Baru (<%= stats.open || 0 %>)</a>
+    <a href="/portal/reports?status=in_progress" class="btn <%= filterStatus === 'in_progress' ? 'btn-primary' : 'btn-outline' %>">Diproses (<%= stats.in_progress || 0 %>)</a>
+    <a href="/portal/reports?status=resolved" class="btn <%= filterStatus === 'resolved' ? 'btn-primary' : 'btn-outline' %>">Selesai (<%= stats.resolved || 0 %>)</a>
+  </div>
+
+  <div style="display: grid; gap: 1rem;">
+    <% if (reports.length > 0) { %>
+      <% reports.forEach(report => { %>
+        <div style="background: white; border: 1px solid var(--gray-300); border-radius: 8px; padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+              <h3 style="margin: 0 0 0.5rem 0; font-size: 1.125rem; color: var(--gray-900); font-weight: 600;">
+                <a href="/portal/reports/<%= report.id %>" style="text-decoration: none; color: inherit;"><%= report.title %></a>
+              </h3>
+              <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">
+                Oleh <strong><%= report.author.name %></strong> • <%= new Date(report.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+              </p>
+            </div>
+            <div>
+              <span class="status-badge status-<%= report.status %>">
+                <%= report.status === 'open' ? 'Baru' : report.status === 'in_progress' ? 'Diproses' : report.status === 'resolved' ? 'Selesai' : 'Ditutup' %>
+              </span>
+            </div>
+          </div>
+          
+          <p style="color: var(--gray-800); margin: 0 0 1.5rem 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            <%= report.content %>
+          </p>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray-200); padding-top: 1rem;">
+            <div style="color: var(--gray-600); font-size: 0.875rem;">
+              💬 <%= report._count.replies %> balasan
+            </div>
+            <div>
+              <a href="/portal/reports/<%= report.id %>" class="btn btn-outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">Lihat Detail & Balas →</a>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <div style="text-align: center; padding: 3rem; background: white; border: 1px solid var(--gray-300); border-radius: 8px;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+        <p style="color: var(--gray-600); margin: 0;">Belum ada laporan yang sesuai.</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+</body>
+</html>

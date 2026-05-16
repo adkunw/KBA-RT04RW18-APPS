@@ -1,0 +1,147 @@
+<%- include('../_sidebar', { currentPage: 'finance' }) %>
+
+  <!-- MAIN CONTENT -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-topbar-title">📊 Detail Periode: <%= period.name %></h1>
+        <p class="admin-topbar-sub">
+          <a href="/admin/finance" style="color:var(--gray-600);text-decoration:none;">← Kembali ke Daftar Periode</a>
+        </p>
+      </div>
+      <span style="font-size:0.875rem;color:var(--gray-600);">👤 <%= user.name %></span>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    <% if (error) { %>
+      <div class="flash-error">⚠️ <%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="flash-success">✅ <%= success %></div>
+    <% } %>
+
+    <!-- STATS ROW (CLICKABLE FILTERS) -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;">
+      <a href="?filter=all" style="text-decoration:none;">
+        <div style="background:<%= currentFilter === 'all' ? '#eff6ff' : 'white' %>;border:1px solid <%= currentFilter === 'all' ? 'var(--primary)' : 'var(--gray-200)' %>;border-radius:10px;padding:1.25rem;text-align:center;transition:all 0.2s;box-shadow:<%= currentFilter === 'all' ? '0 4px 6px rgba(37,99,235,0.1)' : 'none' %>;">
+          <div style="font-size:1.875rem;font-weight:700;color:var(--primary-dark);"><%= stats.totalUsers %></div>
+          <div style="font-size:0.8125rem;color:var(--gray-600);margin-top:0.25rem;">Total Warga Aktif</div>
+        </div>
+      </a>
+      <a href="?filter=approved" style="text-decoration:none;">
+        <div style="background:<%= currentFilter === 'approved' ? '#f0fdf4' : 'white' %>;border:1px solid <%= currentFilter === 'approved' ? '#16a34a' : '#bbf7d0' %>;border-radius:10px;padding:1.25rem;text-align:center;transition:all 0.2s;box-shadow:<%= currentFilter === 'approved' ? '0 4px 6px rgba(22,163,74,0.1)' : 'none' %>;">
+          <div style="font-size:1.875rem;font-weight:700;color:#166534;"><%= stats.paidCount %></div>
+          <div style="font-size:0.8125rem;color:#166534;margin-top:0.25rem;">✅ Lunas (Disetujui)</div>
+        </div>
+      </a>
+      <a href="?filter=unpaid" style="text-decoration:none;">
+        <div style="background:<%= currentFilter === 'unpaid' ? '#fef2f2' : 'white' %>;border:1px solid <%= currentFilter === 'unpaid' ? '#dc2626' : '#fecaca' %>;border-radius:10px;padding:1.25rem;text-align:center;transition:all 0.2s;box-shadow:<%= currentFilter === 'unpaid' ? '0 4px 6px rgba(220,38,38,0.1)' : 'none' %>;">
+          <div style="font-size:1.875rem;font-weight:700;color:#991b1b;"><%= stats.unpaidCount %></div>
+          <div style="font-size:0.8125rem;color:#991b1b;margin-top:0.25rem;">❌ Belum Lunas / Ditolak</div>
+        </div>
+      </a>
+      <div onclick="document.getElementById('recapModal').style.display='flex'" style="background:white;border:1px solid var(--gray-200);border-radius:10px;padding:1.25rem;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--primary)';this.style.boxShadow='0 4px 6px rgba(37,99,235,0.1)'" onmouseout="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'">
+        <div style="font-size:1.5rem;font-weight:700;color:var(--gray-900);">Rp <%= stats.totalCollected.toLocaleString('id-ID') %></div>
+        <div style="font-size:0.8125rem;color:var(--gray-600);margin-top:0.25rem;">Total Terkumpul ℹ️ (Klik untuk rekap)</div>
+      </div>
+    </div>
+
+    <!-- RECAP MODAL -->
+    <div id="recapModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:1rem;">
+      <div style="background:white; border-radius:12px; width:100%; max-width:400px; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:1.25rem 1.5rem; border-bottom:1px solid var(--gray-200);">
+          <h3 style="margin:0; font-size:1.125rem; font-weight:700; color:var(--gray-900);">Rekapitulasi Penerimaan</h3>
+          <button onclick="document.getElementById('recapModal').style.display='none'" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:var(--gray-500);">&times;</button>
+        </div>
+        <div style="padding:1.5rem;">
+          <table style="width:100%; border-collapse:collapse;">
+            <tr style="border-bottom:1px solid var(--gray-100);">
+              <td style="padding:0.75rem 0; color:var(--gray-700);">Iuran Rutin</td>
+              <td style="padding:0.75rem 0; text-align:right; font-weight:600; color:var(--gray-900);">Rp <%= stats.breakdown.fixedDues.toLocaleString('id-ID') %></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--gray-100);">
+              <td style="padding:0.75rem 0; color:var(--gray-700);">Kas</td>
+              <td style="padding:0.75rem 0; text-align:right; font-weight:600; color:var(--gray-900);">Rp <%= stats.breakdown.kas.toLocaleString('id-ID') %></td>
+            </tr>
+            <% Object.entries(stats.breakdown.others).forEach(([desc, amount]) => { %>
+              <tr style="border-bottom:1px solid var(--gray-100);">
+                <td style="padding:0.75rem 0; color:var(--gray-700);"><%= desc %></td>
+                <td style="padding:0.75rem 0; text-align:right; font-weight:600; color:var(--gray-900);">Rp <%= amount.toLocaleString('id-ID') %></td>
+              </tr>
+            <% }) %>
+            <tr>
+              <td style="padding:1rem 0 0 0; font-weight:700; color:var(--gray-900); font-size:1.125rem;">TOTAL</td>
+              <td style="padding:1rem 0 0 0; text-align:right; font-weight:700; color:var(--primary-dark); font-size:1.125rem;">Rp <%= stats.totalCollected.toLocaleString('id-ID') %></td>
+            </tr>
+          </table>
+        </div>
+        <div style="padding:1rem 1.5rem; background:var(--gray-50); text-align:right; border-top:1px solid var(--gray-200);">
+          <button onclick="document.getElementById('recapModal').style.display='none'" style="padding:0.5rem 1rem; background:white; border:1px solid var(--gray-300); border-radius:6px; cursor:pointer; font-weight:600;">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS TABLE -->
+    <div class="admin-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:var(--gray-900);margin:0;">Status Laporan Pembayaran</h2>
+        <span style="font-size:0.875rem;color:var(--gray-600);">Filter Aktif: <strong><%= currentFilter === 'all' ? 'Semua Warga' : currentFilter === 'approved' ? 'Lunas' : currentFilter === 'unpaid' ? 'Belum Lunas' : 'Menunggu' %></strong></span>
+      </div>
+      
+      <% if (residents.length === 0) { %>
+        <div style="text-align:center;padding:3rem;color:var(--gray-600);">
+          <div style="font-size:2.5rem;margin-bottom:1rem;">📝</div>
+          <div style="font-size:1rem;font-weight:600;color:var(--gray-900);margin-bottom:0.5rem;">Data kosong</div>
+          <div style="font-size:0.875rem;">Tidak ada warga yang sesuai dengan filter ini.</div>
+        </div>
+      <% } else { %>
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Warga</th>
+              <th>Tanggal Lapor</th>
+              <th>Total Bayar</th>
+              <th>Status</th>
+              <th>Reviewer</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% residents.forEach(item => { %>
+              <% const { user, payment, paymentStatus } = item; %>
+              <tr>
+                <td>
+                  <div style="font-weight:600;"><%= user.name %></div>
+                  <div style="font-size:0.8125rem;color:var(--gray-500);"><%= user.phone || '-' %></div>
+                </td>
+                <td style="font-size:0.875rem;color:var(--gray-600);">
+                  <%= payment ? new Date(payment.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-' %>
+                </td>
+                <td style="font-weight:600;color:var(--gray-900);">
+                  <%= payment ? 'Rp ' + payment.totalAmount.toLocaleString('id-ID') : '-' %>
+                </td>
+                <td>
+                  <span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;<%= paymentStatus === 'pending' ? 'background:#fef3c7;color:#92400e;' : paymentStatus === 'approved' ? 'background:#dcfce7;color:#166534;' : paymentStatus === 'rejected' ? 'background:#fee2e2;color:#991b1b;' : 'background:#f1f5f9;color:#475569;' %>">
+                    <%= paymentStatus === 'pending' ? '⏳ Menunggu Review' : paymentStatus === 'approved' ? '✅ Lunas' : paymentStatus === 'rejected' ? '❌ Ditolak' : '⚠️ Belum Bayar' %>
+                  </span>
+                </td>
+                <td style="font-size:0.8125rem;color:var(--gray-600);">
+                  <%= payment && payment.reviewer ? payment.reviewer.name : '-' %>
+                </td>
+                <td>
+                  <% if (payment) { %>
+                    <a href="/admin/finance/payment/<%= payment.id %>" class="btn-table-action btn-view">Detail</a>
+                  <% } else { %>
+                    <span style="color:var(--gray-400);font-size:0.8125rem;font-style:italic;">Tidak ada</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </main>
+</div>
+</body>
+</html>

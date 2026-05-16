@@ -61,6 +61,7 @@ const authenticateUser = async (phone, password) => {
     id: user.id,
     name: user.name,
     phone: user.phone,
+    language: user.language || "id",
     roles: user.roles.map((ur) => ur.role.name),
     permissions: [...new Set(permissions)], // Remove duplicates
   };
@@ -75,6 +76,7 @@ const createSession = (req, userData) => {
   req.session.userId = userData.id;
   req.session.userName = userData.name;
   req.session.userPhone = userData.phone;
+  req.session.userLanguage = userData.language;
   req.session.userRoles = userData.roles;
   req.session.userPermissions = userData.permissions;
 };

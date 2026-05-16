@@ -18,6 +18,10 @@ async function main() {
     { name: "permission.manage" },
     { name: "message.create" },
     { name: "message.read" },
+    { name: "document.manage" },
+    { name: "finance.manage" },
+    { name: "report.delete_any" },
+    { name: "setting.manage" },
   ];
 
   const createdPermissions = await Promise.all(
@@ -46,13 +50,27 @@ async function main() {
     create: { name: "ketua_rt" },
   });
 
+  const bendaharaRole = await prisma.role.upsert({
+    where: { name: "bendahara" },
+    update: {},
+    create: { name: "bendahara" },
+  });
+
+  const sekretarisRole = await prisma.role.upsert({
+    where: { name: "sekretaris" },
+    update: {},
+    create: { name: "sekretaris" },
+  });
+
   const wargaRole = await prisma.role.upsert({
     where: { name: "warga" },
     update: {},
     create: { name: "warga" },
   });
 
-  console.log("✓ Created 3 roles");
+  const createdRoles = [superAdminRole, ketuaRtRole, bendaharaRole, sekretarisRole, wargaRole];
+
+  console.log("✓ Created 5 roles");
 
   // Assign all permissions to super_admin
   console.log("Assigning permissions to super_admin...");
@@ -86,6 +104,8 @@ async function main() {
       "warga.update",
       "message.create",
       "message.read",
+      "document.manage",
+      "report.delete_any",
     ].includes(p.name)
   );
 
@@ -108,6 +128,56 @@ async function main() {
   );
 
   console.log("✓ Permissions assigned to ketua_rt");
+
+  // Assign permissions to bendahara
+  console.log("Assigning permissions to bendahara...");
+  const bendaharaPermissions = createdPermissions.filter((p) =>
+    ["dashboard.view", "finance.manage"].includes(p.name)
+  );
+
+  await Promise.all(
+    bendaharaPermissions.map((permission) =>
+      prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: bendaharaRole.id,
+            permissionId: permission.id,
+          },
+        },
+        update: {},
+        create: {
+          roleId: bendaharaRole.id,
+          permissionId: permission.id,
+        },
+      })
+    )
+  );
+  console.log("✓ Permissions assigned to bendahara");
+
+  // Assign permissions to sekretaris
+  console.log("Assigning permissions to sekretaris...");
+  const sekretarisPermissions = createdPermissions.filter((p) =>
+    ["dashboard.view", "report.delete_any"].includes(p.name)
+  );
+
+  await Promise.all(
+    sekretarisPermissions.map((permission) =>
+      prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: sekretarisRole.id,
+            permissionId: permission.id,
+          },
+        },
+        update: {},
+        create: {
+          roleId: sekretarisRole.id,
+          permissionId: permission.id,
+        },
+      })
+    )
+  );
+  console.log("✓ Permissions assigned to sekretaris");
 
   // Create super_admin user
   console.log("Creating super_admin user...");
@@ -141,6 +211,24 @@ async function main() {
 
   console.log("✓ Super admin user created");
   console.log("");
+  // Create default settings
+  console.log("Creating default settings...");
+  const defaultSettings = [
+    { key: "emergency_phone", value: "+62-XXX-XXXX" },
+    { key: "emergency_email", value: "rt@example.com" },
+    { key: "emergency_hours", value: "Mon-Fri, 8 AM - 5 PM" },
+  ];
+  
+  await Promise.all(
+    defaultSettings.map((setting) => 
+      prisma.setting.upsert({
+        where: { key: setting.key },
+        update: {},
+        create: setting,
+      })
+    )
+  );
+
   console.log("🎉 Database seeding completed!");
   console.log("");
   console.log("📝 Default login credentials:");
