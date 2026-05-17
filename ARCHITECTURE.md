@@ -75,8 +75,9 @@ Aplikasi terdiri dari 3 layer utama:
    - cek status `active`
    - verifikasi password
    - buat session
+   - **Simpan Session Secara Sinkron (`req.session.save`)** untuk menjamin data sesi terulis sepenuhnya di database PostgreSQL sebelum meluncurkan redirect, menghindari race condition.
 
-3. Redirect ke `/portal`
+3. Redirect ke `/portal` (atau halaman dashboard yang sesuai)
 
 ---
 

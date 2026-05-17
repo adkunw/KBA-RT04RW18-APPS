@@ -62,9 +62,18 @@ const postLogin = async (req, res) => {
       roles: user.roles,
     });
 
-    // Determine redirect URL based on roles
-    const redirectUrl = authService.getRedirectUrl(user.roles);
-    res.redirect(redirectUrl);
+    // Save session explicitly to avoid database store race conditions
+    req.session.save((err) => {
+      if (err) {
+        logger.error("Session save error", { error: err.message });
+        req.flash("error", "Gagal menyimpan sesi login");
+        return res.redirect("/auth/login");
+      }
+      
+      // Determine redirect URL based on roles
+      const redirectUrl = authService.getRedirectUrl(user.roles);
+      res.redirect(redirectUrl);
+    });
   } catch (error) {
     logger.error("Login error", {
       error: error.message,

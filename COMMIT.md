@@ -313,7 +313,7 @@ COMPLIANCE:
 - Build forum views in `/portal/reports/` (`index.ejs`, `create.ejs`, `detail.ejs`).
 - Allow specific roles (super_admin, ketua_rt) and owners to delete/manage posts, while any user can reply.
 
-### feat: Implement RT Expense, Manual Other Income, Upload Proofs, Fuzzy Search, Date-Range CSV Export, Live Date Filter, and Date Range Ordering Validation
+### feat: Implement RT Expense, Manual Other Income, Upload Proofs, Fuzzy Search, Date-Range CSV Export, Live Date Filter, Date Range Ordering Validation, and Session Write Race Condition Fix
 
 - Add `FinanceExpense` and `FinanceIncome` models to Prisma schema to handle RT expense and other manual income records.
 - Support `proofFilePath` for both manual other incomes and new expenses as optional transaction receipts.
@@ -325,6 +325,7 @@ COMPLIANCE:
   - Mutasi Kas Terbaru Feed
 - Add **Live Date-Range Filters** inside the live search panel allowing the user to filter all tables and recent transactions concurrently by start/end dates.
 - Enforce strict **Date Range Order Validation** (`endDate >= startDate`) dynamically on client-side (HTML5 `min`/`max` dynamic restriction handlers and live filtering alerts) and server-side (Zod schema `.refine()` check).
+- Resolve **Asynchronous Session Write Race Condition** inside `postLogin` by calling `req.session.save()` explicitly before sending the HTTP redirect response, guaranteeing that database-backed session stores (like `connect-pg-simple`) finish writing user authentication data to the PostgreSQL database before the browser initiates the redirect target page load.
 - Create form modals with `enctype="multipart/form-data"` and file select support to upload proof of transactions for both incomes and expenses.
 - Implement **Date-Range Financial CSV Report Export** (`GET /admin/finance/export`) supporting custom startDate/endDate parameters.
 - Generate high-fidelity Excel-compatible CSV reports with Indonesian local date formatting, UTF-8 BOM, and properly formatted semicolons (`;`) for seamless parsing in Microsoft Excel.
