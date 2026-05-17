@@ -38,16 +38,29 @@ const listUsers = async (req, res) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    const users = await userService.listUsers(skip, limit);
-    const totalCount = await userService.countUsers();
+    const search = req.query.search || "";
+    const status = req.query.status || "";
+    const roleId = req.query.roleId || "";
+
+    const filters = { search, status, roleId };
+
+    const users = await userService.listUsers(skip, limit, filters);
+    const totalCount = await userService.countUsers(filters);
     const totalPages = Math.ceil(totalCount / limit);
+
+    // Get all available roles for the filter dropdown
+    const roles = await prisma.role.findMany();
 
     res.render("admin/users/index", {
       title: "User Management",
       users,
+      roles,
       currentPage: page,
       totalPages,
       totalCount,
+      search,
+      status,
+      roleId,
       user: {
         id: req.session.userId,
         name: req.session.userName,

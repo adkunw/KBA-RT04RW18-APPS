@@ -105,21 +105,31 @@
       </div>
     </div>
 
-    <!-- FILTER BAR -->
-    <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-      <span class="text-sm font-semibold text-slate-500 mr-2 flex-shrink-0">Filter Status:</span>
-      <a href="/admin/documents" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= !filterStatus ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
-        Semua
-      </a>
-      <a href="/admin/documents?status=pending" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= filterStatus === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-200 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
-        Menunggu
-      </a>
-      <a href="/admin/documents?status=approved" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= filterStatus === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
-        Disetujui
-      </a>
-      <a href="/admin/documents?status=rejected" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= filterStatus === 'rejected' ? 'bg-red-100 text-red-800 border-red-200 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
-        Ditolak
-      </a>
+    <!-- FILTER & SEARCH BAR -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+        <span class="text-sm font-semibold text-slate-500 mr-2 flex-shrink-0">Filter Status:</span>
+        <a href="/admin/documents" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= !filterStatus ? 'bg-slate-900 text-white border-slate-900 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
+          Semua
+        </a>
+        <a href="/admin/documents?status=pending" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= filterStatus === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-200 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
+          Menunggu
+        </a>
+        <a href="/admin/documents?status=approved" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= filterStatus === 'approved' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
+          Disetujui
+        </a>
+        <a href="/admin/documents?status=rejected" class="px-4 py-2 rounded-full text-xs font-semibold border transition-all <%= filterStatus === 'rejected' ? 'bg-red-100 text-red-800 border-red-200 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50' %>">
+          Ditolak
+        </a>
+      </div>
+      
+      <!-- Real-Time Search Box -->
+      <div class="relative w-full md:w-80" style="position:relative;">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;">
+          <i data-lucide="search" style="width:16px;height:16px;"></i>
+        </span>
+        <input type="text" id="documentSearchInput" oninput="applyDocumentSearch()" placeholder="Cari judul, nama pengaju, keperluan..." class="w-full text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" style="padding:0.5rem 1rem 0.5rem 2.2rem;border-radius:10px;border:1px solid var(--gray-300);width:100%;">
+      </div>
     </div>
 
     <!-- TABLE -->
@@ -147,7 +157,11 @@
             </thead>
             <tbody class="divide-y divide-slate-100">
               <% documents.forEach(doc => { %>
-                <tr class="hover:bg-slate-50/50 transition-colors">
+                <tr class="hover:bg-slate-50/50 transition-colors"
+                    data-title="<%= doc.title.toLowerCase() %>"
+                    data-filename="<%= doc.fileName.toLowerCase() %>"
+                    data-uploader="<%= doc.uploader.name.toLowerCase() %>"
+                    data-type="<%= doc.type.toLowerCase().replace('_', ' ') %>">
                   <td class="px-6 py-4">
                     <div class="font-semibold text-slate-900 leading-tight mb-1"><%= doc.title %></div>
                     <div class="text-xs text-slate-400 flex items-center gap-1">
@@ -188,6 +202,62 @@
     </div>
   </div>
 </main>
-</div>
+
+<script>
+  function applyDocumentSearch() {
+    const query = document.getElementById('documentSearchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('tbody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+      const title = row.getAttribute('data-title') || '';
+      const filename = row.getAttribute('data-filename') || '';
+      const uploader = row.getAttribute('data-uploader') || '';
+      const type = row.getAttribute('data-type') || '';
+      
+      const isMatch = !query || 
+                      title.includes(query) || 
+                      filename.includes(query) || 
+                      uploader.includes(query) || 
+                      type.includes(query);
+      
+      if (isMatch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+    
+    // Toggle Empty State for search results
+    let emptyState = document.getElementById('searchEmptyState');
+    const tableElement = document.querySelector('table');
+    const wrapper = document.querySelector('.overflow-hidden') || document.querySelector('.bg-white.border');
+    
+    if (visibleCount === 0) {
+      if (tableElement) tableElement.style.display = 'none';
+      if (!emptyState) {
+        emptyState = document.createElement('div');
+        emptyState.id = 'searchEmptyState';
+        emptyState.className = 'text-center py-12 text-slate-500';
+        emptyState.innerHTML = `
+          <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="search" class="w-8 h-8 text-slate-400"></i>
+          </div>
+          <h3 class="text-base font-bold text-slate-900 mb-1">Hasil tidak ditemukan</h3>
+          <p class="text-sm text-slate-500 px-4">Tidak ada dokumen yang cocok dengan pencarian Anda.</p>
+        `;
+        wrapper.appendChild(emptyState);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      } else {
+        emptyState.style.display = '';
+      }
+    } else {
+      if (tableElement) tableElement.style.display = '';
+      if (emptyState) emptyState.style.display = 'none';
+    }
+  }
+</script>
+
 </body>
 </html>

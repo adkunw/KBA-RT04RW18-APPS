@@ -1,127 +1,172 @@
 <%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
- <!-- MAIN CONTENT -->
- <main class="admin-main flex flex-col">
- <!-- TOP HEADER -->
- <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
- <div class="flex items-center gap-4">
- <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
- </div>
+<!-- MAIN CONTENT -->
+<main class="admin-main flex flex-col">
+  <!-- TOP HEADER -->
+  <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+    <div class="flex items-center gap-4">
+      <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
+    </div>
 
- <div class="flex items-center gap-4">
- <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
- <i data-lucide="bell" class="w-5 h-5"></i>
- <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
- <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
- <% } %>
- </a>
- <div class="h-8 w-px bg-slate-200 mx-1"></div>
- <div class="flex items-center gap-2">
- <% if (typeof user !== 'undefined' && user && user.name) { %>
- <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
- <%= user.name.charAt(0).toUpperCase() %>
- </div>
- <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
- <% } %>
- </div>
- </div>
- </header>
- <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
+    <div class="flex items-center gap-4">
+      <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+        <i data-lucide="bell" class="w-5 h-5"></i>
+        <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+          <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+        <% } %>
+      </a>
+      <div class="h-8 w-px bg-slate-200 mx-1"></div>
+      <div class="flex items-center gap-2">
+        <% if (typeof user !== 'undefined' && user && user.name) { %>
+          <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+            <%= user.name.charAt(0).toUpperCase() %>
+          </div>
+          <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+        <% } %>
+      </div>
+    </div>
+  </header>
 
- <!-- PAGE HEADER -->
- <div class="page-header">
- <h1> User Management</h1>
- <div class="flex items-center gap-2">
-   <button type="button" onclick="openImportModal()" class="btn btn-secondary flex items-center gap-1.5 py-2">
-     <i data-lucide="file-up" class="w-4 h-4"></i> Import Bulk Warga
-   </button>
-   <a href="/admin/users/create" class="btn btn-primary">
-   + Add User
-   </a>
- </div>
- </div>
+  <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1>User Management</h1>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="openImportModal()" class="btn btn-secondary flex items-center gap-1.5 py-2">
+          <i data-lucide="file-up" class="w-4 h-4"></i> Import Bulk Warga
+        </button>
+        <a href="/admin/users/create" class="btn btn-primary">
+          + Add User
+        </a>
+      </div>
+    </div>
 
- <% if (typeof error !== 'undefined' && error) { %>
- <div class="alert alert-error"><%= error %></div>
- <% } %>
- <% if (typeof success !== 'undefined' && success) { %>
- <div class="alert alert-success"><%= success %></div>
- <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="alert alert-success"><%= success %></div>
+    <% } %>
 
- <% if (users.length === 0) { %>
- <div class="card empty-state">
- <p>No users found.</p>
- <a href="/admin/users/create" class="btn btn-primary">Create first user</a>
- </div>
- <% } else { %>
+    <!-- ADVANCED SEARCH & FILTER CONTROLS -->
+    <form action="/admin/users" method="GET" class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;align-items:center;">
+        <!-- Search Input -->
+        <div class="relative" style="grid-column: span 2;">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94a3b8;">
+            <i data-lucide="search" style="width:16px;height:16px;"></i>
+          </span>
+          <input type="text" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" placeholder="Cari nama, telp, KK, atau nomor rumah..." class="w-full text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" style="padding:0.6rem 1rem 0.6rem 2.5rem;border-radius:12px;border:1px solid var(--gray-300);width:100%;">
+        </div>
+        
+        <!-- Filter Status -->
+        <div class="relative">
+          <select name="status" class="w-full text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" style="padding:0.6rem 1rem;border-radius:12px;border:1px solid var(--gray-300);width:100%;">
+            <option value="">Semua Status</option>
+            <option value="active" <%= typeof status !== 'undefined' && status === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="created" <%= typeof status !== 'undefined' && status === 'created' ? 'selected' : '' %>>Created</option>
+            <option value="inactive" <%= typeof status !== 'undefined' && status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            <option value="blocked" <%= typeof status !== 'undefined' && status === 'blocked' ? 'selected' : '' %>>Blocked</option>
+          </select>
+        </div>
 
- <div class="table-wrapper">
- <table>
- <thead>
- <tr>
- <th>Name</th>
- <th>Phone</th>
- <th>Nomor KK</th>
- <th>Nomor Rumah</th>
- <th>Status</th>
- <th>Roles</th>
- <th>Created</th>
- <th style="text-align:center">Actions</th>
- </tr>
- </thead>
- <tbody>
- <% users.forEach(u => { %>
- <tr>
- <td style="font-weight:500; color:var(--gray-900)"><%= u.name %></td>
- <td><%= u.phone %></td>
- <td style="font-family:monospace; color:var(--gray-700);"><%= u.kkNumber || '-' %></td>
- <td style="font-weight:600;"><%= u.houseNumber || '-' %></td>
- <td>
- <span class="badge badge-<%= u.status %>">
- <%= u.status %>
- </span>
- </td>
- <td>
- <% if (u.roles.length > 0) { %>
- <%= u.roles.map(ur => ur.role.name).join(', ') %>
- <% } else { %>
- <span style="color:var(--gray-600); font-style:italic">No roles</span>
- <% } %>
- </td>
- <td><%= new Date(u.createdAt).toLocaleDateString('id-ID') %></td>
- <td style="text-align:center">
- <a href="/admin/users/<%= u.id %>" class="btn btn-secondary btn-sm">
- View
- </a>
- </td>
- </tr>
- <% }); %>
- </tbody>
- </table>
- </div>
+        <!-- Filter Role -->
+        <div class="relative">
+          <select name="roleId" class="w-full text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" style="padding:0.6rem 1rem;border-radius:12px;border:1px solid var(--gray-300);width:100%;">
+            <option value="">Semua Role</option>
+            <% if (typeof roles !== 'undefined' && roles) { %>
+              <% roles.forEach(r => { %>
+                <option value="<%= r.id %>" <%= typeof roleId !== 'undefined' && roleId === r.id ? 'selected' : '' %>><%= r.name %></option>
+              <% }) %>
+            <% } %>
+          </select>
+        </div>
+      </div>
+      
+      <div class="flex justify-end gap-2 border-t border-slate-100 pt-3" style="display:flex;justify-content:flex-end;gap:0.5rem;border-top:1px solid var(--gray-100);padding-top:0.75rem;">
+        <a href="/admin/users" class="btn btn-secondary btn-sm" style="font-size:0.75rem;padding:0.4rem 1rem;border-radius:8px;">
+          Reset
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm" style="font-size:0.75rem;padding:0.4rem 1rem;border-radius:8px;">
+          Terapkan Filter
+        </button>
+      </div>
+    </form>
 
- <!-- Pagination -->
- <% if (totalPages > 1) { %>
- <div class="pagination">
- <% for (let page = 1; page <= totalPages; page++) { %>
- <% if (page === currentPage) { %>
- <span class="current"><%= page %></span>
- <% } else { %>
- <a href="/admin/users?page=<%= page %>"><%= page %></a>
- <% } %>
- <% } %>
- </div>
- <% } %>
+    <% if (users.length === 0) { %>
+      <div class="card empty-state" style="text-align:center;padding:3rem;">
+        <p style="color:var(--gray-600);margin-bottom:1rem;">Tidak ada data warga ditemukan dengan filter saat ini.</p>
+        <% if (typeof search !== 'undefined' && (search || status || roleId)) { %>
+          <a href="/admin/users" class="btn btn-secondary btn-sm">Reset Pencarian</a>
+        <% } else { %>
+          <a href="/admin/users/create" class="btn btn-primary">Create first user</a>
+        <% } %>
+      </div>
+    <% } else { %>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Nomor KK</th>
+              <th>Nomor Rumah</th>
+              <th>Status</th>
+              <th>Roles</th>
+              <th>Created</th>
+              <th style="text-align:center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(u => { %>
+              <tr>
+                <td style="font-weight:500; color:var(--gray-900)"><%= u.name %></td>
+                <td><%= u.phone %></td>
+                <td style="font-family:monospace; color:var(--gray-700);"><%= u.kkNumber || '-' %></td>
+                <td style="font-weight:600;"><%= u.houseNumber || '-' %></td>
+                <td>
+                  <span class="badge badge-<%= u.status %>">
+                    <%= u.status %>
+                  </span>
+                </td>
+                <td>
+                  <% if (u.roles.length > 0) { %>
+                    <%= u.roles.map(ur => ur.role.name).join(', ') %>
+                  <% } else { %>
+                    <span style="color:var(--gray-600); font-style:italic">No roles</span>
+                  <% } %>
+                </td>
+                <td><%= new Date(u.createdAt).toLocaleDateString('id-ID') %></td>
+                <td style="text-align:center">
+                  <a href="/admin/users/<%= u.id %>" class="btn btn-secondary btn-sm">
+                    View
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
 
- <% } %>
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+        <div class="pagination" style="display:flex;gap:0.25rem;margin-top:1.5rem;justify-content:center;">
+          <% for (let page = 1; page <= totalPages; page++) { %>
+            <% if (page === currentPage) { %>
+              <span class="current" style="padding:0.4rem 0.8rem;background:var(--primary);color:#fff;border-radius:6px;font-weight:600;"><%= page %></span>
+            <% } else { %>
+              <a href="/admin/users?page=<%= page %>&search=<%= typeof search !== 'undefined' ? encodeURIComponent(search) : '' %>&status=<%= typeof status !== 'undefined' ? status : '' %>&roleId=<%= typeof roleId !== 'undefined' ? roleId : '' %>" style="padding:0.4rem 0.8rem;border:1px solid var(--gray-300);border-radius:6px;color:var(--gray-900);text-decoration:none;"><%= page %></a>
+            <% } %>
+          <% } %>
+        </div>
+      <% } %>
+    <% } %>
 
-  <div style="margin-top: 2rem;">
-  <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+    <div style="margin-top: 2rem;">
+      <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
   </div>
-
-  </div>
-  </main>
-</div>
+</main>
 
 <!-- IMPORT BULK WARGA MODAL -->
 <div id="importModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -198,4 +243,3 @@
 
 </body>
 </html>
-

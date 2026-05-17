@@ -112,12 +112,38 @@ const getUserByPhone = async (phone) => {
  * List all users with pagination
  * @param {number} skip - Skip records
  * @param {number} take - Take records
+ * @param {Object} filters - Search, status, and roleId filters
  * @returns {Promise<Array>} Users array
  */
-const listUsers = async (skip = 0, take = 10) => {
+const listUsers = async (skip = 0, take = 10, filters = {}) => {
+  const { search, status, roleId } = filters;
+  const where = {};
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (roleId) {
+    where.roles = {
+      some: {
+        roleId: roleId,
+      },
+    };
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
+      { houseNumber: { contains: search, mode: "insensitive" } },
+      { kkNumber: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
   const users = await prisma.user.findMany({
     skip,
     take,
+    where,
     include: {
       roles: {
         include: {
@@ -135,10 +161,35 @@ const listUsers = async (skip = 0, take = 10) => {
 
 /**
  * Count total users
+ * @param {Object} filters - Search, status, and roleId filters
  * @returns {Promise<number>} Total user count
  */
-const countUsers = async () => {
-  const count = await prisma.user.count();
+const countUsers = async (filters = {}) => {
+  const { search, status, roleId } = filters;
+  const where = {};
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (roleId) {
+    where.roles = {
+      some: {
+        roleId: roleId,
+      },
+    };
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { phone: { contains: search, mode: "insensitive" } },
+      { houseNumber: { contains: search, mode: "insensitive" } },
+      { kkNumber: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  const count = await prisma.user.count({ where });
   return count;
 };
 

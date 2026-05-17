@@ -1,4 +1,4 @@
-﻿<%- include('_sidebar.ejs', { currentPage: 'dashboard' }) %>
+<%- include('_sidebar.ejs', { currentPage: 'dashboard' }) %>
 
  <!-- MAIN CONTENT -->
  <main class="admin-main flex flex-col">
@@ -27,12 +27,12 @@
 
  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
  <!-- Greeting Banner -->
- <div class="bg-brand-900 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-lg">
+ <div class="bg-brand-900 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-lg" style="background-color: #1e3a8a !important; color: #ffffff !important;">
  <div class="relative z-10">
- <h2 class="font-display text-2xl font-bold mb-2">Welcome, <%= user.roles && user.roles.length > 0 ? user.roles[0].replace('_', ' ') : 'Admin' %>! </h2>
- <p class="text-brand-300">Control center for managing your RT community.</p>
- <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium border border-white/10">
- <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+ <h2 class="font-display text-2xl font-bold mb-2" style="color: #ffffff !important;">Welcome, <%= user.roles && user.roles.length > 0 ? user.roles[0].replace('_', ' ') : 'Admin' %>! </h2>
+ <p class="text-brand-300" style="color: #93c5fd !important;">Control center for managing your RT community.</p>
+ <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium border border-white/10" style="background-color: rgba(255, 255, 255, 0.15) !important; border-color: rgba(255, 255, 255, 0.25) !important; color: #ffffff !important; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 9999px;">
+ <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" style="background-color: #34d399 !important; width: 8px; height: 8px; border-radius: 9999px;"></span>
  System active and healthy
  </div>
  </div>
