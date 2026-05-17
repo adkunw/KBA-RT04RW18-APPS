@@ -19,6 +19,14 @@ const updateUserSchema = z.object({
   roleId: z.string().min(1, "Role is required"),
   houseNumber: z.string().optional().nullable(),
   familyDetails: z.string().optional().nullable(),
+  birthDate: z.string().optional().nullable(),
+  nik: z.string().optional().nullable(),
+  kkNumber: z.string().optional().nullable(),
+  spouseName: z.string().optional().nullable(),
+  spousePhone: z.string().optional().nullable(),
+  spouseBirthDate: z.string().optional().nullable(),
+  spouseNik: z.string().optional().nullable(),
+  children: z.any().optional(),
 });
 
 /**
@@ -252,7 +260,46 @@ const updateUser = async (req, res) => {
       return res.redirect(`/admin/users/${id}/edit`);
     }
 
-    const { name, phone, status, roleId, houseNumber, familyDetails } = validation.data;
+    const { 
+      name, 
+      phone, 
+      status, 
+      roleId, 
+      houseNumber, 
+      familyDetails,
+      birthDate,
+      nik,
+      kkNumber,
+      spouseName,
+      spousePhone,
+      spouseBirthDate,
+      spouseNik
+    } = validation.data;
+
+    // Parse dynamic children array from req.body
+    const parseChildren = (body) => {
+      const { childName, childBirthDate, childNik } = body;
+      if (!childName) return [];
+      
+      const names = Array.isArray(childName) ? childName : [childName];
+      const birthDates = Array.isArray(childBirthDate) ? childBirthDate : [childBirthDate];
+      const niks = Array.isArray(childNik) ? childNik : [childNik];
+      
+      const children = [];
+      for (let i = 0; i < names.length; i++) {
+        const name = (names[i] || "").trim();
+        if (name) {
+          children.push({
+            name,
+            birthDate: (birthDates[i] || "").trim() || null,
+            nik: (niks[i] || "").trim() || null
+          });
+        }
+      }
+      return children;
+    };
+
+    const parsedChildren = parseChildren(req.body);
 
     // Check phone uniqueness
     const existingUser = await prisma.user.findUnique({ where: { phone } });
@@ -264,7 +311,21 @@ const updateUser = async (req, res) => {
     // Update user basic data
     await prisma.user.update({
       where: { id },
-      data: { name, phone, status, houseNumber, familyDetails },
+      data: { 
+        name, 
+        phone, 
+        status, 
+        houseNumber, 
+        familyDetails,
+        birthDate,
+        nik,
+        kkNumber,
+        spouseName,
+        spousePhone,
+        spouseBirthDate,
+        spouseNik,
+        children: parsedChildren
+      },
     });
 
     // Update role (replace existing roles)

@@ -18,7 +18,7 @@ const updateStatusSchema = z.object({
 
 const getReports = async (req, res) => {
   try {
-    const statusFilter = req.query.status || null;
+    const statusFilter = req.query.status && req.query.status !== "all" ? req.query.status : null;
     const reports = await reportService.getAllReports(statusFilter);
     const stats = await reportService.getReportStats();
     const unreadCount = await messageService.getUnreadCount(req.session.userId);
@@ -32,7 +32,7 @@ const getReports = async (req, res) => {
       user: { id: req.session.userId, name: req.session.userName },
       reports,
       stats,
-      filterStatus: statusFilter || "all",
+      filterStatus: req.query.status || "all",
       hasAdminAccess,
       canManageReport,
       unreadCount,

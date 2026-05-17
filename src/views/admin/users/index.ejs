@@ -61,6 +61,7 @@
  <tr>
  <th>Name</th>
  <th>Phone</th>
+ <th>Nomor KK</th>
  <th>Nomor Rumah</th>
  <th>Status</th>
  <th>Roles</th>
@@ -73,6 +74,7 @@
  <tr>
  <td style="font-weight:500; color:var(--gray-900)"><%= u.name %></td>
  <td><%= u.phone %></td>
+ <td style="font-family:monospace; color:var(--gray-700);"><%= u.kkNumber || '-' %></td>
  <td style="font-weight:600;"><%= u.houseNumber || '-' %></td>
  <td>
  <span class="badge badge-<%= u.status %>">

@@ -22,6 +22,15 @@ model User {
   houseNumber   String?
   familyDetails String?
   
+  birthDate       String?
+  nik             String?
+  kkNumber        String?
+  spouseName      String?
+  spousePhone     String?
+  spouseBirthDate String?
+  spouseNik       String?
+  children        Json?
+  
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 

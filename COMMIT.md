@@ -313,7 +313,7 @@ COMPLIANCE:
 - Build forum views in `/portal/reports/` (`index.ejs`, `create.ejs`, `detail.ejs`).
 - Allow specific roles (super_admin, ketua_rt) and owners to delete/manage posts, while any user can reply.
 
-### feat: Implement RT Expense, Manual Other Income, Upload Proofs, Fuzzy Search, Date-Range CSV Export, Live Date Filter, Date Range Ordering Validation, and Session Write Race Condition Fix
+### feat: Implement RT Expense, Manual Other Income, Upload Proofs, Fuzzy Search, Date-Range CSV Export, Live Date Filter, Date Range Ordering Validation, Session Write Race Condition Fix, and User & Family Demographics
 
 - Add `FinanceExpense` and `FinanceIncome` models to Prisma schema to handle RT expense and other manual income records.
 - Support `proofFilePath` for both manual other incomes and new expenses as optional transaction receipts.
@@ -329,4 +329,15 @@ COMPLIANCE:
 - Create form modals with `enctype="multipart/form-data"` and file select support to upload proof of transactions for both incomes and expenses.
 - Implement **Date-Range Financial CSV Report Export** (`GET /admin/finance/export`) supporting custom startDate/endDate parameters.
 - Generate high-fidelity Excel-compatible CSV reports with Indonesian local date formatting, UTF-8 BOM, and properly formatted semicolons (`;`) for seamless parsing in Microsoft Excel.
-- Update `DATABASE.md` and `ARCHITECTURE.md` to document the new manual income schema, live date range searches, and transaction flow updates.
+- Implement comprehensive **User & Family Demographics Management** in User Edit (Admin) and Edit Profile (Portal) systems:
+  - Replace the single plain-text "familyDetails" textarea with structured demographic input sections.
+  - Support **Data Diri Warga**: Tanggal Lahir (date type), NIK (16-digit optional string), and **Nomor KK** (16-digit optional string).
+  - Support **Data Pasangan (Suami / Istri)**: Nama Pasangan, Nomor Telepon Pasangan, Tanggal Lahir Pasangan (date type), and NIK Pasangan (optional string).
+  - Support **Data Anak (Dynamic Array stored as JSON)**: Allow dynamic addition and removal of multiple child rows on client-side (via robust Vanilla JS card manager) and save them as a single Postgres JSON array column (`children`).
+  - Persist new demographic attributes beautifully to Postgres via Prisma and Zod schema validations.
+  - Design premium, interactive full-width cards in Admin View User (`/admin/users/:id`) to organize family demographic details, dynamically looping over all stored children entries.
+  - Clean up User Detail View by removing the deprecated plain-text `Detail Keluarga` row from the first profile info card.
+  - Enhance Finance period resident listing hoveable tooltips to dynamically map, join, and render family composition trees including all child names.
+- Reorder Admin Sidebar navigation menu items to match: Dashboard, Warga, Dokumen, Keuangan, Messages, Role & Permission, Pengaturan, Log Error.
+- Fix Lapor RT report list query crash by normalizing filter status="all" to null for Prisma findMany queries, preventing database enum exceptions and unexpected page redirection.
+- Update `DATABASE.md` and `ARCHITECTURE.md` to document the new manual income schema, live date range searches, demographics columns, children JSON arrays, KK numbers, and transaction flow updates.

@@ -8,8 +8,16 @@ const { z } = require("zod");
 const updateProfileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   password: z.string().optional(),
-  houseNumber: z.string().optional(),
-  familyDetails: z.string().optional(),
+  houseNumber: z.string().optional().nullable(),
+  familyDetails: z.string().optional().nullable(),
+  birthDate: z.string().optional().nullable(),
+  nik: z.string().optional().nullable(),
+  kkNumber: z.string().optional().nullable(),
+  spouseName: z.string().optional().nullable(),
+  spousePhone: z.string().optional().nullable(),
+  spouseBirthDate: z.string().optional().nullable(),
+  spouseNik: z.string().optional().nullable(),
+  children: z.any().optional(),
 });
 
 /**
@@ -145,11 +153,57 @@ const updateProfile = async (req, res) => {
       return res.redirect("/portal/profile");
     }
 
-    const { name, password, houseNumber, familyDetails } = validation.data;
+    const { 
+      name, 
+      password, 
+      houseNumber, 
+      familyDetails,
+      birthDate,
+      nik,
+      kkNumber,
+      spouseName,
+      spousePhone,
+      spouseBirthDate,
+      spouseNik
+    } = validation.data;
+
+    // Parse dynamic children array from req.body
+    const parseChildren = (body) => {
+      const { childName, childBirthDate, childNik } = body;
+      if (!childName) return [];
+      
+      const names = Array.isArray(childName) ? childName : [childName];
+      const birthDates = Array.isArray(childBirthDate) ? childBirthDate : [childBirthDate];
+      const niks = Array.isArray(childNik) ? childNik : [childNik];
+      
+      const children = [];
+      for (let i = 0; i < names.length; i++) {
+        const name = (names[i] || "").trim();
+        if (name) {
+          children.push({
+            name,
+            birthDate: (birthDates[i] || "").trim() || null,
+            nik: (niks[i] || "").trim() || null
+          });
+        }
+      }
+      return children;
+    };
+
+    const parsedChildren = parseChildren(req.body);
+
     const updateData = { 
       name,
       houseNumber: houseNumber || null,
       familyDetails: familyDetails || null,
+      birthDate: birthDate || null,
+      nik: nik || null,
+      kkNumber: kkNumber || null,
+      spouseName: spouseName || null,
+      spousePhone: spousePhone || null,
+      spouseBirthDate: spouseBirthDate || null,
+      spouseNik: spouseNik || null,
+      children: parsedChildren
     };
 
     if (password && password.length >= 6) {

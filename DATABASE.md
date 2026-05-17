@@ -37,6 +37,14 @@ Menyimpan data utama user (warga & admin)
 | last_login     | datetime | optional                                |
 | houseNumber    | string   | optional, nomor rumah                   |
 | familyDetails  | string   | optional, detail anggota keluarga       |
+| birthDate      | string   | optional, tanggal lahir warga (YYYY-MM-DD) |
+| nik            | string   | optional, 16 digit NIK warga            |
+| kkNumber       | string   | optional, 16 digit Nomor Kartu Keluarga  |
+| spouseName     | string   | optional, nama lengkap pasangan         |
+| spousePhone    | string   | optional, nomor telepon pasangan        |
+| spouseBirthDate| string   | optional, tanggal lahir pasangan        |
+| spouseNik      | string   | optional, NIK pasangan                  |
+| children       | json     | optional, array data anak [{name, birthDate, nik}] |
 | created_at     | datetime | auto                                    |
 | updated_at     | datetime | auto                                    |
 

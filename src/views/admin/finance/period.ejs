@@ -210,8 +210,24 @@
                           <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
                           <span class="font-semibold text-slate-700"><%= u.name %></span>
                           <span class="text-slate-400">(<%= u.phone || '-' %>)</span>
-                          <% if (u.familyDetails) { %>
-                            <span class="cursor-help text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-500 font-medium" title="Keluarga: <%= u.familyDetails %>">👨‍👩‍👧‍👦 Detail</span>
+                          <% 
+                          let familyTitle = '';
+                          if (u.spouseName) {
+                            familyTitle += `Pasangan: ${u.spouseName} (${u.spousePhone || '-'})`;
+                          }
+                          if (u.children && u.children.length > 0) {
+                            const childNames = u.children.map(c => c.name).join(', ');
+                            if (familyTitle) familyTitle += ', ';
+                            familyTitle += `Anak: ${childNames}`;
+                          }
+                          if (u.familyDetails) {
+                            if (familyTitle) familyTitle += ', ';
+                            familyTitle += u.familyDetails;
+                          }
+                          if (!familyTitle) familyTitle = 'Tidak ada detail keluarga';
+                          %>
+                          <% if (u.spouseName || (u.children && u.children.length > 0) || u.familyDetails) { %>
+                            <span class="cursor-help text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-500 font-medium" title="<%= familyTitle %>">👨‍👩‍👧‍👦 Detail</span>
                           <% } %>
                         </div>
                       <% }) %>

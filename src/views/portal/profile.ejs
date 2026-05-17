@@ -74,10 +74,68 @@
  <input type="text" id="houseNumber" name="houseNumber" value="<%= profileUser.houseNumber || '' %>" placeholder="Contoh: B-12 atau No. 45" required style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
  </div>
 
- <div class="form-group">
- <label for="familyDetails">Detail Anggota Keluarga</label>
- <textarea id="familyDetails" name="familyDetails" rows="4" placeholder="Masukkan daftar anggota keluarga beserta hubungannya (contoh: Istri, Anak, dll.)" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;"><%= profileUser.familyDetails || '' %></textarea>
- </div>
+  <div style="background:#f8fafc; border:1px solid var(--gray-200); border-radius:12px; padding:1.25rem; display:flex; flex-direction:column; gap:1.25rem; margin-top: 0.5rem;">
+    <h3 style="font-size:0.95rem; color:var(--gray-800); margin:0; display:flex; items-center; gap:0.5rem; font-weight: 700;">
+      👤 Data Diri Warga
+    </h3>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="birthDate">Tanggal Lahir Warga</label>
+        <input type="date" id="birthDate" name="birthDate" value="<%= profileUser.birthDate || '' %>" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="nik">NIK Warga (Optional)</label>
+        <input type="text" id="nik" name="nik" value="<%= profileUser.nik || '' %>" placeholder="16 digit NIK" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="kkNumber">Nomor KK (Optional)</label>
+        <input type="text" id="kkNumber" name="kkNumber" value="<%= profileUser.kkNumber || '' %>" placeholder="16 digit No. KK" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#f8fafc; border:1px solid var(--gray-200); border-radius:12px; padding:1.25rem; display:flex; flex-direction:column; gap:1.25rem; margin-top: 0.5rem;">
+    <h3 style="font-size:0.95rem; color:var(--gray-800); margin:0; display:flex; items-center; gap:0.5rem; font-weight: 700;">
+      👩‍❤️‍👨 Data Pasangan (Suami / Istri)
+    </h3>
+    
+    <div class="form-group" style="margin-bottom:0;">
+      <label for="spouseName">Nama Pasangan</label>
+      <input type="text" id="spouseName" name="spouseName" value="<%= profileUser.spouseName || '' %>" placeholder="Nama lengkap pasangan" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="spousePhone">Nomor Telepon Pasangan</label>
+        <input type="text" id="spousePhone" name="spousePhone" value="<%= profileUser.spousePhone || '' %>" placeholder="Contoh: 0812..." style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="spouseBirthDate">Tanggal Lahir Pasangan</label>
+        <input type="date" id="spouseBirthDate" name="spouseBirthDate" value="<%= profileUser.spouseBirthDate || '' %>" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:0;">
+      <label for="spouseNik">NIK Pasangan (Optional)</label>
+      <input type="text" id="spouseNik" name="spouseNik" value="<%= profileUser.spouseNik || '' %>" placeholder="16 digit NIK pasangan" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+    </div>
+  </div>
+
+  <div style="background:#f8fafc; border:1px solid var(--gray-200); border-radius:12px; padding:1.25rem; display:flex; flex-direction:column; gap:1.25rem; margin-top: 0.5rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="font-size:0.95rem; color:var(--gray-800); margin:0; display:flex; align-items:center; gap:0.5rem; font-weight: 700;">
+        👶 Data Anak
+      </h3>
+      <button type="button" id="add-child-btn" style="background:var(--primary); color:white; border:none; padding:0.4rem 0.8rem; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:0.25rem; transition:all 0.2s;">
+        ➕ Tambah Anak
+      </button>
+    </div>
+    
+    <div id="children-container" style="display:flex; flex-direction:column; gap:1rem;">
+      <!-- Dynamic children input cards will be mounted here -->
+    </div>
+  </div>
 
  <hr style="border:0; border-top:1px solid var(--gray-200); margin:0.5rem 0;">
 
@@ -97,5 +155,77 @@
 
 </div>
 
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const childrenData = <%- JSON.stringify(profileUser.children || []) %>;
+    const container = document.getElementById("children-container");
+    const addBtn = document.getElementById("add-child-btn");
+
+    function createChildRow(child = { name: '', birthDate: '', nik: '' }) {
+      const row = document.createElement("div");
+      row.className = "child-row";
+      row.style.cssText = "background:white; border:1px solid var(--gray-200); border-radius:8px; padding:1rem; position:relative; display:flex; flex-direction:column; gap:0.75rem;";
+      
+      row.innerHTML = `
+        <button type="button" class="remove-child-btn" style="position:absolute; top:0.75rem; right:0.75rem; background:#fee2e2; color:#ef4444; border:none; padding:0.25rem 0.5rem; border-radius:4px; font-size:0.7rem; font-weight:600; cursor:pointer;">
+          ✕ Hapus
+        </button>
+        <div class="form-group" style="margin-bottom:0;">
+          <label style="font-size:0.75rem; font-weight:600; color:var(--gray-600); margin-bottom:0.25rem; display:block;">Nama Anak</label>
+          <input type="text" name="childName" value="${child.name || ''}" placeholder="Nama lengkap anak" required style="width:100%; padding:0.5rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem; font-weight:600; color:var(--gray-600); margin-bottom:0.25rem; display:block;">Tanggal Lahir</label>
+            <input type="date" name="childBirthDate" value="${child.birthDate || ''}" style="width:100%; padding:0.5rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label style="font-size:0.75rem; font-weight:600; color:var(--gray-600); margin-bottom:0.25rem; display:block;">NIK (Optional)</label>
+            <input type="text" name="childNik" value="${child.nik || ''}" placeholder="16 digit NIK anak" style="width:100%; padding:0.5rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+          </div>
+        </div>
+      `;
+
+      row.querySelector(".remove-child-btn").addEventListener("click", function() {
+        row.remove();
+        updateEmptyState();
+      });
+
+      container.appendChild(row);
+      updateEmptyState();
+    }
+
+    function updateEmptyState() {
+      const existingRows = container.querySelectorAll(".child-row");
+      const emptyStateId = "children-empty-state";
+      let emptyState = document.getElementById(emptyStateId);
+      
+      if (existingRows.length === 0) {
+        if (!emptyState) {
+          emptyState = document.createElement("p");
+          emptyState.id = emptyStateId;
+          emptyState.style.cssText = "color:var(--gray-500); font-size:0.875rem; font-style:italic; margin:0; text-align:center; padding:1rem 0;";
+          emptyState.textContent = "Belum ada data anak. Klik 'Tambah Anak' di atas untuk menambah.";
+          container.appendChild(emptyState);
+        }
+      } else {
+        if (emptyState) {
+          emptyState.remove();
+        }
+      }
+    }
+
+    // Populate existing children
+    if (childrenData && childrenData.length > 0) {
+      childrenData.forEach(child => createChildRow(child));
+    } else {
+      updateEmptyState();
+    }
+
+    addBtn.addEventListener("click", function() {
+      createChildRow();
+    });
+  });
+</script>
 </body>
 </html>

@@ -106,7 +106,16 @@ const getPeriodResidentStatus = async (periodId) => {
       status: "active",
       roles: { none: { role: { name: "super_admin" } } }
     },
-    select: { id: true, name: true, phone: true, houseNumber: true, familyDetails: true }
+    select: { 
+      id: true, 
+      name: true, 
+      phone: true, 
+      houseNumber: true, 
+      familyDetails: true,
+      spouseName: true,
+      children: true,
+      spousePhone: true
+    }
   });
 
   // Get all approved/pending/rejected payments for this period

@@ -29,6 +29,7 @@
  }
  }
  }
+ }
  </script>
  
  <!-- Lucide Icons -->
@@ -151,12 +152,22 @@
  </a>
  <% } %>
 
- <!-- ROLE & PERMISSION -->
- <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('role.manage')) { %>
- <a href="/admin/roles" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= currentPage === 'roles' ? 'active' : '' %>">
+ <!-- DOKUMEN -->
+ <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('document.manage')) { %>
+ <a href="/admin/documents" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= currentPage === 'documents' ? 'active' : '' %>">
  <div class="flex items-center gap-3">
- <i data-lucide="shield" class="w-5 h-5"></i>
- <span class="text-sm">Role & Permission</span>
+ <i data-lucide="file-text" class="w-5 h-5"></i>
+ <span class="text-sm">Dokumen</span>
+ </div>
+ </a>
+ <% } %>
+
+ <!-- KEUANGAN -->
+ <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('finance.manage')) { %>
+ <a href="/admin/finance" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= typeof currentPage !== 'undefined' && currentPage === 'finance' ? 'active' : '' %>">
+ <div class="flex items-center gap-3">
+ <i data-lucide="wallet" class="w-5 h-5"></i>
+ <span class="text-sm">Keuangan</span>
  </div>
  </a>
  <% } %>
@@ -174,27 +185,17 @@
  </a>
  <% } %>
 
- <!-- DOCUMENTS -->
- <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('document.manage')) { %>
- <a href="/admin/documents" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= currentPage === 'documents' ? 'active' : '' %>">
+ <!-- ROLE & PERMISSION -->
+ <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('role.manage')) { %>
+ <a href="/admin/roles" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= currentPage === 'roles' ? 'active' : '' %>">
  <div class="flex items-center gap-3">
- <i data-lucide="file-text" class="w-5 h-5"></i>
- <span class="text-sm">Dokumen</span>
+ <i data-lucide="shield" class="w-5 h-5"></i>
+ <span class="text-sm">Role & Permission</span>
  </div>
  </a>
  <% } %>
 
- <!-- FINANCE -->
- <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('finance.manage')) { %>
- <a href="/admin/finance" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= typeof currentPage !== 'undefined' && currentPage === 'finance' ? 'active' : '' %>">
- <div class="flex items-center gap-3">
- <i data-lucide="wallet" class="w-5 h-5"></i>
- <span class="text-sm">Keuangan</span>
- </div>
- </a>
- <% } %>
-
- <!-- SETTINGS -->
+ <!-- PENGATURAN -->
  <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('setting.manage')) { %>
  <a href="/admin/settings" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
  <div class="flex items-center gap-3">
@@ -204,7 +205,7 @@
  </a>
  <% } %>
 
- <!-- ERROR LOGS -->
+ <!-- LOG ERROR -->
  <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('error_log.read')) { %>
  <a href="/admin/error-logs" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= typeof currentPage !== 'undefined' && currentPage === 'error-logs' ? 'active' : '' %>">
  <div class="flex items-center gap-3">
@@ -280,4 +281,3 @@
      }
    });
  </script>
-
