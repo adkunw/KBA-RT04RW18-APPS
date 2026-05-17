@@ -1,0 +1,135 @@
+<%- include('../_sidebar.ejs', { currentPage: 'error-logs' }) %>
+
+<!-- MAIN CONTENT -->
+<main class="admin-main flex flex-col">
+  
+  <!-- TOP HEADER -->
+  <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+    <div class="flex items-center gap-4">
+      <h2 class="font-display font-bold text-xl">Log Error Aplikasi</h2>
+    </div>
+
+    <!-- Right Side Actions & Avatar -->
+    <div class="flex items-center gap-4">
+      <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+        <i data-lucide="bell" class="w-5 h-5"></i>
+        <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+          <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+        <% } %>
+      </a>
+      <div class="h-8 w-px bg-slate-200 mx-1"></div>
+      <div class="flex items-center gap-2">
+        <% if (typeof user !== 'undefined' && user && user.name) { %>
+          <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+            <%= user.name.charAt(0).toUpperCase() %>
+          </div>
+          <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+        <% } %>
+      </div>
+    </div>
+  </header>
+
+  <!-- INNER CONTENT -->
+  <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
+    
+    <!-- PAGE HEADER & BREADCRUMB -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Sistem Log Kerusakan</h1>
+        <p class="text-sm text-slate-500">Pantau seluruh kejadian kesalahan (error) sistem internal yang ditangkap secara otomatis.</p>
+      </div>
+      <% if (logs && logs.length > 0) { %>
+        <div class="flex items-center gap-3">
+          <form action="/admin/error-logs/clear" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus semua log kerusakan secara permanen? Tindakan ini tidak bisa dibatalkan.')">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+            <button type="submit" class="inline-flex items-center gap-2 bg-red-650 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-xl transition-all shadow-md shadow-red-500/10 text-sm">
+              <i data-lucide="trash-2" class="w-4 h-4"></i> Bersihkan Semua Log
+            </button>
+          </form>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium flex gap-3 items-start">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500"></i>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-medium flex gap-3 items-start">
+        <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-500"></i>
+        <span><%= success %></span>
+      </div>
+    <% } %>
+
+    <!-- TABLE -->
+    <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+      <% if (!logs || logs.length === 0) { %>
+        <div class="text-center py-16 text-slate-500">
+          <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+            <i data-lucide="shield-check" class="w-10 h-10"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-1">Semua Sistem Sehat!</h3>
+          <p class="text-sm text-slate-500 px-4 max-w-sm mx-auto">Tidak ada log error yang terekam. Aplikasi Anda berjalan dengan lancar dan tanpa kendala.</p>
+        </div>
+      <% } else { %>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse table-auto">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200">
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-[180px]">Waktu Kejadian</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-[100px]">Level</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Path / URL</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Detail Kesalahan (Error)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <% logs.forEach((log, index) => { %>
+                <tr class="hover:bg-slate-50/50 transition-colors align-top">
+                  <!-- Timestamp -->
+                  <td class="px-6 py-4 text-sm font-semibold text-slate-600 font-mono">
+                    <%= log.timestamp %>
+                  </td>
+                  
+                  <!-- Level -->
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider <%= log.level === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-amber-50 text-amber-700 border border-amber-100' %>">
+                      <%= log.level %>
+                    </span>
+                  </td>
+
+                  <!-- Path -->
+                  <td class="px-6 py-4 text-sm font-semibold text-slate-700 font-mono break-all">
+                    <%= log.path %>
+                  </td>
+
+                  <!-- Message and Stack Trace -->
+                  <td class="px-6 py-4 space-y-2">
+                    <div class="text-sm font-bold text-slate-900 leading-snug"><%= log.message %></div>
+                    
+                    <% if (log.stack) { %>
+                      <details class="group select-none">
+                        <summary class="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-800 cursor-pointer transition-colors outline-none">
+                          <i data-lucide="chevron-right" class="w-3.5 h-3.5 group-open:rotate-90 transition-transform"></i>
+                          <span>Lihat Stack Trace Kerusakan</span>
+                        </summary>
+                        <div class="mt-3 p-4 bg-slate-900 text-rose-400 border border-slate-800 rounded-2xl text-[11px] font-mono whitespace-pre-wrap overflow-x-auto max-h-[250px] select-all scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900 shadow-inner">
+                          <%= log.stack %>
+                        </div>
+                      </details>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+</div>
+</body>
+</html>

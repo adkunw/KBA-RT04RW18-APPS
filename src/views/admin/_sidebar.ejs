@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
  <meta charset="UTF-8">
@@ -167,6 +167,16 @@
  <div class="flex items-center gap-3">
  <i data-lucide="settings" class="w-5 h-5"></i>
  <span class="text-sm">Pengaturan</span>
+ </div>
+ </a>
+ <% } %>
+
+ <!-- ERROR LOGS -->
+ <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('error_log.read')) { %>
+ <a href="/admin/error-logs" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= typeof currentPage !== 'undefined' && currentPage === 'error-logs' ? 'active' : '' %>">
+ <div class="flex items-center gap-3">
+ <i data-lucide="terminal" class="w-5 h-5"></i>
+ <span class="text-sm">Log Error</span>
  </div>
  </a>
  <% } %>

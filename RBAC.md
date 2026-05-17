@@ -109,6 +109,12 @@ resource.action
 
 ---
 
+### ERROR LOG MANAGEMENT
+
+- error_log.read
+
+---
+
 ## 🧩 ROLE DEFAULT MAPPING
 
 ### SUPER ADMIN

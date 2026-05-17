@@ -22,6 +22,7 @@ async function main() {
     { name: "finance.manage" },
     { name: "report.delete_any" },
     { name: "setting.manage" },
+    { name: "error_log.read" },
   ];
 
   const createdPermissions = await Promise.all(
