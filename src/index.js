@@ -100,7 +100,7 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     // Initialize database (create session table if needed)
-    await initDatabase();
+    //await initDatabase();
 
     app.listen(PORT, () => {
       logger.info(`Server running on http://localhost:${PORT}`, { NODE_ENV });
