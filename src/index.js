@@ -57,6 +57,12 @@ app.set("view engine", "ejs");
 // Static files
 app.use(express.static(path.join(__dirname, "../public")));
 
+// Disable browser caching for dynamic routes (fixes back-button and login/logout cache issues)
+app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  next();
+});
+
 // Global Locals Middleware
 app.use((req, res, next) => {
   res.locals.userPermissions = req.session?.userPermissions || [];
