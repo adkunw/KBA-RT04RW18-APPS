@@ -409,9 +409,9 @@ const downloadImportTemplate = (req, res) => {
   res.setHeader("Content-Disposition", 'attachment; filename="template_bulk_warga.csv"');
   // UTF-8 BOM to support proper opening in Excel without character issues
   res.write("\uFEFF");
-  res.write("Nama,Telepon,Role\n");
-  res.write("Budi Santoso,08123456789,warga\n");
-  res.write("Siti Aminah,08987654321,bendahara\n");
+  res.write("Nama,Telepon,Nomor Rumah\n");
+  res.write("Budi Santoso,08123456789,B-12\n");
+  res.write("Siti Aminah,08987654321,C-05\n");
   res.end();
 };
 
@@ -433,13 +433,13 @@ const uploadAndReviewImport = async (req, res) => {
       return res.redirect("/admin/users");
     }
 
-    const headers = rows[0].map(h => h.toLowerCase());
+    const headers = rows[0].map(h => h.toLowerCase().trim());
     const nameIdx = headers.indexOf("nama");
     const phoneIdx = headers.indexOf("telepon");
-    const roleIdx = headers.indexOf("role");
+    const houseNumberIdx = headers.indexOf("nomor rumah");
 
-    if (nameIdx === -1 || phoneIdx === -1 || roleIdx === -1) {
-      req.flash("error", "Format header CSV salah. Harus memiliki kolom: Nama, Telepon, dan Role.");
+    if (nameIdx === -1 || phoneIdx === -1 || houseNumberIdx === -1) {
+      req.flash("error", "Format header CSV salah. Harus memiliki kolom: Nama, Telepon, dan Nomor Rumah.");
       return res.redirect("/admin/users");
     }
 
@@ -451,11 +451,11 @@ const uploadAndReviewImport = async (req, res) => {
 
       const name = row[nameIdx] || "";
       const phone = (row[phoneIdx] || "").trim().replace(/[-\s]/g, ""); // Clean formatting like dashes/spaces
-      const roleName = (row[roleIdx] || "warga").trim().toLowerCase();
+      const houseNumber = (row[houseNumberIdx] || "").trim();
 
       if (!name || !phone) continue;
 
-      entries.push({ name, phone, roleName });
+      entries.push({ name, phone, houseNumber, roleName: "warga" });
     }
 
     if (entries.length === 0) {
@@ -495,9 +495,11 @@ const showImportReview = async (req, res) => {
           index,
           name: entry.name,
           phone: entry.phone,
-          roleName: entry.roleName,
+          houseNumber: entry.houseNumber,
+          roleName: entry.roleName || "warga",
           exists: !!existingUser,
           dbName: existingUser ? existingUser.name : null,
+          dbHouseNumber: existingUser ? existingUser.houseNumber : null,
           dbRole: existingUser && existingUser.roles[0] ? existingUser.roles[0].role.name : null,
         };
       })
@@ -549,9 +551,11 @@ const processImport = async (req, res) => {
       const row = entries[idx];
       if (!row) continue;
 
-      // Get database role ID mapping
-      const dbRole = roles.find(r => r.name.toLowerCase() === row.roleName.toLowerCase()) 
-        || roles.find(r => r.name.toLowerCase() === "warga");
+      // Get database role ID mapping - default to "warga"
+      const dbRole = roles.find(r => r.name.toLowerCase() === "warga");
+      if (!dbRole) {
+        throw new Error("Default role 'warga' not found in database.");
+      }
 
       // Check if user exists
       const existingUser = await prisma.user.findUnique({
@@ -563,7 +567,10 @@ const processImport = async (req, res) => {
         await prisma.$transaction(async (tx) => {
           await tx.user.update({
             where: { id: existingUser.id },
-            data: { name: row.name }
+            data: { 
+              name: row.name,
+              houseNumber: row.houseNumber || null
+            }
           });
 
           // Replace old roles with new role
@@ -582,7 +589,7 @@ const processImport = async (req, res) => {
       } else {
         // Create new user (using transaction via userService)
         await userService.createUser(
-          { name: row.name, phone: row.phone },
+          { name: row.name, phone: row.phone, houseNumber: row.houseNumber },
           dbRole.id
         );
         createdCount++;

@@ -9,7 +9,7 @@ const activationService = require("./activation.service");
  * @returns {Promise<Object>} Created user with role
  */
 const createUser = async (userData, roleId) => {
-  const { name, phone } = userData;
+  const { name, phone, houseNumber } = userData;
 
   // Validate inputs
   if (!name || !phone || !roleId) {
@@ -32,6 +32,7 @@ const createUser = async (userData, roleId) => {
       data: {
         name,
         phone,
+        houseNumber: houseNumber || null,
         status: "created",
         password: null,
       },

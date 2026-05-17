@@ -68,7 +68,7 @@
             <th class="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">No</th>
             <th class="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nama (Upload)</th>
             <th class="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Telepon</th>
-            <th class="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Role (Upload)</th>
+            <th class="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">No. Rumah (Upload)</th>
             <th class="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status Database</th>
             <th class="py-4 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Data di Database Lama</th>
           </tr>
@@ -85,10 +85,8 @@
             <td class="py-4 px-4 text-sm text-slate-500"><%= idx + 1 %></td>
             <td class="py-4 px-4 text-sm font-semibold text-slate-900"><%= row.name %></td>
             <td class="py-4 px-4 text-sm text-slate-600 font-mono"><%= row.phone %></td>
-            <td class="py-4 px-4 text-sm text-slate-600 capitalize">
-              <span class="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-800 border border-slate-200">
-                <%= row.roleName.replace('_', ' ') %>
-              </span>
+            <td class="py-4 px-4 text-sm text-slate-600 font-medium">
+              <%= row.houseNumber || '-' %>
             </td>
             <td class="py-4 px-4">
               <% if (!row.exists) { %>
@@ -107,6 +105,7 @@
               <% if (row.exists) { %>
                 <div class="flex flex-col gap-0.5 bg-slate-50 p-2 rounded-lg border border-slate-100">
                   <span><strong class="text-slate-700">Nama:</strong> <%= row.dbName %></span>
+                  <span><strong class="text-slate-700">No. Rumah:</strong> <%= row.dbHouseNumber || '-' %></span>
                   <span><strong class="text-slate-700">Role:</strong> <span class="capitalize"><%= row.dbRole.replace('_', ' ') %></span></span>
                 </div>
               <% } else { %>
