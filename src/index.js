@@ -18,6 +18,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 
+// Trust proxy for secure session cookies in hosting (Cloudflare/Nginx reverse proxies)
+// if (NODE_ENV === "production") {
+app.set("trust proxy", 1);
+// }
+
 // ============================================
 // MIDDLEWARE SETUP
 // ============================================
