@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
  <meta charset="UTF-8">
@@ -67,6 +67,16 @@
  <div class="form-group">
  <label for="name">Full Name</label>
  <input type="text" id="name" name="name" value="<%= profileUser.name %>" required>
+ </div>
+
+ <div class="form-group">
+ <label for="houseNumber">Nomor Rumah</label>
+ <input type="text" id="houseNumber" name="houseNumber" value="<%= profileUser.houseNumber || '' %>" placeholder="Contoh: B-12 atau No. 45" required style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;">
+ </div>
+
+ <div class="form-group">
+ <label for="familyDetails">Detail Anggota Keluarga</label>
+ <textarea id="familyDetails" name="familyDetails" rows="4" placeholder="Masukkan daftar anggota keluarga beserta hubungannya (contoh: Istri, Anak, dll.)" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-family:inherit; font-size:0.875rem;"><%= profileUser.familyDetails || '' %></textarea>
  </div>
 
  <hr style="border:0; border-top:1px solid var(--gray-200); margin:0.5rem 0;">

@@ -17,6 +17,8 @@ const updateUserSchema = z.object({
   phone: z.string().min(1, "Phone is required"),
   status: z.enum(["created", "active", "inactive", "blocked"]),
   roleId: z.string().min(1, "Role is required"),
+  houseNumber: z.string().optional().nullable(),
+  familyDetails: z.string().optional().nullable(),
 });
 
 /**
@@ -250,7 +252,7 @@ const updateUser = async (req, res) => {
       return res.redirect(`/admin/users/${id}/edit`);
     }
 
-    const { name, phone, status, roleId } = validation.data;
+    const { name, phone, status, roleId, houseNumber, familyDetails } = validation.data;
 
     // Check phone uniqueness
     const existingUser = await prisma.user.findUnique({ where: { phone } });
@@ -262,7 +264,7 @@ const updateUser = async (req, res) => {
     // Update user basic data
     await prisma.user.update({
       where: { id },
-      data: { name, phone, status },
+      data: { name, phone, status, houseNumber, familyDetails },
     });
 
     // Update role (replace existing roles)

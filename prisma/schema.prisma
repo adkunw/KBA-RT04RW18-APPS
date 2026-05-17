@@ -19,6 +19,9 @@ model User {
   status    UserStatus @default(created)
   language  String     @default("id")
   lastLogin DateTime?
+  houseNumber   String?
+  familyDetails String?
+  
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -31,6 +34,8 @@ model User {
   reviewedDocuments  Document[]         @relation("DocumentReviewer")
   uploadedPayments   PaymentReport[]    @relation("PaymentUploader")
   reviewedPayments   PaymentReport[]    @relation("PaymentReviewer")
+  expensesCreated    FinanceExpense[]   @relation("ExpenseCreator")
+  incomesCreated     FinanceIncome[]    @relation("IncomeCreator")
 
   reports            Report[]
   reportReplies      ReportReply[]
@@ -288,4 +293,46 @@ model Setting {
   updatedAt DateTime @updatedAt
 
   @@map("settings")
+}
+
+model FinanceExpense {
+  id            String   @id @default(cuid())
+  amount        Int      // Nominal Pengeluaran
+  description   String   // Rincian / Deskripsi Pengeluaran
+  category      String   // Kategori Pengeluaran
+  recipient     String   // Penerima dana pengeluaran
+  date          DateTime // Tanggal pengeluaran
+  proofFilePath String?  // Bukti transaksi pengeluaran (foto/PDF/video)
+  createdById   String   // ID pembuat data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  createdBy     User     @relation("ExpenseCreator", fields: [createdById], references: [id])
+
+  @@map("finance_expenses")
+}
+
+model FinanceIncome {
+  id            String   @id @default(cuid())
+  amount        Int      // Nominal Pemasukan
+  description   String   // Rincian / Deskripsi Pemasukan
+  category      String   // Kategori Pemasukan (cth: Donasi, Hibah, Kas Mandiri)
+  source        String   // Sumber dana pemasukan
+  date          DateTime // Tanggal pemasukan
+  proofFilePath String?  // Bukti transaksi pemasukan (foto/PDF/video)
+  createdById   String   // ID pembuat data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  createdBy     User     @relation("IncomeCreator", fields: [createdById], references: [id])
+
+  @@map("finance_incomes")
+}
+
+model Session {
+  sid    String   @id @db.VarChar
+  sess   Json
+  expire DateTime @db.Timestamp(6)
+
+  @@map("session")
 }

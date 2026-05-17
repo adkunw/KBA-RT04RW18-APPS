@@ -188,7 +188,7 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 border-b border-slate-200">
-                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Warga</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nomor Rumah / Warga</th>
                 <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal Lapor</th>
                 <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nominal Bayar</th>
                 <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
@@ -198,12 +198,23 @@
             </thead>
             <tbody class="divide-y divide-slate-100">
               <% residents.forEach(item => { %>
-                <% const { user, payment, paymentStatus } = item; %>
+                <% const { houseNumber, users, payment, paymentStatus } = item; %>
                 <tr class="hover:bg-slate-50/50 transition-colors">
                   <td class="px-6 py-4">
-                    <div class="font-semibold text-slate-900"><%= user.name %></div>
-                    <div class="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                      <i data-lucide="phone" class="w-3.5 h-3.5 flex-shrink-0"></i> <%= user.phone || '-' %>
+                    <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                      <i data-lucide="home" class="w-4 h-4 text-brand-600"></i> <%= houseNumber %>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-2 space-y-1">
+                      <% users.forEach(u => { %>
+                        <div class="flex items-center gap-1.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                          <span class="font-semibold text-slate-700"><%= u.name %></span>
+                          <span class="text-slate-400">(<%= u.phone || '-' %>)</span>
+                          <% if (u.familyDetails) { %>
+                            <span class="cursor-help text-[10px] bg-slate-100 px-1 py-0.5 rounded text-slate-500 font-medium" title="Keluarga: <%= u.familyDetails %>">👨‍👩‍👧‍👦 Detail</span>
+                          <% } %>
+                        </div>
+                      <% }) %>
                     </div>
                   </td>
                   <td class="px-6 py-4 text-sm text-slate-600">
@@ -222,13 +233,19 @@
                     <%= payment && payment.reviewer ? payment.reviewer.name : '-' %>
                   </td>
                   <td class="px-6 py-4 text-right">
-                    <% if (payment) { %>
-                      <a href="/admin/finance/payment/<%= payment.id %>" class="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors">
-                        Review
-                      </a>
-                    <% } else { %>
-                      <span class="text-xs text-slate-400 italic">Belum Melapor</span>
-                    <% } %>
+                    <div class="flex items-center justify-end gap-2">
+                      <% if (payment) { %>
+                        <a href="/admin/finance/payment/<%= payment.id %>" class="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors">
+                          <i data-lucide="eye" class="w-3.5 h-3.5 flex-shrink-0"></i> Review
+                        </a>
+                      <% } %>
+                      
+                      <% if (paymentStatus !== 'approved' && users.length > 0) { %>
+                        <button type="button" onclick="openMarkPaidModal('<%= users[0].id %>', '<%= houseNumber.replace(/'/g, `\\'`) %>', '<%= period.fixedDuesAmount %>')" class="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors shadow-sm shadow-emerald-500/10">
+                          <i data-lucide="check-circle" class="w-3.5 h-3.5 flex-shrink-0"></i> Tandai Lunas
+                        </button>
+                      <% } %>
+                    </div>
                   </td>
                 </tr>
               <% }) %>
@@ -238,6 +255,170 @@
       <% } %>
     </div>
   </div>
+
+  <!-- MARK PAID MODAL -->
+  <div id="markPaidModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200 flex flex-col">
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center px-6 py-5 border-b border-slate-100">
+        <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i> <span id="markPaidTitle">Tandai Lunas Warga</span>
+        </h3>
+        <button type="button" onclick="closeMarkPaidModal()" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <!-- Modal Form -->
+      <form id="markPaidForm" method="POST" action="">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        
+        <!-- Modal Content -->
+        <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <p class="text-xs font-semibold text-slate-500 mb-2">Pilih rincian iuran dan kas yang dibayarkan oleh warga:</p>
+          
+          <!-- Rincian Iuran Tetap -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" name="hasFixedDues" id="hasFixedDues" value="true" checked onchange="toggleField('fixedDuesAmountContainer', this)" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
+              <div class="flex-1">
+                <span class="text-sm font-bold text-slate-800">Iuran Tetap Bulanan</span>
+                <p class="text-xs text-slate-400">Pembayaran iuran bulanan wajib warga RT.</p>
+              </div>
+            </label>
+            <div id="fixedDuesAmountContainer" class="mt-2 pl-7">
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <span class="text-slate-400 text-sm font-semibold">Rp</span>
+                </div>
+                <input type="number" name="fixedDuesAmount" id="fixedDuesAmountInput" value="<%= period.fixedDuesAmount %>" min="0" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- Rincian Kas RT -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" name="hasKas" id="hasKas" value="true" onchange="toggleField('kasAmountContainer', this)" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
+              <div class="flex-1">
+                <span class="text-sm font-bold text-slate-800">Kas RT</span>
+                <p class="text-xs text-slate-400">Pembayaran dana kas sukarela / wajib RT.</p>
+              </div>
+            </label>
+            <div id="kasAmountContainer" class="mt-2 pl-7 hidden">
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <span class="text-slate-400 text-sm font-semibold">Rp</span>
+                </div>
+                <input type="number" name="kasAmount" id="kasAmountInput" value="0" min="0" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- Rincian Lain-lain -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" name="hasOther" id="hasOther" value="true" onchange="toggleField('otherContainer', this)" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
+              <div class="flex-1">
+                <span class="text-sm font-bold text-slate-800">Pembayaran Lainnya (Tambahan)</span>
+                <p class="text-xs text-slate-400">Biaya tambahan seperti sampah, sumbangan sosial, dll.</p>
+              </div>
+            </label>
+            <div id="otherContainer" class="mt-2 pl-7 hidden space-y-2">
+              <input type="text" name="otherDescription" id="otherDescriptionInput" class="px-3.5 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="Keterangan pembayaran (misal: Iuran Sampah)">
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <span class="text-slate-400 text-sm font-semibold">Rp</span>
+                </div>
+                <input type="number" name="otherAmount" id="otherAmountInput" value="0" min="0" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
+              </div>
+            </div>
+          </div>
+
+          <!-- Catatan Bendahara -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Catatan Pembayaran</label>
+            <textarea name="notes" id="notesInput" rows="2" class="px-3.5 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="Catatan opsional"></textarea>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+          <button type="button" onclick="closeMarkPaidModal()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl text-sm hover:bg-slate-100 shadow-sm transition-all">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md shadow-emerald-500/10 transition-all flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-4 h-4"></i> Simpan Pembayaran
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openMarkPaidModal(userId, userName, defaultFixedDues) {
+      const modal = document.getElementById("markPaidModal");
+      const form = document.getElementById("markPaidForm");
+      const title = document.getElementById("markPaidTitle");
+      
+      // Update action path dynamically
+      form.action = `/admin/finance/period/<%= period.id %>/mark-paid/${userId}`;
+      
+      // Update title text
+      title.innerText = `Tandai Lunas: ${userName}`;
+      
+      // Reset default values
+      document.getElementById("hasFixedDues").checked = true;
+      document.getElementById("fixedDuesAmountInput").value = defaultFixedDues;
+      document.getElementById("fixedDuesAmountContainer").classList.remove("hidden");
+      
+      document.getElementById("hasKas").checked = false;
+      document.getElementById("kasAmountInput").value = 0;
+      document.getElementById("kasAmountContainer").classList.add("hidden");
+      
+      document.getElementById("hasOther").checked = false;
+      document.getElementById("otherDescriptionInput").value = "";
+      document.getElementById("otherAmountInput").value = 0;
+      document.getElementById("otherContainer").classList.add("hidden");
+      
+      const userRoles = <%- JSON.stringify(user.roles || []) %>;
+      let roleDisplay = "Admin";
+      if (userRoles.includes("super_admin")) {
+        roleDisplay = "Super Admin";
+      } else if (userRoles.includes("bendahara")) {
+        roleDisplay = "Bendahara";
+      } else if (userRoles.includes("ketua_rt")) {
+        roleDisplay = "Ketua RT";
+      }
+      
+      const defaultNotes = `Ditandai lunas secara manual oleh ${roleDisplay} (<%= user.name %>)`;
+      document.getElementById("notesInput").value = defaultNotes;
+      
+      // Open modal
+      modal.style.display = "flex";
+      modal.classList.remove("hidden");
+      
+      // Refresh lucide icons inside modal
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    }
+
+    function closeMarkPaidModal() {
+      const modal = document.getElementById("markPaidModal");
+      modal.style.display = "none";
+      modal.classList.add("hidden");
+    }
+
+    function toggleField(containerId, checkbox) {
+      const container = document.getElementById(containerId);
+      if (checkbox.checked) {
+        container.classList.remove("hidden");
+      } else {
+        container.classList.add("hidden");
+      }
+    }
+  </script>
 </main>
 </div>
 </body>

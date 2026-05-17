@@ -312,3 +312,20 @@ COMPLIANCE:
 - Configure routes in `report.routes.js` and mount them at `/portal/reports`.
 - Build forum views in `/portal/reports/` (`index.ejs`, `create.ejs`, `detail.ejs`).
 - Allow specific roles (super_admin, ketua_rt) and owners to delete/manage posts, while any user can reply.
+
+### feat: Implement RT Expense, Manual Other Income, Upload Proofs, Fuzzy Search, Date-Range CSV Export, Live Date Filter, and Date Range Ordering Validation
+
+- Add `FinanceExpense` and `FinanceIncome` models to Prisma schema to handle RT expense and other manual income records.
+- Support `proofFilePath` for both manual other incomes and new expenses as optional transaction receipts.
+- Integrate secure file upload logic using `multer` with Allowed MIME Types and size limits to store files securely in `/uploads/payments`.
+- Re-architect Admin Finance Dashboard to display interactive glassy widgets for **Total Pemasukan** (citizen payment approvals + other manual incomes), **Total Pengeluaran**, and **Saldo Kas RT**.
+- Implement real-time, client-side, interactive fuzzy-search mutations filter box that seamlessly searches through:
+  - Tabel Rincian Pemasukan Lain RT
+  - Tabel Rincian Pengeluaran Kas RT
+  - Mutasi Kas Terbaru Feed
+- Add **Live Date-Range Filters** inside the live search panel allowing the user to filter all tables and recent transactions concurrently by start/end dates.
+- Enforce strict **Date Range Order Validation** (`endDate >= startDate`) dynamically on client-side (HTML5 `min`/`max` dynamic restriction handlers and live filtering alerts) and server-side (Zod schema `.refine()` check).
+- Create form modals with `enctype="multipart/form-data"` and file select support to upload proof of transactions for both incomes and expenses.
+- Implement **Date-Range Financial CSV Report Export** (`GET /admin/finance/export`) supporting custom startDate/endDate parameters.
+- Generate high-fidelity Excel-compatible CSV reports with Indonesian local date formatting, UTF-8 BOM, and properly formatted semicolons (`;`) for seamless parsing in Microsoft Excel.
+- Update `DATABASE.md` and `ARCHITECTURE.md` to document the new manual income schema, live date range searches, and transaction flow updates.

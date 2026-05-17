@@ -8,6 +8,8 @@ const { z } = require("zod");
 const updateProfileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   password: z.string().optional(),
+  houseNumber: z.string().optional(),
+  familyDetails: z.string().optional(),
 });
 
 /**
@@ -143,8 +145,12 @@ const updateProfile = async (req, res) => {
       return res.redirect("/portal/profile");
     }
 
-    const { name, password } = validation.data;
-    const updateData = { name };
+    const { name, password, houseNumber, familyDetails } = validation.data;
+    const updateData = { 
+      name,
+      houseNumber: houseNumber || null,
+      familyDetails: familyDetails || null,
+    };
 
     if (password && password.length >= 6) {
       updateData.password = await bcrypt.hash(password, 10);

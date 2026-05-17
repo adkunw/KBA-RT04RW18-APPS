@@ -1,4 +1,4 @@
-﻿<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
  <!-- MAIN CONTENT -->
  <main class="admin-main flex flex-col">
@@ -49,6 +49,16 @@
  <div class="form-group">
  <label for="phone">Phone Number (Login ID)</label>
  <input type="text" id="phone" name="phone" value="<%= editUser.phone %>" required>
+ </div>
+
+ <div class="form-group">
+ <label for="houseNumber">Nomor Rumah</label>
+ <input type="text" id="houseNumber" name="houseNumber" value="<%= editUser.houseNumber || '' %>" placeholder="Contoh: Blok C No. 42">
+ </div>
+
+ <div class="form-group">
+ <label for="familyDetails">Detail Anggota Keluarga</label>
+ <textarea id="familyDetails" name="familyDetails" rows="3" placeholder="Contoh: Ayah, Ibu, 2 Anak" style="width:100%; border:1px solid var(--gray-300); border-radius:6px; padding:0.625rem; font-family:inherit;"><%= editUser.familyDetails || '' %></textarea>
  </div>
 
  <div class="form-group">

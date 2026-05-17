@@ -103,6 +103,12 @@ resource.action
 
 ---
 
+### FINANCE MANAGEMENT
+
+- finance.manage
+
+---
+
 ### SETTING MANAGEMENT
 
 - setting.manage
@@ -144,6 +150,13 @@ resource.action
 
 - dashboard.view
 - report.delete_any
+
+---
+
+### BENDAHARA
+
+- dashboard.view
+- finance.manage (Mengelola keuangan & menandai iuran warga lunas secara manual)
 
 ---
 

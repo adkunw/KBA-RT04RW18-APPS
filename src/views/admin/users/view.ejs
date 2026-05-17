@@ -1,4 +1,4 @@
-﻿<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
  <!-- MAIN CONTENT -->
  <main class="admin-main flex flex-col">
@@ -61,6 +61,14 @@
  <tr style="border-bottom:1px solid var(--gray-100);">
  <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Phone</td>
  <td style="padding:0.625rem 0; color:var(--gray-900);"><%= viewedUser.phone %></td>
+ </tr>
+ <tr style="border-bottom:1px solid var(--gray-100);">
+ <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Nomor Rumah</td>
+ <td style="padding:0.625rem 0; color:var(--gray-900); font-weight:500;"><%= viewedUser.houseNumber || '-' %></td>
+ </tr>
+ <tr style="border-bottom:1px solid var(--gray-100);">
+ <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Detail Keluarga</td>
+ <td style="padding:0.625rem 0; color:var(--gray-900); font-size:0.875rem;"><%= viewedUser.familyDetails || '-' %></td>
  </tr>
  <tr style="border-bottom:1px solid var(--gray-100);">
  <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Status</td>

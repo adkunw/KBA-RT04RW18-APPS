@@ -221,6 +221,80 @@ Sebagai control center untuk sistem
 
 ---
 
+### HOUSE-BASED FINANCE TRACKING & MANUAL PAYMENT MARKING (BENDAHARA)
+
+1. Warga dapat mengisikan detail keluarga dan nomor rumah di menu "My Profile" pada Portal.
+2. Bendahara / Super Admin membuka halaman Detail Periode Keuangan (`/admin/finance/period/:id`).
+3. Sistem mengelompokkan data warga dan laporan pembayaran secara dinamis **berdasarkan nomor rumah**, bukan berdasarkan individu warga.
+4. Sistem menampilkan daftar rekapitulasi iuran per nomor rumah, beserta status pembayarannya (Lunas jika ada salah satu anggota rumah yang lunas, Menunggu, Ditolak, Belum Bayar).
+5. Bendahara memilih nomor rumah yang berstatus selain `Lunas` lalu menekan tombol **Tandai Lunas** (sistem menggunakan data warga pertama di rumah tersebut sebagai perwakilan transaksi).
+6. Sistem memverifikasi hak akses pengguna (`finance.manage`).
+7. Sistem memproses penandaan secara manual:
+   - Jika belum pernah melaporkan pembayaran: Sistem membuat data pembayaran baru dengan nominal iuran tetap periode tersebut, metode pembayaran `"manual"`, status `approved`, dan mencatat peninjau (`reviewedBy`) sebagai Bendahara yang sedang bertindak.
+   - Jika sudah memiliki laporan pembayaran: Sistem memperbarui data pembayaran terbaru menjadi `approved` dan mencatat bendahara bersangkutan sebagai peninjau beserta waktu persetujuan.
+8. Sistem mengalihkan Bendahara kembali ke halaman Detail Periode dengan pesan sukses yang di-flash.
+
+---
+
+### RT FINANCE EXPENSE RECORDING (BENDAHARA)
+
+1. Bendahara / Super Admin masuk ke Admin Finance Dashboard (`/admin/finance`).
+2. Sistem menampilkan rekap keuangan RT secara detail:
+   - **Total Pemasukan**: Jumlah total nominal pembayaran iuran bulanan warga yang disetujui (`status: "approved"`) ditambah dengan seluruh pemasukan manual lain yang tercatat.
+   - **Total Pengeluaran**: Jumlah total nominal pengeluaran dana kas RT yang tercatat.
+   - **Saldo Kas RT**: Selisih dari Total Pemasukan dikurangi dengan Total Pengeluaran.
+3. Bendahara menekan tombol **Catat Pengeluaran Baru**.
+4. Bendahara mengisi rincian pengeluaran di form modal: Nominal (Amount), Kategori, Penerima Dana, Tanggal, Rincian, serta mengunggah **Bukti Transaksi (File Upload - Opsional)** menggunakan `multer`.
+5. Sistem memvalidasi data menggunakan **Zod** (`createExpenseSchema`).
+6. Sistem memproses unggahan file secara aman ke server lokal `/uploads/payments/` dan menyimpan berkas tersebut.
+7. Sistem menyimpan data pengeluaran baru (`FinanceExpense`) dengan tautan file bukti (`proofFilePath`) ke database PostgreSQL.
+8. Sistem secara otomatis meregenerasi Mutasi Kas Terbaru dan memperbarui nominal rekap kartu pada dashboard secara real-time.
+9. Sistem menampilkan pesan sukses di-flash ke halaman utama keuangan.
+
+---
+
+### RT OTHER MANUAL INCOME RECORDING (BENDAHARA)
+
+1. Bendahara / Super Admin masuk ke Admin Finance Dashboard (`/admin/finance`).
+2. Bendahara menekan tombol **Catat Pemasukan Lain**.
+3. Bendahara mengisi rincian pemasukan di form modal: Nominal (Amount), Kategori (Donasi, Sponsorship, Dana Hibah, Kas Mandiri, Lain-lain), Sumber Dana, Tanggal, Rincian/Keterangan, serta mengunggah **Bukti Transaksi (File Upload - Opsional)** menggunakan `multer`.
+4. Sistem memvalidasi data menggunakan **Zod** (`createIncomeSchema`).
+5. Sistem memproses unggahan file secara aman ke server lokal `/uploads/payments/` dan menyimpan berkas tersebut.
+6. Sistem menyimpan data pemasukan manual baru (`FinanceIncome`) dengan tautan file bukti (`proofFilePath`) ke database PostgreSQL.
+7. Sistem memperbarui Total Pemasukan, Saldo Kas RT, dan meregenerasi linimasa Mutasi Kas Terbaru secara otomatis.
+8. Sistem menampilkan pesan sukses di-flash ke halaman utama keuangan.
+
+---
+
+### DYNAMIC CLIENT-SIDE MUTATION SEARCH & LIVE DATE FILTER (BENDAHARA)
+
+1. Bendahara dapat memasukkan kata kunci pencarian di bar input pencarian dan/atau memilih filter **Tanggal Mulai s/d Tanggal Akhir** di bagian kanan atas bar pencarian.
+2. Sistem secara instan (*real-time, client-side, zero-latency*) melakukan pencocokan (*matching*):
+   - Mencocokkan teks kueri fuzzy terhadap data baris/item.
+   - Mencocokkan atribut data tanggal (`data-date="YYYY-MM-DD"`) pada baris/item terhadap rentang tanggal live filter.
+3. Sistem menyembunyikan item yang tidak memenuhi kedua kriteria filter di atas dan menyajikan sisa data secara dinamis pada:
+   - Tabel Rincian Pemasukan Lain RT
+   - Tabel Rincian Pengeluaran Kas RT
+   - Lini Masa Mutasi Kas Terbaru
+4. Bendahara dapat mengeklik tombol **Reset** untuk langsung membersihkan kata kunci dan live filter tanggal secara serempak.
+
+---
+
+### DATE-RANGE FINANCIAL REPORT EXPORT (BENDAHARA)
+
+1. Bendahara memilih rentang tanggal pencatatan (Tanggal Mulai s/d Tanggal Akhir) di panel ekspor laporan pada dashboard Keuangan.
+2. Bendahara menekan tombol **Unduh Laporan (CSV)**.
+3. Sistem mengirimkan request `GET /admin/finance/export` dengan parameter query `startDate` dan `endDate`.
+4. Sistem memvalidasi parameter menggunakan **Zod** (`exportReportSchema`).
+5. Sistem mengambil seluruh mutasi kas terverifikasi yang berada dalam rentang tanggal tersebut:
+   - Iuran bulanan warga (`PaymentReport` berstatus `approved` berdasarkan `createdAt`)
+   - Pemasukan manual lain (`FinanceIncome` berdasarkan `date`)
+   - Pengeluaran dana kas (`FinanceExpense` berdasarkan `date`)
+6. Sistem menggabungkan dan menyortir data secara kronologis menaik (ascending) agar mempermudah pembukuan.
+7. Sistem menyusun payload berformat CSV menggunakan delimiter titik koma (`;`) yang kompatibel penuh dengan pembacaan tabel Microsoft Excel, menyisipkan UTF-8 BOM (`\uFEFF`) agar huruf tercetak bersih, dan mengembalikan file unduhan sebagai lampiran attachment.
+
+---
+
 ### ACTIVATE USER
 
 1. User akses link

@@ -26,17 +26,19 @@ Design principle:
 
 Menyimpan data utama user (warga & admin)
 
-| Field      | Type     | Notes               |
-| ---------- | -------- | ------------------- |
-| id         | uuid     | primary key         |
-| name       | string   | nama lengkap        |
-| phone      | string   | nomor HP            |
-| password   | string   | hashed password     |
-| status     | enum     | `created`, `active` |
-| language   | string   | default: `id`       |
-| last_login | datetime | optional            |
-| created_at | datetime | auto                |
-| updated_at | datetime | auto                |
+| Field          | Type     | Notes                                   |
+| -------------- | -------- | --------------------------------------- |
+| id             | uuid     | primary key                             |
+| name           | string   | nama lengkap                            |
+| phone          | string   | nomor HP                                |
+| password       | string   | hashed password                         |
+| status         | enum     | `created`, `active`                     |
+| language       | string   | default: `id`                           |
+| last_login     | datetime | optional                                |
+| houseNumber    | string   | optional, nomor rumah                   |
+| familyDetails  | string   | optional, detail anggota keluarga       |
+| created_at     | datetime | auto                                    |
+| updated_at     | datetime | auto                                    |
 
 ---
 
@@ -132,6 +134,80 @@ Menyimpan data penerima pesan (hanya untuk tipe `personal` dan `broadcast`), sek
 | `createdAt` | DateTime | DEFAULT(now())| Waktu record dibuat |
 
 **Catatan Relasi:** Kombinasi `[messageId, userId]` bersifat unik. Pesan tipe `announcement` tidak disimpan ke tabel ini.
+
+---
+
+## Fitur Keuangan & Rincian Pengeluaran
+
+### 1. Periode Keuangan (`finance_periods`)
+Menyimpan periode tagihan iuran bulanan warga.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `name` | String | | Nama periode (cth: "Juni 2026") |
+| `month` | Int | | Bulan periode (1-12) |
+| `year` | Int | | Tahun periode |
+| `fixedDuesAmount` | Int | | Nominal iuran tetap |
+| `isActive` | Boolean | DEFAULT(true) | Status keaktifan periode pembayaran |
+
+### 2. Laporan Pembayaran (`payment_reports`)
+Menyimpan bukti pembayaran iuran bulanan dari warga.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `userId` | String | FK | Warga yang mengunggah |
+| `periodId` | String | FK | Periode iuran terkait |
+| `hasFixedDues` | Boolean | DEFAULT(false) | Bayar iuran tetap bulanan |
+| `fixedDuesAmount` | Int | DEFAULT(0) | Nominal iuran tetap dibayar |
+| `hasKas` | Boolean | DEFAULT(false) | Bayar kas sukarela |
+| `kasAmount` | Int | DEFAULT(0) | Nominal uang kas dibayar |
+| `otherDescription` | String? | | Keterangan pembayaran lain |
+| `otherAmount` | Int | DEFAULT(0) | Nominal pembayaran lain |
+| `totalAmount` | Int | | Total pembayaran |
+| `proofFilePath` | String | | Path file bukti transfer |
+| `status` | PaymentStatus | DEFAULT(pending) | Status (pending, approved, rejected) |
+| `notes` | String? | | Catatan penilai / bendahara |
+| `reviewedBy` | String? | FK | Admin/bendahara penilai |
+| `reviewedAt` | DateTime? | | Tanggal penilaian |
+
+### 3. Pengeluaran Keuangan (`finance_expenses`)
+Menyimpan rincian pencatatan pengeluaran dana kas RT.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `amount` | Int | | Nominal pengeluaran dana kas |
+| `description` | String | | Rincian / Keterangan pengeluaran |
+| `category` | String | | Kategori (Kebersihan, Keamanan, dll) |
+| `recipient` | String | | Penerima dana pengeluaran |
+| `date` | DateTime | | Tanggal transaksi pengeluaran |
+| `proofFilePath` | String? | | Bukti transaksi pengeluaran (path berkas) |
+| `createdById` | String | FK | ID pembuat data (warga/admin) |
+
+### 4. Pemasukan Lain-lain (`finance_incomes`)
+Menyimpan rincian pencatatan pemasukan manual lain di luar iuran bulanan.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `amount` | Int | | Nominal pemasukan dana |
+| `description` | String | | Rincian / Keterangan pemasukan |
+| `category` | String | | Kategori (Donasi, Sponsorship, dll) |
+| `source` | String | | Sumber dana pemasukan |
+| `date` | DateTime | | Tanggal transaksi pemasukan |
+| `proofFilePath` | String? | | Bukti transaksi pemasukan (path berkas) |
+| `createdById` | String | FK | ID pembuat data (warga/admin) |
+
+### 5. Sesi Login PostgreSQL (`session`)
+Menyimpan sesi login aplikasi untuk keamanan persisten.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `sid` | String | PK | ID Sesi unik |
+| `sess` | Json | | Payload detail sesi |
+| `expire` | DateTime | | Tanggal kedaluwarsa sesi |
 
 ---
 
