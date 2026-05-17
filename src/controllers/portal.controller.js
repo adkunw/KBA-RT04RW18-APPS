@@ -25,7 +25,12 @@ const getPortal = async (req, res) => {
 
     res.render("portal/index", {
       title: "Portal",
-      user: { id: req.session.userId, name: req.session.userName, language: req.session.userLanguage || "id" },
+      user: { 
+        id: req.session.userId, 
+        name: req.session.userName, 
+        language: req.session.userLanguage || "id",
+        roles: req.session.userRoles
+      },
       announcements,
       unreadCount,
       settings,

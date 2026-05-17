@@ -24,10 +24,10 @@ const logger = winston.createLogger({
       filename: path.join(logsDir, "error.log"),
       level: "error",
     }),
-    // Combined error log in project root for easy reading
+    // Combined error and warning log in project root for easy reading
     new winston.transports.File({
       filename: path.join(__dirname, "../../file.log"),
-      level: "error",
+      level: "warn",
     }),
     // All logs
     new winston.transports.File({
