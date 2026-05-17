@@ -23,9 +23,13 @@ const requirePermission = (requiredPermission) => {
 
     logger.warn("Permission denied", {
       userId: req.session.userId,
+      userName: req.session.userName,
+      userPhone: req.session.userPhone,
+      userRoles: req.session.userRoles || [],
       requiredPermission,
       userPermissions: req.session.userPermissions || [],
       path: req.path,
+      ip: req.ip,
     });
 
     res.status(403).render("errors/forbidden", {
@@ -56,8 +60,13 @@ const requireAnyPermission = (permissions) => {
 
     logger.warn("Permission denied - none of required permissions found", {
       userId: req.session.userId,
+      userName: req.session.userName,
+      userPhone: req.session.userPhone,
+      userRoles: req.session.userRoles || [],
       requiredPermissions: permissions,
       userPermissions: req.session.userPermissions || [],
+      path: req.path,
+      ip: req.ip,
     });
 
     res.status(403).render("errors/forbidden", {

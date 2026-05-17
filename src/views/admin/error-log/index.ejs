@@ -82,6 +82,7 @@
                 <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-[180px]">Waktu Kejadian</th>
                 <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-[100px]">Level</th>
                 <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-[150px]">Path / URL</th>
+                <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-[200px]">Aktor (User)</th>
                 <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Detail Kesalahan (Error)</th>
               </tr>
             </thead>
@@ -103,6 +104,37 @@
                   <!-- Path -->
                   <td class="px-6 py-4 text-sm font-semibold text-slate-700 font-mono break-all">
                     <%= log.path %>
+                  </td>
+
+                  <!-- Actor (User) -->
+                  <td class="px-6 py-4">
+                    <% 
+                      let actor = "Anonymous";
+                      let badgeColor = "bg-slate-50 text-slate-500 border-slate-200/60";
+                      if (log.details) {
+                        if (log.details.userName) {
+                          actor = log.details.userName;
+                          if (log.details.userRoles && (log.details.userRoles.includes('super_admin') || log.details.userRoles.includes('Super Admin'))) {
+                            badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-100";
+                          } else {
+                            badgeColor = "bg-blue-50 text-blue-700 border-blue-100";
+                          }
+                        } else if (log.details.userId) {
+                          actor = "User ID: " + log.details.userId.substring(0, 8) + "...";
+                          badgeColor = "bg-slate-50 text-slate-600 border-slate-200";
+                        } else if (log.details.phone) {
+                          actor = "HP: " + log.details.phone;
+                          badgeColor = "bg-slate-50 text-slate-600 border-slate-200";
+                        } else if (log.details.ip) {
+                          actor = "Guest (" + log.details.ip + ")";
+                          badgeColor = "bg-slate-50 text-slate-500 border-slate-200/60";
+                        }
+                      }
+                    %>
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold border <%= badgeColor %> whitespace-nowrap">
+                      <i data-lucide="user" class="w-3.5 h-3.5 flex-shrink-0"></i>
+                      <span><%= actor %></span>
+                    </div>
                   </td>
 
                   <!-- Message and Stack Trace -->

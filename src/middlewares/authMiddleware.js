@@ -9,6 +9,10 @@ const isAuthenticated = (req, res, next) => {
     return next();
   }
   logger.warn("Unauthorized access attempt to protected route", {
+    userId: req.session?.userId || null,
+    userName: req.session?.userName || null,
+    userPhone: req.session?.userPhone || null,
+    userRoles: req.session?.userRoles || null,
     ip: req.ip,
     path: req.path,
   });
