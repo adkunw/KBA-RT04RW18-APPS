@@ -21,7 +21,7 @@
     <!-- SIDEBAR MENU -->
     <nav class="admin-sidebar-nav">
       <!-- DASHBOARD -->
-      <% if (userPermissions && userPermissions.includes('dashboard.view')) { %>
+      <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('dashboard.view')) { %>
       <a href="/admin" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">
         <span class="nav-icon">📊</span>
         Dashboard
@@ -29,7 +29,7 @@
       <% } %>
 
       <!-- WARGA -->
-      <% if (userPermissions && userPermissions.includes('warga.read')) { %>
+      <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('warga.read')) { %>
       <a href="/admin/users" class="<%= currentPage === 'users' ? 'active' : '' %>">
         <span class="nav-icon">👥</span>
         Warga
@@ -37,7 +37,7 @@
       <% } %>
 
       <!-- ROLE & PERMISSION -->
-      <% if (userPermissions && userPermissions.includes('role.manage')) { %>
+      <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('role.manage')) { %>
       <a href="/admin/roles" class="<%= currentPage === 'roles' ? 'active' : '' %>">
         <span class="nav-icon">🔐</span>
         Role & Permission
@@ -45,7 +45,7 @@
       <% } %>
 
       <!-- MESSAGES -->
-      <% if (userPermissions && userPermissions.includes('message.read')) { %>
+      <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('message.read')) { %>
       <a href="/admin/messages" class="<%= currentPage === 'messages' ? 'active' : '' %>">
         <span class="nav-icon">📨</span>
         Messages
@@ -53,7 +53,7 @@
       <% } %>
 
       <!-- DOCUMENTS -->
-      <% if (userPermissions && userPermissions.includes('document.manage')) { %>
+      <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('document.manage')) { %>
       <a href="/admin/documents" class="<%= currentPage === 'documents' ? 'active' : '' %>">
         <span class="nav-icon">📄</span>
         Dokumen
@@ -61,7 +61,7 @@
       <% } %>
 
       <!-- FINANCE -->
-      <% if (userPermissions && userPermissions.includes('finance.manage')) { %>
+      <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('finance.manage')) { %>
       <a href="/admin/finance" class="<%= typeof currentPage !== 'undefined' && currentPage === 'finance' ? 'active' : '' %>">
         <span class="nav-icon">💰</span>
         Keuangan
@@ -69,7 +69,7 @@
       <% } %>
 
       <!-- SETTINGS -->
-      <% if (userPermissions && userPermissions.includes('setting.manage')) { %>
+      <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('setting.manage')) { %>
       <a href="/admin/settings" class="<%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
         <span class="nav-icon">⚙️</span>
         Pengaturan
