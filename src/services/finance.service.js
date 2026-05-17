@@ -462,8 +462,8 @@ const getRecentTransactions = async (limit = 10) => {
     ...approvedPayments.map(p => ({
       id: p.id,
       type: "income",
-      title: `Iuran Bulanan - ${p.period.name}`,
-      subtitle: `Dari Warga: ${p.user.name}`,
+      title: `Iuran Bulanan - ${p.period?.name || "Periode Terhapus"}`,
+      subtitle: `Dari Warga: ${p.user?.name || "Warga Terhapus"}`,
       amount: p.totalAmount,
       date: p.createdAt,
       proofFilePath: p.proofFilePath,
@@ -535,9 +535,9 @@ const exportFinanceReport = async (startDateStr, endDateStr) => {
     ...approvedPayments.map(p => ({
       date: p.createdAt,
       type: "Pemasukan",
-      category: `Iuran Bulanan - ${p.period.name}`,
+      category: `Iuran Bulanan - ${p.period?.name || "Periode Terhapus"}`,
       description: "Pembayaran iuran bulanan wajib warga",
-      entity: p.user.name,
+      entity: p.user?.name || "Warga Terhapus",
       amount: p.totalAmount,
       recordedBy: p.reviewer?.name || "Sistem",
     })),
@@ -548,7 +548,7 @@ const exportFinanceReport = async (startDateStr, endDateStr) => {
       description: i.description,
       entity: i.source,
       amount: i.amount,
-      recordedBy: i.createdBy.name,
+      recordedBy: i.createdBy?.name || "Sistem",
     })),
     ...expenses.map(e => ({
       date: e.date,
@@ -557,7 +557,7 @@ const exportFinanceReport = async (startDateStr, endDateStr) => {
       description: e.description,
       entity: e.recipient,
       amount: -e.amount,
-      recordedBy: e.createdBy.name,
+      recordedBy: e.createdBy?.name || "Sistem",
     })),
   ];
 

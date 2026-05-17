@@ -1,4 +1,4 @@
-﻿<%- include('../_sidebar.ejs', { currentPage: 'roles' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'roles' }) %>
 
  <main class="admin-main flex flex-col">
  <!-- TOP HEADER -->
@@ -146,14 +146,20 @@
  </thead>
  <tbody>
  <% role.users.forEach(ur => { %>
- <tr>
- <td style="font-weight:500;color:var(--gray-900);"><%= ur.user.name %></td>
- <td><%= ur.user.phone %></td>
- <td><span class="badge badge-<%= ur.user.status %>"><%= ur.user.status %></span></td>
- <td style="text-align:center;">
- <a href="/admin/users/<%= ur.user.id %>" class="btn btn-secondary btn-sm">View User</a>
- </td>
- </tr>
+   <% if (ur.user) { %>
+     <tr>
+     <td style="font-weight:500;color:var(--gray-900);"><%= ur.user.name %></td>
+     <td><%= ur.user.phone %></td>
+     <td><span class="badge badge-<%= ur.user.status %>"><%= ur.user.status %></span></td>
+     <td style="text-align:center;">
+     <a href="/admin/users/<%= ur.user.id %>" class="btn btn-secondary btn-sm">View User</a>
+     </td>
+     </tr>
+   <% } else { %>
+     <tr>
+     <td colspan="4" style="color:var(--gray-600);font-style:italic;">User data missing/deleted</td>
+     </tr>
+   <% } %>
  <% }); %>
  </tbody>
  </table>

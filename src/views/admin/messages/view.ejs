@@ -1,4 +1,4 @@
-﻿<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
 
  <main class="admin-main flex flex-col">
  <!-- TOP HEADER -->
@@ -101,24 +101,30 @@
  </thead>
  <tbody>
  <% message.recipients.forEach(r => { %>
- <tr>
- <td style="font-weight:500;color:var(--gray-900);"><%= r.user.name %></td>
- <td style="color:var(--gray-600);font-size:0.875rem;"><%= r.user.phone %></td>
- <td style="text-align:center;">
- <% if (r.readAt) { %>
- <span class="badge badge-active"> Read</span>
- <% } else { %>
- <span class="badge badge-created">Unread</span>
- <% } %>
- </td>
- <td style="color:var(--gray-600);font-size:0.8rem;">
- <% if (r.readAt) { %>
- <%= new Date(r.readAt).toLocaleString('id-ID') %>
- <% } else { %>
- <span style="color:var(--gray-600);font-style:italic;"></span>
- <% } %>
- </td>
- </tr>
+   <% if (r.user) { %>
+     <tr>
+     <td style="font-weight:500;color:var(--gray-900);"><%= r.user.name %></td>
+     <td style="color:var(--gray-600);font-size:0.875rem;"><%= r.user.phone %></td>
+     <td style="text-align:center;">
+     <% if (r.readAt) { %>
+     <span class="badge badge-active"> Read</span>
+     <% } else { %>
+     <span class="badge badge-created">Unread</span>
+     <% } %>
+     </td>
+     <td style="color:var(--gray-600);font-size:0.8rem;">
+     <% if (r.readAt) { %>
+     <%= new Date(r.readAt).toLocaleString('id-ID') %>
+     <% } else { %>
+     <span style="color:var(--gray-600);font-style:italic;"></span>
+     <% } %>
+     </td>
+     </tr>
+   <% } else { %>
+     <tr>
+     <td colspan="4" style="color:var(--gray-600);font-style:italic;">Warga data missing/deleted</td>
+     </tr>
+   <% } %>
  <% }); %>
  </tbody>
  </table>

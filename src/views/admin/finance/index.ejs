@@ -226,7 +226,7 @@
                         </div>
                       </td>
                       <td class="px-6 py-4 text-xs text-slate-500 font-medium">
-                        <%= inc.createdBy.name %>
+                        <%= inc.createdBy ? inc.createdBy.name : 'Sistem' %>
                       </td>
                       <td class="px-6 py-4 text-right font-extrabold text-emerald-600 text-sm">
                         + Rp <%= inc.amount.toLocaleString('id-ID') %>
@@ -299,7 +299,7 @@
                         </div>
                       </td>
                       <td class="px-6 py-4 text-xs text-slate-500 font-medium">
-                        <%= exp.createdBy.name %>
+                        <%= exp.createdBy ? exp.createdBy.name : 'Sistem' %>
                       </td>
                       <td class="px-6 py-4 text-right font-extrabold text-rose-600 text-sm">
                         - Rp <%= exp.amount.toLocaleString('id-ID') %>
