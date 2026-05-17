@@ -52,6 +52,12 @@ app.set("view engine", "ejs");
 // Static files
 app.use(express.static(path.join(__dirname, "../public")));
 
+// Global Locals Middleware
+app.use((req, res, next) => {
+  res.locals.userPermissions = req.session?.userPermissions || [];
+  next();
+});
+
 // ============================================
 // ROUTES
 // ============================================

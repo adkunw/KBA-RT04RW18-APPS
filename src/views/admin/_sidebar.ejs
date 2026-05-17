@@ -21,46 +21,60 @@
     <!-- SIDEBAR MENU -->
     <nav class="admin-sidebar-nav">
       <!-- DASHBOARD -->
+      <% if (userPermissions && userPermissions.includes('dashboard.view')) { %>
       <a href="/admin" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">
         <span class="nav-icon">📊</span>
         Dashboard
       </a>
+      <% } %>
 
       <!-- WARGA -->
+      <% if (userPermissions && userPermissions.includes('warga.read')) { %>
       <a href="/admin/users" class="<%= currentPage === 'users' ? 'active' : '' %>">
         <span class="nav-icon">👥</span>
         Warga
       </a>
+      <% } %>
 
       <!-- ROLE & PERMISSION -->
+      <% if (userPermissions && userPermissions.includes('role.manage')) { %>
       <a href="/admin/roles" class="<%= currentPage === 'roles' ? 'active' : '' %>">
         <span class="nav-icon">🔐</span>
         Role & Permission
       </a>
+      <% } %>
 
       <!-- MESSAGES -->
+      <% if (userPermissions && userPermissions.includes('message.read')) { %>
       <a href="/admin/messages" class="<%= currentPage === 'messages' ? 'active' : '' %>">
         <span class="nav-icon">📨</span>
         Messages
       </a>
+      <% } %>
 
       <!-- DOCUMENTS -->
+      <% if (userPermissions && userPermissions.includes('document.manage')) { %>
       <a href="/admin/documents" class="<%= currentPage === 'documents' ? 'active' : '' %>">
         <span class="nav-icon">📄</span>
         Dokumen
       </a>
+      <% } %>
 
       <!-- FINANCE -->
+      <% if (userPermissions && userPermissions.includes('finance.manage')) { %>
       <a href="/admin/finance" class="<%= typeof currentPage !== 'undefined' && currentPage === 'finance' ? 'active' : '' %>">
         <span class="nav-icon">💰</span>
         Keuangan
       </a>
+      <% } %>
 
       <!-- SETTINGS -->
+      <% if (userPermissions && userPermissions.includes('setting.manage')) { %>
       <a href="/admin/settings" class="<%= typeof currentPage !== 'undefined' && currentPage === 'settings' ? 'active' : '' %>">
         <span class="nav-icon">⚙️</span>
         Pengaturan
       </a>
+      <% } %>
     </nav>
 
     <!-- SIDEBAR FOOTER (PORTAL & LOGOUT) -->
