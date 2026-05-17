@@ -1,4 +1,4 @@
-﻿<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
  <!-- MAIN CONTENT -->
  <main class="admin-main flex flex-col">
@@ -31,9 +31,14 @@
  <!-- PAGE HEADER -->
  <div class="page-header">
  <h1> User Management</h1>
- <a href="/admin/users/create" class="btn btn-primary">
- + Add User
- </a>
+ <div class="flex items-center gap-2">
+   <button type="button" onclick="openImportModal()" class="btn btn-secondary flex items-center gap-1.5 py-2">
+     <i data-lucide="file-up" class="w-4 h-4"></i> Import Bulk Warga
+   </button>
+   <a href="/admin/users/create" class="btn btn-primary">
+   + Add User
+   </a>
+ </div>
  </div>
 
  <% if (typeof error !== 'undefined' && error) { %>
@@ -106,13 +111,87 @@
 
  <% } %>
 
- <div style="margin-top: 2rem;">
- <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
- </div>
+  <div style="margin-top: 2rem;">
+  <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+  </div>
 
- </div>
- </main>
+  </div>
+  </main>
 </div>
+
+<!-- IMPORT BULK WARGA MODAL -->
+<div id="importModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-display font-bold text-lg text-slate-900 flex items-center gap-2">
+        <i data-lucide="file-up" class="text-brand-600 w-5 h-5"></i> Import Bulk Warga
+      </h3>
+      <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    
+    <p class="text-sm text-slate-500 mb-6 leading-relaxed">
+      Unduh template CSV, isi data nama lengkap, nomor telepon, dan role warga, lalu unggah berkas tersebut untuk diverifikasi dan dimasukkan secara bulk.
+    </p>
+
+    <!-- Download Template Section -->
+    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex items-center justify-between">
+      <div>
+        <p class="font-semibold text-sm text-slate-900">Template Data Warga</p>
+        <p class="text-xs text-slate-500">Berkas format CSV (.csv)</p>
+      </div>
+      <a href="/admin/users/import/template" class="btn btn-secondary btn-sm flex items-center gap-1.5 py-1.5 px-3 text-xs">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i> Unduh
+      </a>
+    </div>
+
+    <!-- Upload Form -->
+    <form action="/admin/users/import/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+      <!-- CSRF -->
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+      
+      <div>
+        <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Berkas CSV</label>
+        <div class="border border-dashed border-slate-300 hover:border-brand-500 rounded-xl p-6 text-center cursor-pointer transition-colors relative" onclick="document.getElementById('csvFileInput').click()">
+          <input type="file" id="csvFileInput" name="csvFile" accept=".csv" required class="hidden" onchange="handleFileSelected(this)">
+          <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+          <p id="fileUploadText" class="text-sm text-slate-600 font-medium">Klik untuk memilih atau seret berkas ke sini</p>
+          <p class="text-xs text-slate-400 mt-1">Hanya berkas format .csv yang didukung</p>
+        </div>
+      </div>
+
+      <div class="flex gap-3 justify-end pt-4 border-t border-slate-100">
+        <button type="button" onclick="closeImportModal()" class="btn btn-secondary">Batal</button>
+        <button type="submit" class="btn btn-primary flex items-center gap-1">
+          Lanjutkan & Review <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openImportModal() {
+    document.getElementById('importModal').classList.remove('hidden');
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  }
+  
+  function closeImportModal() {
+    document.getElementById('importModal').classList.add('hidden');
+  }
+
+  function handleFileSelected(input) {
+    if (input.files && input.files.length > 0) {
+      const fileName = input.files[0].name;
+      document.getElementById('fileUploadText').textContent = fileName;
+      document.getElementById('fileUploadText').className = "text-sm text-brand-600 font-semibold";
+    }
+  }
+</script>
+
 </body>
 </html>
 

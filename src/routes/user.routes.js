@@ -2,8 +2,10 @@ const express = require("express");
 const userController = require("../controllers/user.controller");
 const { isAuthenticated } = require("../middlewares/authMiddleware");
 const { requirePermission } = require("../middlewares/rbacMiddleware");
+const multer = require("multer");
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 /**
  * All user routes require authentication and warga.create permission
@@ -31,6 +33,39 @@ router.post(
   isAuthenticated,
   requirePermission("warga.create"),
   userController.createUser,
+);
+
+// GET /admin/users/import/template - Download CSV Template
+router.get(
+  "/import/template",
+  isAuthenticated,
+  requirePermission("warga.create"),
+  userController.downloadImportTemplate,
+);
+
+// POST /admin/users/import/upload - Upload and parse CSV
+router.post(
+  "/import/upload",
+  isAuthenticated,
+  requirePermission("warga.create"),
+  upload.single("csvFile"),
+  userController.uploadAndReviewImport,
+);
+
+// GET /admin/users/import/review - Review data before final import
+router.get(
+  "/import/review",
+  isAuthenticated,
+  requirePermission("warga.create"),
+  userController.showImportReview,
+);
+
+// POST /admin/users/import/process - Process bulk import
+router.post(
+  "/import/process",
+  isAuthenticated,
+  requirePermission("warga.create"),
+  userController.processImport,
 );
 
 // GET /admin/users/:id - View user

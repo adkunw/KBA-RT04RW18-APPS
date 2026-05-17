@@ -200,6 +200,27 @@ Sebagai control center untuk sistem
 
 ---
 
+### BULK IMPORT WARGA (EXCEL/CSV)
+
+1. Admin membuka modal "Import Bulk Warga" di halaman User Management.
+2. Admin mengunduh template CSV (`template_bulk_warga.csv`).
+3. Admin mengisi data warga (Nama, Telepon, Role) dan mengunggah berkas CSV tersebut.
+4. Sistem mem-parsing berkas CSV di memori (menggunakan custom CSV parser tanpa dependensi eksternal).
+5. Sistem menyimpan hasil parsing sementara ke session (`req.session.tempImportData`).
+6. Sistem mengalihkan admin ke halaman **Review Bulk Import Warga** (`/admin/users/import/review`).
+7. Pada halaman review:
+   - Sistem membandingkan data dengan database berdasarkan nomor telepon.
+   - Data Baru diberi tanda `Baru` (Hijau) dan otomatis tercentang secara default.
+   - Data Sudah Ada diberi tanda `Sudah Ada` (Kuning) dan tidak tercentang secara default.
+   - Admin memverifikasi nama lama vs nama baru & role lama vs role baru di halaman review.
+   - Admin mencentang data yang ingin dimasukkan atau ditimpa (overwrite).
+8. Admin memproses import:
+   - Untuk data baru: dibuat user baru (status `created`) dan dibuatkan activation token.
+   - Untuk data yang sudah ada (jika dicentang): nama & role warga tersebut diperbarui secara transaksional di database.
+9. Sistem mengosongkan session sementara dan mengalihkan admin kembali ke daftar user dengan pesan sukses.
+
+---
+
 ### ACTIVATE USER
 
 1. User akses link

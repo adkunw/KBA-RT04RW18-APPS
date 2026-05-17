@@ -280,6 +280,264 @@ const updateUser = async (req, res) => {
   }
 };
 
+// ============================================================
+// BULK IMPORT CONTROLLERS (EXCEL / CSV)
+// ============================================================
+
+// Robust CSV Parser
+const parseCSV = (content) => {
+  const lines = [];
+  let currentRow = [];
+  let currentField = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < content.length; i++) {
+    const char = content[i];
+    const nextChar = content[i + 1];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          currentField += '"';
+          i++; // skip next quote
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        currentField += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ",") {
+        currentRow.push(currentField.trim());
+        currentField = "";
+      } else if (char === "\r" || char === "\n") {
+        if (char === "\r" && nextChar === "\n") {
+          i++; // skip \n
+        }
+        currentRow.push(currentField.trim());
+        if (currentRow.length > 1 || (currentRow.length === 1 && currentRow[0] !== "")) {
+          lines.push(currentRow);
+        }
+        currentRow = [];
+        currentField = "";
+      } else {
+        currentField += char;
+      }
+    }
+  }
+
+  if (currentField !== "" || currentRow.length > 0) {
+    currentRow.push(currentField.trim());
+    if (currentRow.length > 1 || (currentRow.length === 1 && currentRow[0] !== "")) {
+      lines.push(currentRow);
+    }
+  }
+
+  return lines;
+};
+
+/**
+ * GET /admin/users/import/template - Download CSV Template
+ */
+const downloadImportTemplate = (req, res) => {
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", 'attachment; filename="template_bulk_warga.csv"');
+  // UTF-8 BOM to support proper opening in Excel without character issues
+  res.write("\uFEFF");
+  res.write("Nama,Telepon,Role\n");
+  res.write("Budi Santoso,08123456789,warga\n");
+  res.write("Siti Aminah,08987654321,bendahara\n");
+  res.end();
+};
+
+/**
+ * POST /admin/users/import/upload - Upload and parse CSV
+ */
+const uploadAndReviewImport = async (req, res) => {
+  try {
+    if (!req.file) {
+      req.flash("error", "Pilih berkas CSV terlebih dahulu.");
+      return res.redirect("/admin/users");
+    }
+
+    const csvContent = req.file.buffer.toString("utf-8");
+    const rows = parseCSV(csvContent);
+
+    if (rows.length < 2) {
+      req.flash("error", "Berkas CSV tidak memiliki baris data yang valid.");
+      return res.redirect("/admin/users");
+    }
+
+    const headers = rows[0].map(h => h.toLowerCase());
+    const nameIdx = headers.indexOf("nama");
+    const phoneIdx = headers.indexOf("telepon");
+    const roleIdx = headers.indexOf("role");
+
+    if (nameIdx === -1 || phoneIdx === -1 || roleIdx === -1) {
+      req.flash("error", "Format header CSV salah. Harus memiliki kolom: Nama, Telepon, dan Role.");
+      return res.redirect("/admin/users");
+    }
+
+    const entries = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      // Skip empty rows
+      if (!row || row.length === 0 || row.join("").trim() === "") continue;
+
+      const name = row[nameIdx] || "";
+      const phone = (row[phoneIdx] || "").trim().replace(/[-\s]/g, ""); // Clean formatting like dashes/spaces
+      const roleName = (row[roleIdx] || "warga").trim().toLowerCase();
+
+      if (!name || !phone) continue;
+
+      entries.push({ name, phone, roleName });
+    }
+
+    if (entries.length === 0) {
+      req.flash("error", "Tidak ada data warga yang valid untuk diimport.");
+      return res.redirect("/admin/users");
+    }
+
+    req.session.tempImportData = entries;
+    res.redirect("/admin/users/import/review");
+  } catch (error) {
+    logger.error("Error parsing import file", { error: error.message });
+    req.flash("error", "Gagal memproses berkas CSV. Pastikan formatnya benar.");
+    res.redirect("/admin/users");
+  }
+};
+
+/**
+ * GET /admin/users/import/review - Show comparison table and select rows
+ */
+const showImportReview = async (req, res) => {
+  try {
+    const entries = req.session.tempImportData;
+    if (!entries || entries.length === 0) {
+      req.flash("error", "Tidak ada data review. Silakan unggah berkas CSV kembali.");
+      return res.redirect("/admin/users");
+    }
+
+    // Map entries with db check
+    const reviewList = await Promise.all(
+      entries.map(async (entry, index) => {
+        const existingUser = await prisma.user.findUnique({
+          where: { phone: entry.phone },
+          include: { roles: { include: { role: true } } }
+        });
+
+        return {
+          index,
+          name: entry.name,
+          phone: entry.phone,
+          roleName: entry.roleName,
+          exists: !!existingUser,
+          dbName: existingUser ? existingUser.name : null,
+          dbRole: existingUser && existingUser.roles[0] ? existingUser.roles[0].role.name : null,
+        };
+      })
+    );
+
+    // Get roles list to map correctly
+    const roles = await prisma.role.findMany();
+
+    res.render("admin/users/import-review", {
+      title: "Review Bulk Import Warga",
+      reviewList,
+      roles,
+      user: { id: req.session.userId, name: req.session.userName },
+      error: req.flash("error")?.[0] || null,
+      success: req.flash("success")?.[0] || null,
+    });
+  } catch (error) {
+    logger.error("Error loading import review", { error: error.message });
+    req.flash("error", "Terjadi kesalahan saat memuat data review.");
+    res.redirect("/admin/users");
+  }
+};
+
+/**
+ * POST /admin/users/import/process - Commit the selected rows to database (with overwrite option)
+ */
+const processImport = async (req, res) => {
+  try {
+    const entries = req.session.tempImportData;
+    if (!entries || entries.length === 0) {
+      req.flash("error", "Tidak ada data untuk diimport.");
+      return res.redirect("/admin/users");
+    }
+
+    // selectedRows will be an array of indexes of entries selected by check
+    const selectedRows = req.body.selectedRows;
+    if (!selectedRows) {
+      req.flash("error", "Pilih minimal satu data warga untuk diimport.");
+      return res.redirect("/admin/users/import/review");
+    }
+
+    const rowIndices = Array.isArray(selectedRows) ? selectedRows.map(Number) : [Number(selectedRows)];
+    const roles = await prisma.role.findMany();
+
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    for (const idx of rowIndices) {
+      const row = entries[idx];
+      if (!row) continue;
+
+      // Get database role ID mapping
+      const dbRole = roles.find(r => r.name.toLowerCase() === row.roleName.toLowerCase()) 
+        || roles.find(r => r.name.toLowerCase() === "warga");
+
+      // Check if user exists
+      const existingUser = await prisma.user.findUnique({
+        where: { phone: row.phone }
+      });
+
+      if (existingUser) {
+        // Overwrite/menimpa data lama
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: existingUser.id },
+            data: { name: row.name }
+          });
+
+          // Replace old roles with new role
+          await tx.userRole.deleteMany({
+            where: { userId: existingUser.id }
+          });
+
+          await tx.userRole.create({
+            data: {
+              userId: existingUser.id,
+              roleId: dbRole.id
+            }
+          });
+        });
+        updatedCount++;
+      } else {
+        // Create new user (using transaction via userService)
+        await userService.createUser(
+          { name: row.name, phone: row.phone },
+          dbRole.id
+        );
+        createdCount++;
+      }
+    }
+
+    // Clear temporary session data
+    delete req.session.tempImportData;
+
+    req.flash("success", `Berhasil memproses import warga. Warga Baru: ${createdCount}, Data Diperbarui: ${updatedCount}.`);
+    res.redirect("/admin/users");
+  } catch (error) {
+    logger.error("Error processing import", { error: error.message });
+    req.flash("error", `Terjadi kesalahan saat memproses import: ${error.message}`);
+    res.redirect("/admin/users/import/review");
+  }
+};
+
 module.exports = {
   listUsers,
   showCreateForm,
@@ -288,4 +546,8 @@ module.exports = {
   showEditForm,
   updateUser,
   resetPassword,
+  downloadImportTemplate,
+  uploadAndReviewImport,
+  showImportReview,
+  processImport,
 };
