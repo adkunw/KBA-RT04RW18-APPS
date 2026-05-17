@@ -1,89 +1,89 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Profile - RT Management System</title>
-  <link rel="stylesheet" href="/css/admin.css">
-  <style>
-    body { background: var(--background); }
-    .portal-nav {
-      background: var(--primary);
-      padding: 0.875rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
-    .portal-nav a:hover { color: white; }
-    .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
-    .portal-content { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
-  </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>My Profile - RT Management System</title>
+ <link rel="stylesheet" href="/css/admin.css">
+ <style>
+ body { background: var(--background); }
+ .portal-nav {
+ background: var(--primary);
+ padding: 0.875rem 2rem;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ position: sticky;
+ top: 0;
+ z-index: 50;
+ }
+ .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
+ .portal-nav a:hover { color: white; }
+ .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
+ .portal-content { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
+ </style>
 </head>
 <body>
 
 <nav class="portal-nav">
-  <a href="/portal" class="brand">RT Management</a>
-  <div style="display:flex;align-items:center;gap:1.5rem;">
-    <a href="/portal">🏠 Portal</a>
-    <% if (typeof hasAdminAccess !== 'undefined' && hasAdminAccess) { %>
-      <a href="/admin">⚙️ Admin Panel</a>
-    <% } %>
-    <a href="/auth/logout">Logout →</a>
-  </div>
+ <a href="/portal" class="brand">RT Management</a>
+ <div style="display:flex;align-items:center;gap:1.5rem;">
+ <a href="/portal"> Portal</a>
+ <% if (typeof hasAdminAccess !== 'undefined' && hasAdminAccess) { %>
+ <a href="/admin"> Admin Panel</a>
+ <% } %>
+ <a href="/auth/logout">Logout </a>
+ </div>
 </nav>
 
 <div class="portal-content">
 
-  <div class="page-header">
-    <h1>👤 My Profile</h1>
-    <a href="/portal" class="btn btn-secondary">← Back to Portal</a>
-  </div>
+ <div class="page-header">
+ <h1> My Profile</h1>
+ <a href="/portal" class="btn btn-secondary">← Back to Portal</a>
+ </div>
 
-  <% if (error) { %>
-    <div class="alert alert-error"><%= error %></div>
-  <% } %>
-  <% if (success) { %>
-    <div class="alert" style="background:#DCFCE7; border-left-color:var(--success); color:#166534;">
-      <%= success %>
-    </div>
-  <% } %>
+ <% if (error) { %>
+ <div class="alert alert-error"><%= error %></div>
+ <% } %>
+ <% if (success) { %>
+ <div class="alert" style="background:#DCFCE7; border-left-color:var(--success); color:#166534;">
+ <%= success %>
+ </div>
+ <% } %>
 
-  <div class="card" style="margin-bottom: 2rem;">
-    <h2 style="font-size:1.125rem; margin-bottom:1.5rem; color:var(--gray-900);">Edit Profile Details</h2>
-    
-    <form action="/portal/profile" method="POST" style="display:flex; flex-direction:column; gap:1.25rem;">
-      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-      
-      <div class="form-group">
-        <label for="phone">Phone Number (Login ID)</label>
-        <input type="text" id="phone" value="<%= profileUser.phone %>" disabled style="background:var(--gray-100); color:var(--gray-600); cursor:not-allowed;">
-        <small style="color:var(--gray-500); display:block; margin-top:0.25rem;">Contact admin if you need to change your registered phone number.</small>
-      </div>
+ <div class="card" style="margin-bottom: 2rem;">
+ <h2 style="font-size:1.125rem; margin-bottom:1.5rem; color:var(--gray-900);">Edit Profile Details</h2>
+ 
+ <form action="/portal/profile" method="POST" style="display:flex; flex-direction:column; gap:1.25rem;">
+ <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+ 
+ <div class="form-group">
+ <label for="phone">Phone Number (Login ID)</label>
+ <input type="text" id="phone" value="<%= profileUser.phone %>" disabled style="background:var(--gray-100); color:var(--gray-600); cursor:not-allowed;">
+ <small style="color:var(--gray-500); display:block; margin-top:0.25rem;">Contact admin if you need to change your registered phone number.</small>
+ </div>
 
-      <div class="form-group">
-        <label for="name">Full Name</label>
-        <input type="text" id="name" name="name" value="<%= profileUser.name %>" required>
-      </div>
+ <div class="form-group">
+ <label for="name">Full Name</label>
+ <input type="text" id="name" name="name" value="<%= profileUser.name %>" required>
+ </div>
 
-      <hr style="border:0; border-top:1px solid var(--gray-200); margin:0.5rem 0;">
+ <hr style="border:0; border-top:1px solid var(--gray-200); margin:0.5rem 0;">
 
-      <h3 style="font-size:1rem; color:var(--gray-800);">Change Password</h3>
-      <p style="font-size:0.875rem; color:var(--gray-600); margin-bottom:0.5rem;">Leave blank if you don't want to change your password.</p>
+ <h3 style="font-size:1rem; color:var(--gray-800);">Change Password</h3>
+ <p style="font-size:0.875rem; color:var(--gray-600); margin-bottom:0.5rem;">Leave blank if you don't want to change your password.</p>
 
-      <div class="form-group">
-        <label for="password">New Password</label>
-        <input type="password" id="password" name="password" placeholder="At least 6 characters">
-      </div>
+ <div class="form-group">
+ <label for="password">New Password</label>
+ <input type="password" id="password" name="password" placeholder="At least 6 characters">
+ </div>
 
-      <div class="form-actions" style="margin-top:1rem;">
-        <button type="submit" class="btn btn-primary" style="width:100%;">Save Changes</button>
-      </div>
-    </form>
-  </div>
+ <div class="form-actions" style="margin-top:1rem;">
+ <button type="submit" class="btn btn-primary" style="width:100%;">Save Changes</button>
+ </div>
+ </form>
+ </div>
 
 </div>
 

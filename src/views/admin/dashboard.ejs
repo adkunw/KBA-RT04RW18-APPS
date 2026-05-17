@@ -1,453 +1,176 @@
-<%- include('_sidebar.ejs', { currentPage: 'dashboard' }) %>
+﻿<%- include('_sidebar.ejs', { currentPage: 'dashboard' }) %>
 
-  <!-- MAIN CONTENT -->
-  <main class="admin-main">
-    <div class="admin-content">
-      <!-- HERO SECTION -->
-      <div
-        style="
-          background: linear-gradient(
-            135deg,
-            var(--primary) 0%,
-            var(--primary-dark) 100%
-          );
-          color: var(--white);
-          padding: 2rem;
-          border-radius: 8px;
-          margin-bottom: 2rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-        "
-      >
-        <h1 style="margin: 0 0 0.5rem 0; font-size: 1.875rem; font-weight: 600">
-          Welcome, <%= user.name %>! 👋
-        </h1>
-        <p
-          style="
-            margin: 0 0 0.75rem 0;
-            font-size: 1rem;
-            opacity: 0.95;
-            line-height: 1.6;
-          "
-        >
-          Control center for managing your RT community.
-        </p>
-        <p style="margin: 0; font-size: 0.95rem; opacity: 0.95">
-          <strong>Your Roles:</strong> <%= user.roles.join(', ') %>
-        </p>
-      </div>
+ <!-- MAIN CONTENT -->
+ <main class="admin-main flex flex-col">
+ <!-- TOP HEADER -->
+ <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+ <div class="flex items-center gap-4">
+ <h2 class="font-display font-bold text-xl">Overview</h2>
+ </div>
 
-      <!-- STATISTICS SECTION -->
-      <div style="margin-bottom: 2rem">
-        <h2
-          style="
-            margin: 0 0 1rem 0;
-            font-size: 1.5rem;
-            color: var(--gray-900);
-            font-weight: 600;
-          "
-        >
-          Summary
-        </h2>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-          "
-        >
-          <!-- STAT CARD 1 -->
-          <div
-            style="
-              background: var(--white);
-              border: 1px solid var(--gray-300);
-              border-left: 4px solid var(--primary);
-              border-radius: 8px;
-              padding: 1.5rem;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            "
-          >
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 0.5rem 0;
-              "
-            >
-              Total Members
-            </p>
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                color: var(--primary);
-                font-size: 2rem;
-                font-weight: 600;
-              "
-            >
-              <%= stats.totalUsers %>
-            </h3>
-            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              Total registered
-            </p>
-          </div>
+ <div class="flex items-center gap-4">
+ <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+ <i data-lucide="bell" class="w-5 h-5"></i>
+ <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+ <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+ <% } %>
+ </a>
+ <div class="h-8 w-px bg-slate-200 mx-1"></div>
+ <div class="flex items-center gap-2">
+ <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+ <%= user.name.charAt(0).toUpperCase() %>
+ </div>
+ <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+ </div>
+ </div>
+ </header>
 
-          <!-- STAT CARD 2 -->
-          <div
-            style="
-              background: var(--white);
-              border: 1px solid var(--gray-300);
-              border-left: 4px solid var(--success);
-              border-radius: 8px;
-              padding: 1.5rem;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            "
-          >
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 0.5rem 0;
-              "
-            >
-              Active Users
-            </p>
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                color: var(--success);
-                font-size: 2rem;
-                font-weight: 600;
-              "
-            >
-              <%= stats.activeUsers %>
-            </h3>
-            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              <%= stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0 %>% active rate
-            </p>
-          </div>
+ <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+ <!-- Greeting Banner -->
+ <div class="bg-brand-900 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-lg">
+ <div class="relative z-10">
+ <h2 class="font-display text-2xl font-bold mb-2">Welcome, <%= user.roles && user.roles.length > 0 ? user.roles[0].replace('_', ' ') : 'Admin' %>! </h2>
+ <p class="text-brand-300">Control center for managing your RT community.</p>
+ <div class="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium border border-white/10">
+ <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+ System active and healthy
+ </div>
+ </div>
+ <div class="absolute top-0 right-0 w-64 h-full bg-brand-800/50 skew-x-[-20deg] translate-x-20"></div>
+ </div>
 
-          <!-- STAT CARD 3 -->
-          <div
-            style="
-              background: var(--white);
-              border: 1px solid var(--gray-300);
-              border-left: 4px solid var(--warning);
-              border-radius: 8px;
-              padding: 1.5rem;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            "
-          >
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 0.5rem 0;
-              "
-            >
-              Pending Activation
-            </p>
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                color: var(--warning);
-                font-size: 2rem;
-                font-weight: 600;
-              "
-            >
-              <%= stats.pendingUsers %>
-            </h3>
-            <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-              Awaiting setup
-            </p>
-          </div>
-        </div>
-      </div>
+ <!-- Stats Grid -->
+ <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+ <!-- Stat Card 1 -->
+ <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+ <div class="flex items-start justify-between mb-4">
+ <div class="p-3 bg-brand-50 rounded-2xl">
+ <i data-lucide="users" class="text-brand-600 w-6 h-6"></i>
+ </div>
+ <a href="/admin/users" class="text-slate-300 hover:text-slate-500 transition-colors">
+ <i data-lucide="chevron-right" class="w-5 h-5"></i>
+ </a>
+ </div>
+ <p class="text-2xl font-bold mb-1 tracking-tight text-slate-900"><%= stats.totalUsers %></p>
+ <p class="text-sm font-semibold text-slate-900 mb-1">Total Members</p>
+ <p class="text-xs text-slate-400 font-medium">Total registered</p>
+ </div>
 
-      <!-- MANAGEMENT TOOLS SECTION -->
-      <div style="margin-bottom: 2rem">
-        <h2
-          style="
-            margin: 0 0 1rem 0;
-            font-size: 1.5rem;
-            color: var(--gray-900);
-            font-weight: 600;
-          "
-        >
-          Management Tools
-        </h2>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1rem;
-          "
-        >
-          <!-- TOOL CARD 1 -->
-          <div
-            style="
-              background: var(--white);
-              border: 1px solid var(--gray-300);
-              border-left: 4px solid var(--primary);
-              border-radius: 8px;
-              padding: 1.5rem;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            "
-          >
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                font-size: 1.125rem;
-                color: var(--gray-900);
-                font-weight: 600;
-              "
-            >
-              👥 Member Management
-            </h3>
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 1rem 0;
-              "
-            >
-              Manage RT members and their details
-            </p>
-            <a
-              href="/admin/users"
-              style="
-                display: inline-block;
-                background: var(--primary);
-                color: var(--white);
-                padding: 0.5rem 1rem;
-                border-radius: 6px;
-                text-decoration: none;
-                font-size: 0.875rem;
-                font-weight: 500;
-              "
-            >
-              Manage Members →
-            </a>
-          </div>
+ <!-- Stat Card 2 -->
+ <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+ <div class="flex items-start justify-between mb-4">
+ <div class="p-3 bg-emerald-50 rounded-2xl">
+ <i data-lucide="layout-dashboard" class="text-emerald-500 w-6 h-6"></i>
+ </div>
+ <a href="/admin/users" class="text-slate-300 hover:text-slate-500 transition-colors">
+ <i data-lucide="chevron-right" class="w-5 h-5"></i>
+ </a>
+ </div>
+ <p class="text-2xl font-bold mb-1 tracking-tight text-slate-900"><%= stats.activeUsers %></p>
+ <p class="text-sm font-semibold text-slate-900 mb-1">Active Users</p>
+ <p class="text-xs text-slate-400 font-medium"><%= stats.totalUsers > 0 ? Math.round((stats.activeUsers / stats.totalUsers) * 100) : 0 %>% active rate</p>
+ </div>
 
-          <!-- TOOL CARD 2 -->
-          <div
-            style="
-              background: var(--white);
-              border: 1px solid var(--gray-300);
-              border-left: 4px solid var(--primary);
-              border-radius: 8px;
-              padding: 1.5rem;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            "
-          >
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                font-size: 1.125rem;
-                color: var(--gray-900);
-                font-weight: 600;
-              "
-            >
-              🔐 Roles & Permissions
-            </h3>
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 1rem 0;
-              "
-            >
-              Configure roles and access permissions
-            </p>
-            <a
-              href="/admin/roles"
-              style="
-                display: inline-block;
-                background: var(--primary);
-                color: var(--white);
-                padding: 0.5rem 1rem;
-                border-radius: 6px;
-                text-decoration: none;
-                font-size: 0.875rem;
-                font-weight: 500;
-              "
-            >
-              Manage Roles →
-            </a>
-          </div>
+ <!-- Stat Card 3 -->
+ <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+ <div class="flex items-start justify-between mb-4">
+ <div class="p-3 bg-amber-50 rounded-2xl">
+ <i data-lucide="bell" class="text-amber-500 w-6 h-6"></i>
+ </div>
+ <a href="/admin/users" class="text-slate-300 hover:text-slate-500 transition-colors">
+ <i data-lucide="chevron-right" class="w-5 h-5"></i>
+ </a>
+ </div>
+ <p class="text-2xl font-bold mb-1 tracking-tight text-slate-900"><%= stats.pendingUsers %></p>
+ <p class="text-sm font-semibold text-slate-900 mb-1">Pending Activation</p>
+ <p class="text-xs text-slate-400 font-medium">Awaiting setup</p>
+ </div>
+ </div>
 
-          <!-- TOOL CARD 3 -->
-          <div
-            style="
-              background: var(--white);
-              border: 1px solid var(--gray-300);
-              border-left: 4px solid var(--primary);
-              border-radius: 8px;
-              padding: 1.5rem;
-              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            "
-          >
-            <h3
-              style="
-                margin: 0 0 0.5rem 0;
-                font-size: 1.125rem;
-                color: var(--gray-900);
-                font-weight: 600;
-              "
-            >
-              📊 System Information
-            </h3>
-            <p
-              style="
-                color: var(--gray-600);
-                font-size: 0.875rem;
-                margin: 0 0 1rem 0;
-              "
-            >
-              View system statistics and logs
-            </p>
-            <a
-              href="/admin/system"
-              style="
-                display: inline-block;
-                background: var(--primary);
-                color: var(--white);
-                padding: 0.5rem 1rem;
-                border-radius: 6px;
-                text-decoration: none;
-                font-size: 0.875rem;
-                font-weight: 500;
-              "
-            >
-              System Info →
-            </a>
-          </div>
-        </div>
-      </div>
+ <!-- Management Tools (For extra navigation, like old layout) -->
+ <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+ <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('role.manage')) { %>
+ <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+ <h3 class="font-bold text-lg mb-2 flex items-center gap-2 text-slate-900">
+ <i data-lucide="shield" class="w-5 h-5 text-indigo-500"></i> Roles & Permissions
+ </h3>
+ <p class="text-sm text-slate-500 mb-4 flex-1">Configure user roles and system access permissions</p>
+ <a href="/admin/roles" class="inline-block bg-slate-900 text-white text-center py-2 px-4 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors">Manage Roles</a>
+ </div>
+ <% } %>
+ 
+ <% if (typeof userPermissions !== 'undefined' && userPermissions.includes('setting.manage')) { %>
+ <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+ <h3 class="font-bold text-lg mb-2 flex items-center gap-2 text-slate-900">
+ <i data-lucide="settings" class="w-5 h-5 text-rose-500"></i> System Settings
+ </h3>
+ <p class="text-sm text-slate-500 mb-4 flex-1">View system config and emergency contacts</p>
+ <a href="/admin/settings" class="inline-block bg-slate-900 text-white text-center py-2 px-4 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors">System Info</a>
+ </div>
+ <% } %>
+ </div>
 
-      <!-- RECENT ACTIVITY SECTION -->
-      <div style="margin-bottom: 2rem">
-        <h2
-          style="
-            margin: 0 0 1rem 0;
-            font-size: 1.5rem;
-            color: var(--gray-900);
-            font-weight: 600;
-          "
-        >
-          👤 Recent Members Updates
-        </h2>
-        <div
-          style="
-            background: var(--white);
-            border: 1px solid var(--gray-300);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-          "
-        >
-          <table style="width: 100%; border-collapse: collapse">
-            <thead>
-              <tr
-                style="
-                  background: var(--gray-100);
-                  border-bottom: 1px solid var(--gray-300);
-                "
-              >
-                <th
-                  style="
-                    padding: 1rem;
-                    text-align: left;
-                    color: var(--gray-900);
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                  "
-                >
-                  Action
-                </th>
-                <th
-                  style="
-                    padding: 1rem;
-                    text-align: left;
-                    color: var(--gray-900);
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                  "
-                >
-                  User
-                </th>
-                <th
-                  style="
-                    padding: 1rem;
-                    text-align: left;
-                    color: var(--gray-900);
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                  "
-                >
-                  Time
-                </th>
-                <th
-                  style="
-                    padding: 1rem;
-                    text-align: left;
-                    color: var(--gray-900);
-                    font-weight: 600;
-                    font-size: 0.875rem;
-                  "
-                >
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (recentUsers && recentUsers.length > 0) { %>
-                <% recentUsers.forEach(ru => { %>
-                  <tr style="border-bottom: 1px solid var(--gray-300)">
-                    <td style="padding: 1rem; color: var(--gray-900); font-size: 0.875rem;">
-                      Profile Update
-                    </td>
-                    <td style="padding: 1rem; color: var(--gray-600); font-size: 0.875rem;">
-                      <%= ru.name %>
-                    </td>
-                    <td style="padding: 1rem; color: var(--gray-600); font-size: 0.875rem;">
-                      <%= new Date(ru.updatedAt).toLocaleString('id-ID') %>
-                    </td>
-                    <td style="padding: 1rem">
-                      <span class="badge badge-<%= ru.status %>">
-                        <%= ru.status %>
-                      </span>
-                    </td>
-                  </tr>
-                <% }); %>
-              <% } else { %>
-                <tr>
-                  <td colspan="4" style="padding: 2rem; text-align: center; color: var(--gray-500);">
-                    No recent activity found.
-                  </td>
-                </tr>
-              <% } %>
-            </tbody>
-          </table>
-        </div>
-      </div>
+ <!-- Management Table -->
+ <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+ <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+ <h3 class="font-display font-bold text-lg text-slate-900">Recent Members Updates</h3>
+ <a href="/admin/users" class="text-xs font-bold text-brand-600 hover:bg-brand-50 px-3 py-1.5 rounded-lg transition-colors">View All Activities</a>
+ </div>
+ <div class="overflow-x-auto">
+ <table class="w-full text-left">
+ <thead class="bg-slate-50/50 text-[10px] uppercase font-bold tracking-wider text-slate-500">
+ <tr>
+ <th class="px-6 py-4">Action</th>
+ <th class="px-6 py-4">User</th>
+ <th class="px-6 py-4">Time</th>
+ <th class="px-6 py-4">Status</th>
+ </tr>
+ </thead>
+ <tbody class="divide-y divide-slate-50 text-sm">
+ <% if (recentUsers && recentUsers.length > 0) { %>
+ <% recentUsers.forEach(ru => { %>
+ <tr class="hover:bg-slate-50/50 transition-colors">
+ <td class="px-6 py-4 font-bold text-slate-900">Profile Update</td>
+ <td class="px-6 py-4 text-slate-600"><%= ru.name %></td>
+ <td class="px-6 py-4 text-slate-500 font-mono text-xs"><%= new Date(ru.updatedAt).toLocaleString('id-ID') %></td>
+ <td class="px-6 py-4">
+ <% if (ru.status === 'active') { %>
+ <span class="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-lg border border-emerald-100 uppercase"><%= ru.status %></span>
+ <% } else if (ru.status === 'created') { %>
+ <span class="px-2 py-1 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-lg border border-amber-100 uppercase"><%= ru.status %></span>
+ <% } else { %>
+ <span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg border border-slate-200 uppercase"><%= ru.status %></span>
+ <% } %>
+ </td>
+ </tr>
+ <% }); %>
+ <% } else { %>
+ <tr>
+ <td colspan="4" class="px-6 py-8 text-center text-slate-500">No recent activity found.</td>
+ </tr>
+ <% } %>
+ </tbody>
+ </table>
+ </div>
+ </div>
+ 
+ <!-- INFO MESSAGE -->
+ <div class="mt-8 bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 text-blue-800">
+ <i data-lucide="lightbulb" class="w-5 h-5 flex-shrink-0 text-blue-500 mt-0.5"></i>
+ <p class="text-sm">
+ <strong>Tip:</strong> Remember to activate pending members promptly. Send them activation links to complete their profile setup.
+ </p>
+ </div>
 
-      <!-- INFO MESSAGE -->
-      <div
-        style="
-          background: #dbeafe;
-          border: 1px solid var(--gray-300);
-          border-left: 4px solid var(--primary);
-          border-radius: 8px;
-          padding: 1rem;
-        "
-      >
-        <p style="color: var(--primary); margin: 0; font-size: 0.875rem">
-          <strong>💡 Tip:</strong> Remember to activate pending members
-          promptly. Send them activation links to complete their profile setup.
-        </p>
-      </div>
-    </div>
-  </main>
+ </div>
+ </main>
 </div>
+
+<!-- Initialize Lucide Icons -->
+<script>
+ if (typeof lucide !== 'undefined') {
+ lucide.createIcons();
+ }
+</script>
 </body>
 </html>

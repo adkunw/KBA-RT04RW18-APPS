@@ -1,144 +1,169 @@
-<%- include('../_sidebar.ejs', { currentPage: 'roles' }) %>
+﻿<%- include('../_sidebar.ejs', { currentPage: 'roles' }) %>
 
-  <main class="admin-main">
-    <div class="admin-content">
+ <main class="admin-main flex flex-col">
+ <!-- TOP HEADER -->
+ <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+ <div class="flex items-center gap-4">
+ <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
+ </div>
 
-      <!-- PAGE HEADER -->
-      <div class="page-header">
-        <div>
-          <h1>🔐 <%= role.name %></h1>
-          <p style="margin:0;font-size:0.875rem;color:var(--gray-600);">
-            <%= role.permissions.length %> permission(s) &nbsp;·&nbsp; <%= role.users.length %> user(s)
-          </p>
-        </div>
-        <div style="display:flex;gap:0.75rem;align-items:center;">
-          <a href="/admin/roles" class="btn btn-secondary">← Back to Roles</a>
-          <% if (!isSuperAdmin) { %>
-            <form method="POST" action="/admin/roles/<%= role.id %>/delete"
-              onsubmit="return confirm('Delete role \'<%= role.name %>\'? Users with this role will lose it.');">
-              <button type="submit" class="btn" style="background:var(--error);color:#fff;padding:0.5rem 1rem;font-size:0.875rem;">
-                🗑 Delete Role
-              </button>
-            </form>
-          <% } %>
-        </div>
-      </div>
+ <div class="flex items-center gap-4">
+ <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+ <i data-lucide="bell" class="w-5 h-5"></i>
+ <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+ <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+ <% } %>
+ </a>
+ <div class="h-8 w-px bg-slate-200 mx-1"></div>
+ <div class="flex items-center gap-2">
+ <% if (typeof user !== 'undefined' && user && user.name) { %>
+ <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+ <%= user.name.charAt(0).toUpperCase() %>
+ </div>
+ <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+ <% } %>
+ </div>
+ </div>
+ </header>
+ <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
 
-      <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-      <% } %>
-      <% if (success) { %>
-        <div class="alert" style="background:#DCFCE7;border-left-color:var(--success);color:#166534;"><%= success %></div>
-      <% } %>
+ <!-- PAGE HEADER -->
+ <div class="page-header">
+ <div>
+ <h1> <%= role.name %></h1>
+ <p style="margin:0;font-size:0.875rem;color:var(--gray-600);">
+ <%= role.permissions.length %> permission(s) &nbsp; • &nbsp; <%= role.users.length %> user(s)
+ </p>
+ </div>
+ <div style="display:flex;gap:0.75rem;align-items:center;">
+ <a href="/admin/roles" class="btn btn-secondary">← Back to Roles</a>
+ <% if (!isSuperAdmin) { %>
+ <form method="POST" action="/admin/roles/<%= role.id %>/delete"
+ onsubmit="return confirm('Delete role \'<%= role.name %>\'? Users with this role will lose it.');">
+ <button type="submit" class="btn" style="background:var(--error);color:#fff;padding:0.5rem 1rem;font-size:0.875rem;">
+ — Delete Role
+ </button>
+ </form>
+ <% } %>
+ </div>
+ </div>
 
-      <% if (isSuperAdmin) { %>
-        <div class="alert" style="background:#FEF3C7;border-left-color:var(--warning);color:#92400E;margin-bottom:1.5rem;">
-          <strong>⚠️ Protected Role:</strong> <code>super_admin</code> tidak bisa dihapus dan harus memiliki minimal satu permission.
-        </div>
-      <% } %>
+ <% if (error) { %>
+ <div class="alert alert-error"><%= error %></div>
+ <% } %>
+ <% if (success) { %>
+ <div class="alert" style="background:#DCFCE7;border-left-color:var(--success);color:#166534;"><%= success %></div>
+ <% } %>
 
-      <!-- TWO-COLUMN LAYOUT -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+ <% if (isSuperAdmin) { %>
+ <div class="alert" style="background:#FEF3C7;border-left-color:var(--warning);color:#92400E;margin-bottom:1.5rem;">
+ <strong> Protected Role:</strong> <code>super_admin</code> tidak bisa dihapus dan harus memiliki minimal satu permission.
+ </div>
+ <% } %>
 
-        <!-- ASSIGNED PERMISSIONS -->
-        <div class="card">
-          <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--primary);">
-            ✅ Assigned Permissions (<%= role.permissions.length %>)
-          </h3>
+ <!-- TWO-COLUMN LAYOUT -->
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
 
-          <% if (role.permissions.length === 0) { %>
-            <p style="color:var(--gray-600);font-style:italic;font-size:0.875rem;">No permissions assigned yet</p>
-          <% } else { %>
-            <div style="display:flex;flex-direction:column;gap:0.5rem;">
-              <% role.permissions.forEach(rp => { %>
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:0.625rem 0.75rem;background:var(--gray-100);border-radius:6px;">
-                  <span style="font-family:monospace;font-size:0.875rem;color:var(--gray-900);font-weight:500;">
-                    <%= rp.permission.name %>
-                  </span>
-                  <% const isLastPerm = isSuperAdmin && role.permissions.length <= 1; %>
-                  <% if (!isLastPerm) { %>
-                    <form method="POST" action="/admin/roles/<%= role.id %>/permissions/revoke" style="margin:0;">
-                      <input type="hidden" name="permissionId" value="<%= rp.permission.id %>">
-                      <button type="submit" class="btn btn-sm"
-                        style="background:transparent;color:var(--error);border:1px solid var(--error);padding:0.2rem 0.6rem;font-size:0.75rem;"
-                        onclick="return confirm('Revoke <%= rp.permission.name %> from this role?')">
-                        Revoke
-                      </button>
-                    </form>
-                  <% } else { %>
-                    <span style="font-size:0.72rem;color:var(--gray-600);font-style:italic;">Protected</span>
-                  <% } %>
-                </div>
-              <% }); %>
-            </div>
-          <% } %>
-        </div>
+ <!-- ASSIGNED PERMISSIONS -->
+ <div class="card">
+ <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--primary);">
+ Assigned Permissions (<%= role.permissions.length %>)
+ </h3>
 
-        <!-- UNASSIGNED PERMISSIONS (Assign) -->
-        <div class="card">
-          <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
-            ➕ Available to Assign (<%= unassignedPermissions.length %>)
-          </h3>
+ <% if (role.permissions.length === 0) { %>
+ <p style="color:var(--gray-600);font-style:italic;font-size:0.875rem;">No permissions assigned yet</p>
+ <% } else { %>
+ <div style="display:flex;flex-direction:column;gap:0.5rem;">
+ <% role.permissions.forEach(rp => { %>
+ <div style="display:flex;align-items:center;justify-content:space-between;padding:0.625rem 0.75rem;background:var(--gray-100);border-radius:6px;">
+ <span style="font-family:monospace;font-size:0.875rem;color:var(--gray-900);font-weight:500;">
+ <%= rp.permission.name %>
+ </span>
+ <% const isLastPerm = isSuperAdmin && role.permissions.length <= 1; %>
+ <% if (!isLastPerm) { %>
+ <form method="POST" action="/admin/roles/<%= role.id %>/permissions/revoke" style="margin:0;">
+ <input type="hidden" name="permissionId" value="<%= rp.permission.id %>">
+ <button type="submit" class="btn btn-sm"
+ style="background:transparent;color:var(--error);border:1px solid var(--error);padding:0.2rem 0.6rem;font-size:0.75rem;"
+ onclick="return confirm('Revoke <%= rp.permission.name %> from this role?')">
+ Revoke
+ </button>
+ </form>
+ <% } else { %>
+ <span style="font-size:0.72rem;color:var(--gray-600);font-style:italic;">Protected</span>
+ <% } %>
+ </div>
+ <% }); %>
+ </div>
+ <% } %>
+ </div>
 
-          <% if (unassignedPermissions.length === 0) { %>
-            <p style="color:var(--gray-600);font-style:italic;font-size:0.875rem;">All permissions already assigned</p>
-          <% } else { %>
-            <form method="POST" action="/admin/roles/<%= role.id %>/permissions/assign">
-              <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;">
-                <% unassignedPermissions.forEach(p => { %>
-                  <label style="display:flex;align-items:center;gap:0.75rem;padding:0.625rem 0.75rem;background:var(--gray-100);border-radius:6px;cursor:pointer;font-weight:400;">
-                    <input type="radio" name="permissionId" value="<%= p.id %>" required style="width:auto;accent-color:var(--primary);">
-                    <span style="font-family:monospace;font-size:0.875rem;color:var(--gray-700)"><%= p.name %></span>
-                  </label>
-                <% }); %>
-              </div>
-              <button type="submit" class="btn btn-primary" style="width:100%;font-size:0.875rem;">
-                Assign Selected Permission
-              </button>
-            </form>
-          <% } %>
-        </div>
+ <!-- UNASSIGNED PERMISSIONS (Assign) -->
+ <div class="card">
+ <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
+ + Available to Assign (<%= unassignedPermissions.length %>)
+ </h3>
 
-      </div>
+ <% if (unassignedPermissions.length === 0) { %>
+ <p style="color:var(--gray-600);font-style:italic;font-size:0.875rem;">All permissions already assigned</p>
+ <% } else { %>
+ <form method="POST" action="/admin/roles/<%= role.id %>/permissions/assign">
+ <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1rem;">
+ <% unassignedPermissions.forEach(p => { %>
+ <label style="display:flex;align-items:center;gap:0.75rem;padding:0.625rem 0.75rem;background:var(--gray-100);border-radius:6px;cursor:pointer;font-weight:400;">
+ <input type="radio" name="permissionId" value="<%= p.id %>" required style="width:auto;accent-color:var(--primary);">
+ <span style="font-family:monospace;font-size:0.875rem;color:var(--gray-700)"><%= p.name %></span>
+ </label>
+ <% }); %>
+ </div>
+ <button type="submit" class="btn btn-primary" style="width:100%;font-size:0.875rem;">
+ Assign Selected Permission
+ </button>
+ </form>
+ <% } %>
+ </div>
 
-      <!-- USERS WITH THIS ROLE -->
-      <div class="card">
-        <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
-          👥 Users with this Role (<%= role.users.length %>)
-        </h3>
+ </div>
 
-        <% if (role.users.length === 0) { %>
-          <p style="color:var(--gray-600);font-style:italic;font-size:0.875rem;">No users assigned to this role</p>
-        <% } else { %>
-          <div class="table-wrapper" style="box-shadow:none;border:none;">
-            <table style="border:1px solid var(--gray-300);">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Status</th>
-                  <th style="text-align:center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% role.users.forEach(ur => { %>
-                  <tr>
-                    <td style="font-weight:500;color:var(--gray-900);"><%= ur.user.name %></td>
-                    <td><%= ur.user.phone %></td>
-                    <td><span class="badge badge-<%= ur.user.status %>"><%= ur.user.status %></span></td>
-                    <td style="text-align:center;">
-                      <a href="/admin/users/<%= ur.user.id %>" class="btn btn-secondary btn-sm">View User</a>
-                    </td>
-                  </tr>
-                <% }); %>
-              </tbody>
-            </table>
-          </div>
-        <% } %>
-      </div>
+ <!-- USERS WITH THIS ROLE -->
+ <div class="card">
+ <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
+ Users with this Role (<%= role.users.length %>)
+ </h3>
 
-    </div>
-  </main>
+ <% if (role.users.length === 0) { %>
+ <p style="color:var(--gray-600);font-style:italic;font-size:0.875rem;">No users assigned to this role</p>
+ <% } else { %>
+ <div class="table-wrapper" style="box-shadow:none;border:none;">
+ <table style="border:1px solid var(--gray-300);">
+ <thead>
+ <tr>
+ <th>Name</th>
+ <th>Phone</th>
+ <th>Status</th>
+ <th style="text-align:center">Action</th>
+ </tr>
+ </thead>
+ <tbody>
+ <% role.users.forEach(ur => { %>
+ <tr>
+ <td style="font-weight:500;color:var(--gray-900);"><%= ur.user.name %></td>
+ <td><%= ur.user.phone %></td>
+ <td><span class="badge badge-<%= ur.user.status %>"><%= ur.user.status %></span></td>
+ <td style="text-align:center;">
+ <a href="/admin/users/<%= ur.user.id %>" class="btn btn-secondary btn-sm">View User</a>
+ </td>
+ </tr>
+ <% }); %>
+ </tbody>
+ </table>
+ </div>
+ <% } %>
+ </div>
+
+ </div>
+ </main>
 </div>
 </body>
 </html>
+

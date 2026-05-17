@@ -1,112 +1,174 @@
-<%- include('../_sidebar', { currentPage: 'finance' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'finance' }) %>
 
-  <!-- MAIN CONTENT -->
-  <main class="admin-main">
-    <div class="admin-topbar">
-      <div>
-        <h1 class="admin-topbar-title">💰 Keuangan & Iuran</h1>
-        <p class="admin-topbar-sub">Kelola periode laporan dan iuran warga</p>
+<!-- MAIN CONTENT -->
+<main class="admin-main flex flex-col">
+  
+  <!-- TOP HEADER -->
+  <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+    <div class="flex items-center gap-4">
+      <h2 class="font-display font-bold text-xl">Keuangan & Iuran</h2>
+    </div>
+
+    <!-- Right Side Actions & Avatar -->
+    <div class="flex items-center gap-4">
+      <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+        <i data-lucide="bell" class="w-5 h-5"></i>
+        <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+          <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+        <% } %>
+      </a>
+      <div class="h-8 w-px bg-slate-200 mx-1"></div>
+      <div class="flex items-center gap-2">
+        <% if (typeof user !== 'undefined' && user && user.name) { %>
+          <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+            <%= user.name.charAt(0).toUpperCase() %>
+          </div>
+          <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+        <% } %>
       </div>
-      <span style="font-size:0.875rem;color:var(--gray-600);">👤 <%= user.name %></span>
+    </div>
+  </header>
+
+  <!-- INNER CONTENT -->
+  <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
+    
+    <!-- PAGE HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Pengelolaan Iuran Warga</h1>
+        <p class="text-sm text-slate-500">Kelola periode penagihan iuran bulanan, kas warga, dan rekapitulasi pembayaran.</p>
+      </div>
     </div>
 
     <!-- FLASH MESSAGES -->
-    <% if (error) { %>
-      <div class="flash-error">⚠️ <%= error %></div>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium flex gap-3 items-start">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500"></i>
+        <span><%= error %></span>
+      </div>
     <% } %>
-    <% if (success) { %>
-      <div class="flash-success">✅ <%= success %></div>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-medium flex gap-3 items-start">
+        <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-500"></i>
+        <span><%= success %></span>
+      </div>
     <% } %>
 
-    <div style="display:grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start;">
+    <!-- TWO-COLUMN WORKSPACE -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       
-      <!-- PERIODS LIST -->
-      <div class="admin-card">
-        <h2 style="font-size:1.125rem; font-weight:700; color:var(--gray-900); margin:0 0 1rem 0;">Daftar Periode</h2>
+      <!-- LEFT COLUMN: PERIOD LIST (2/3 width) -->
+      <div class="lg:col-span-2 space-y-6">
         
-        <% if (periods.length === 0) { %>
-          <div style="text-align:center; padding:2rem; color:var(--gray-600);">
-            <div style="font-size:2rem; margin-bottom:0.5rem;">📅</div>
-            Belum ada periode keuangan.
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+              <i data-lucide="calendar" class="w-5 h-5 text-brand-600"></i> Daftar Periode Tagihan
+            </h2>
           </div>
-        <% } else { %>
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Periode</th>
-                <th>Bulan/Tahun</th>
-                <th>Iuran Tetap</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% periods.forEach(period => { %>
-                <tr>
-                  <td style="font-weight:600;"><%= period.name %></td>
-                  <td><%= period.month %> / <%= period.year %></td>
-                  <td>Rp <%= period.fixedDuesAmount.toLocaleString('id-ID') %></td>
-                  <td>
-                    <% if (period.isActive) { %>
-                      <span style="padding:0.25rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:700; background:#dcfce7; color:#166534;">🟢 Aktif</span>
-                    <% } else { %>
-                      <span style="padding:0.25rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:700; background:#f1f5f9; color:#475569;">⚫ Ditutup</span>
-                    <% } %>
-                  </td>
-                  <td>
-                    <div style="display:flex; gap:0.5rem;">
-                      <a href="/admin/finance/period/<%= period.id %>" class="btn-table-action btn-view">Detail</a>
-                      <form action="/admin/finance/periods/<%= period.id %>/toggle" method="POST" style="margin:0;">
-                        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-                        <button type="submit" class="btn-table-action <%= period.isActive ? 'btn-delete' : 'btn-edit' %>">
-                          <%= period.isActive ? 'Tutup' : 'Buka' %>
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        <% } %>
+
+          <% if (periods.length === 0) { %>
+            <div class="text-center py-12 text-slate-500">
+              <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="info" class="w-8 h-8 text-slate-400"></i>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mb-1">Belum ada periode keuangan</h3>
+              <p class="text-sm text-slate-500 px-4">Gunakan form di samping kanan untuk membuat periode iuran baru.</p>
+            </div>
+          <% } else { %>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200">
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Periode</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Bulan / Tahun</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nominal Iuran Tetap</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status Tagihan</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <% periods.forEach(period => { %>
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                      <td class="px-6 py-4 font-semibold text-slate-900">
+                        <%= period.name %>
+                      </td>
+                      <td class="px-6 py-4 text-sm text-slate-600">
+                        Bulan <%= period.month %> / <%= period.year %>
+                      </td>
+                      <td class="px-6 py-4 font-medium text-slate-900">
+                        Rp <%= period.fixedDuesAmount.toLocaleString('id-ID') %>
+                      </td>
+                      <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold <%= period.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-100 text-slate-700 border border-slate-200' %>">
+                          <span class="w-1.5 h-1.5 rounded-full <%= period.isActive ? 'bg-emerald-500' : 'bg-slate-400' %>"></span>
+                          <%= period.isActive ? 'Aktif' : 'Ditutup' %>
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                          <a href="/admin/finance/period/<%= period.id %>" class="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors">
+                            Detail
+                          </a>
+                          <form action="/admin/finance/periods/<%= period.id %>/toggle" method="POST" class="m-0">
+                            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                            <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-bold shadow-sm transition-colors <%= period.isActive ? 'bg-white text-rose-600 border-rose-200 hover:bg-rose-50' : 'bg-white text-emerald-600 border-emerald-200 hover:bg-emerald-50' %>">
+                              <%= period.isActive ? 'Tutup Tagihan' : 'Buka Tagihan' %>
+                            </button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </div>
       </div>
 
-      <!-- CREATE PERIOD -->
-      <div class="admin-card">
-        <h2 style="font-size:1.125rem; font-weight:700; color:var(--gray-900); margin:0 0 1rem 0;">Buat Periode Baru</h2>
-        <form action="/admin/finance/periods" method="POST">
-          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-          
-          <div style="margin-bottom:1rem;">
-            <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Nama Periode</label>
-            <input type="text" name="name" required placeholder="Cth: Januari 2024" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
-          </div>
-          
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
-            <div>
-              <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Bulan (1-12)</label>
-              <input type="number" name="month" required min="1" max="12" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
-            </div>
-            <div>
-              <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Tahun</label>
-              <input type="number" name="year" required min="2020" max="2050" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
-            </div>
-          </div>
-          
-          <div style="margin-bottom:1.25rem;">
-            <label style="display:block; font-size:0.8125rem; font-weight:600; color:var(--gray-700); margin-bottom:0.375rem;">Iuran Tetap (Rp)</label>
-            <input type="number" name="fixedDuesAmount" required min="0" value="50000" style="width:100%; padding:0.625rem; border:1px solid var(--gray-300); border-radius:6px; font-size:0.875rem;">
-            <div style="font-size:0.75rem; color:var(--gray-500); margin-top:0.25rem;">Biaya rutin default (kebersihan, dll) untuk periode ini.</div>
-          </div>
-          
-          <button type="submit" style="width:100%; padding:0.75rem; background:var(--primary); color:white; border:none; border-radius:6px; font-weight:600; cursor:pointer;">
-            ➕ Buat Periode
-          </button>
-        </form>
-      </div>
+      <!-- RIGHT COLUMN: CREATE PERIOD FORM (1/3 width) -->
+      <div class="space-y-6">
+        
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
+          <h2 class="font-bold text-lg text-slate-900 flex items-center gap-2 pb-2 border-b border-slate-100">
+            <i data-lucide="plus-circle" class="w-5 h-5 text-brand-600"></i> Buat Periode Baru
+          </h2>
 
+          <form action="/admin/finance/periods" method="POST" class="space-y-4">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-700">Nama Periode</label>
+              <input type="text" name="name" required placeholder="Contoh: Januari 2024" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="block text-xs font-semibold text-slate-700">Bulan (1-12)</label>
+                <input type="number" name="month" required min="1" max="12" placeholder="1" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+              </div>
+              <div class="space-y-1.5">
+                <label class="block text-xs font-semibold text-slate-700">Tahun</label>
+                <input type="number" name="year" required min="2020" max="2050" placeholder="<%= new Date().getFullYear() %>" value="<%= new Date().getFullYear() %>" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-700">Iuran Tetap Bulanan (Rp)</label>
+              <input type="number" name="fixedDuesAmount" required min="0" value="50000" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+              <p class="text-[10px] text-slate-400">Nominal iuran tetap bulanan standar (misal uang kebersihan/keamanan RT).</p>
+            </div>
+
+            <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-colors pt-3">
+              + Buat Periode Tagihan
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
-  </main>
+  </div>
+</main>
 </div>
 </body>
 </html>

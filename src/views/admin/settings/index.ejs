@@ -1,64 +1,120 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> - RT Management</title>
-  <link rel="stylesheet" href="/css/admin.css">
-</head>
-<body>
+<%- include('../_sidebar.ejs', { currentPage: 'settings' }) %>
 
-<div class="admin-layout">
-  <%- include('../_sidebar', { currentPage: currentPage }) %>
+<!-- MAIN CONTENT -->
+<main class="admin-main flex flex-col">
+  
+  <!-- TOP HEADER -->
+  <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+    <div class="flex items-center gap-4">
+      <h2 class="font-display font-bold text-xl">Pengaturan Website</h2>
+    </div>
 
-  <main class="admin-main">
-    <header class="admin-header">
-      <div class="header-info">
-        <h1><%= title %></h1>
-      </div>
-      <div class="header-actions">
-        <a href="/portal" class="btn btn-outline">🏠 Portal Warga</a>
-      </div>
-    </header>
-
-    <div class="admin-content">
-      <% if (error) { %>
-        <div class="alert alert-error" style="margin-bottom: 1.5rem;"><%= error %></div>
-      <% } %>
-      <% if (success) { %>
-        <div class="alert alert-success" style="margin-bottom: 1.5rem;"><%= success %></div>
-      <% } %>
-
-      <div class="card" style="max-width: 600px;">
-        <h2 style="margin-top: 0;">Pengaturan Website</h2>
-        <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Perbarui informasi yang akan tampil di halaman Portal Warga.</p>
-
-        <form action="/admin/settings" method="POST">
-          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-          
-          <div class="form-group">
-            <label class="form-label">Nomor Telepon Darurat</label>
-            <input type="text" name="emergency_phone" class="form-control" value="<%= settings.emergency_phone || '' %>" required placeholder="Contoh: +62-812-3456-7890">
+    <!-- Right Side Actions & Avatar -->
+    <div class="flex items-center gap-4">
+      <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+        <i data-lucide="bell" class="w-5 h-5"></i>
+        <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+          <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>
+        <% } %>
+      </a>
+      <div class="h-8 w-px bg-slate-200 mx-1"></div>
+      <div class="flex items-center gap-2">
+        <% if (typeof user !== 'undefined' && user && user.name) { %>
+          <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+            <%= user.name.charAt(0).toUpperCase() %>
           </div>
-
-          <div class="form-group">
-            <label class="form-label">Email RT</label>
-            <input type="email" name="emergency_email" class="form-control" value="<%= settings.emergency_email || '' %>" required placeholder="Contoh: rt@example.com">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Jam Operasional / Pelayanan</label>
-            <input type="text" name="emergency_hours" class="form-control" value="<%= settings.emergency_hours || '' %>" required placeholder="Contoh: Mon-Fri, 8 AM - 5 PM">
-          </div>
-
-          <div style="margin-top: 2rem;">
-            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
-          </div>
-        </form>
+          <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+        <% } %>
       </div>
     </div>
-  </main>
-</div>
+  </header>
 
+  <!-- INNER CONTENT -->
+  <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
+    
+    <!-- PAGE HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Konfigurasi Portal RT</h1>
+        <p class="text-sm text-slate-500">Kelola informasi kontak darurat, operasional pelayanan, dan email resmi yang akan tampil di Portal Warga.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/portal" class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold py-2 px-4 rounded-xl transition-all shadow-sm text-sm">
+          <i data-lucide="external-link" class="w-4 h-4"></i> Lihat Portal Warga
+        </a>
+      </div>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium flex gap-3 items-start max-w-2xl">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500"></i>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-medium flex gap-3 items-start max-w-2xl">
+        <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-500"></i>
+        <span><%= success %></span>
+      </div>
+    <% } %>
+
+    <!-- SETTINGS CARD FORM -->
+    <div class="bg-white rounded-3xl p-6 lg:p-8 border border-slate-200 shadow-sm max-w-2xl">
+      <h2 class="font-bold text-lg text-slate-900 mb-2 flex items-center gap-2 pb-3 border-b border-slate-100">
+        <i data-lucide="settings" class="w-5 h-5 text-brand-600"></i> Informasi Pelayanan RT
+      </h2>
+      <p class="text-xs text-slate-400 mb-6">Pastikan data kontak darurat valid agar mempermudah warga dalam menghubungi pengurus saat keadaan darurat.</p>
+
+      <form action="/admin/settings" method="POST" class="space-y-5">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+        <!-- Emergency Phone -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Nomor Telepon Darurat / RT</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="phone" class="h-5 w-5 text-slate-400"></i>
+            </div>
+            <input type="text" name="emergency_phone" value="<%= settings.emergency_phone || '' %>" required placeholder="Contoh: 0812-3456-7890" class="block w-full pl-10 pr-3 py-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm">
+          </div>
+          <p class="text-[10px] text-slate-400">Nomor kontak utama RT yang bisa dihubungi sewaktu-waktu.</p>
+        </div>
+
+        <!-- Emergency Email -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Email Resmi RT</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="mail" class="h-5 w-5 text-slate-400"></i>
+            </div>
+            <input type="email" name="emergency_email" value="<%= settings.emergency_email || '' %>" required placeholder="Contoh: rt04rw18.arjasari@gmail.com" class="block w-full pl-10 pr-3 py-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm">
+          </div>
+          <p class="text-[10px] text-slate-400">Email korespondensi resmi pengurus Rukun Tetangga.</p>
+        </div>
+
+        <!-- Operational Hours -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Jam Operasional / Pelayanan Surat</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <i data-lucide="clock" class="h-5 w-5 text-slate-400"></i>
+            </div>
+            <input type="text" name="emergency_hours" value="<%= settings.emergency_hours || '' %>" required placeholder="Contoh: Senin - Jumat, 08:00 - 17:00 WIB" class="block w-full pl-10 pr-3 py-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm">
+          </div>
+          <p class="text-[10px] text-slate-400">Jadwal resmi untuk pelayanan tanda tangan surat keterangan fisik.</p>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-4 border-t border-slate-100 flex justify-end">
+          <button type="submit" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md shadow-brand-500/25 hover:scale-[1.02] text-sm">
+            <i data-lucide="save" class="w-4 h-4"></i> Simpan Konfigurasi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+</div>
 </body>
 </html>

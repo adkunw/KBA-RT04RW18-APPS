@@ -1,115 +1,140 @@
-<%- include('../_sidebar.ejs', { currentPage: 'roles' }) %>
+﻿<%- include('../_sidebar.ejs', { currentPage: 'roles' }) %>
 
-  <main class="admin-main">
-    <div class="admin-content">
+ <main class="admin-main flex flex-col">
+ <!-- TOP HEADER -->
+ <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+ <div class="flex items-center gap-4">
+ <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
+ </div>
 
-      <!-- PAGE HEADER -->
-      <div class="page-header">
-        <h1>🔐 Role Management</h1>
-        <a href="/admin/roles/create" class="btn btn-primary">+ Add Role</a>
-      </div>
+ <div class="flex items-center gap-4">
+ <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+ <i data-lucide="bell" class="w-5 h-5"></i>
+ <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+ <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+ <% } %>
+ </a>
+ <div class="h-8 w-px bg-slate-200 mx-1"></div>
+ <div class="flex items-center gap-2">
+ <% if (typeof user !== 'undefined' && user && user.name) { %>
+ <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+ <%= user.name.charAt(0).toUpperCase() %>
+ </div>
+ <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+ <% } %>
+ </div>
+ </div>
+ </header>
+ <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
 
-      <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-      <% } %>
-      <% if (success) { %>
-        <div class="alert" style="background:#DCFCE7;border-left-color:var(--success);color:#166534;"><%= success %></div>
-      <% } %>
+ <!-- PAGE HEADER -->
+ <div class="page-header">
+ <h1> Role Management</h1>
+ <a href="/admin/roles/create" class="btn btn-primary">+ Add Role</a>
+ </div>
 
-      <!-- ROLES TABLE -->
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Role Name</th>
-              <th style="text-align:center">Permissions</th>
-              <th style="text-align:center">Users</th>
-              <th style="text-align:center">Type</th>
-              <th style="text-align:center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% roles.forEach(role => { %>
-              <tr>
-                <td>
-                  <span style="font-weight:600; color:var(--gray-900)"><%= role.name %></span>
-                  <% if (role.name === 'super_admin') { %>
-                    <span class="badge" style="background:#FEF3C7;color:#B45309;margin-left:0.5rem;">Protected</span>
-                  <% } %>
-                </td>
-                <td style="text-align:center">
-                  <span style="font-size:1rem;font-weight:600;color:var(--primary)"><%= role._count.permissions %></span>
-                  <span style="font-size:0.8rem;color:var(--gray-600)"> permissions</span>
-                </td>
-                <td style="text-align:center">
-                  <span style="font-size:1rem;font-weight:600;color:var(--gray-700)"><%= role._count.users %></span>
-                  <span style="font-size:0.8rem;color:var(--gray-600)"> users</span>
-                </td>
-                <td style="text-align:center">
-                  <% if (role.name === 'super_admin') { %>
-                    <span class="badge badge-active">System</span>
-                  <% } else { %>
-                    <span class="badge badge-created">Custom</span>
-                  <% } %>
-                </td>
-                <td style="text-align:center">
-                  <a href="/admin/roles/<%= role.id %>" class="btn btn-secondary btn-sm">View</a>
-                </td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table>
-      </div>
+ <% if (error) { %>
+ <div class="alert alert-error"><%= error %></div>
+ <% } %>
+ <% if (success) { %>
+ <div class="alert" style="background:#DCFCE7;border-left-color:var(--success);color:#166534;"><%= success %></div>
+ <% } %>
 
-      <!-- PERMISSIONS OVERVIEW -->
-      <div style="margin-top:2rem;">
-        <h2 style="margin-bottom:1rem;font-size:1.125rem;">📋 All Permissions in System</h2>
-        <div class="card">
-          <p style="font-size:0.875rem;color:var(--gray-600);margin-bottom:1rem;">
-            Permissions yang tersedia untuk di-assign ke role:
-          </p>
-          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-            <% roles.length > 0 && roles[0] && (() => { %>
-              <%
-                const allPerms = [];
-                roles.forEach(r => r.permissions.forEach(rp => {
-                  if (!allPerms.find(p => p.id === rp.permission.id)) {
-                    allPerms.push(rp.permission);
-                  }
-                }));
-              %>
-            <% })() %>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-            <%
-              // Collect unique permissions from all roles
-              const seenIds = new Set();
-              const uniquePerms = [];
-              roles.forEach(r => r.permissions.forEach(rp => {
-                if (!seenIds.has(rp.permission.id)) {
-                  seenIds.add(rp.permission.id);
-                  uniquePerms.push(rp.permission);
-                }
-              }));
-            %>
-            <% uniquePerms.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => { %>
-              <span style="background:var(--primary-light);color:var(--primary);padding:0.25rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:500;">
-                <%= p.name %>
-              </span>
-            <% }); %>
-            <% if (uniquePerms.length === 0) { %>
-              <span style="color:var(--gray-600);font-size:0.875rem;">No permissions found</span>
-            <% } %>
-          </div>
-        </div>
-      </div>
+ <!-- ROLES TABLE -->
+ <div class="table-wrapper">
+ <table>
+ <thead>
+ <tr>
+ <th>Role Name</th>
+ <th style="text-align:center">Permissions</th>
+ <th style="text-align:center">Users</th>
+ <th style="text-align:center">Type</th>
+ <th style="text-align:center">Actions</th>
+ </tr>
+ </thead>
+ <tbody>
+ <% roles.forEach(role => { %>
+ <tr>
+ <td>
+ <span style="font-weight:600; color:var(--gray-900)"><%= role.name %></span>
+ <% if (role.name === 'super_admin') { %>
+ <span class="badge" style="background:#FEF3C7;color:#B45309;margin-left:0.5rem;">Protected</span>
+ <% } %>
+ </td>
+ <td style="text-align:center">
+ <span style="font-size:1rem;font-weight:600;color:var(--primary)"><%= role._count.permissions %></span>
+ <span style="font-size:0.8rem;color:var(--gray-600)"> permissions</span>
+ </td>
+ <td style="text-align:center">
+ <span style="font-size:1rem;font-weight:600;color:var(--gray-700)"><%= role._count.users %></span>
+ <span style="font-size:0.8rem;color:var(--gray-600)"> users</span>
+ </td>
+ <td style="text-align:center">
+ <% if (role.name === 'super_admin') { %>
+ <span class="badge badge-active">System</span>
+ <% } else { %>
+ <span class="badge badge-created">Custom</span>
+ <% } %>
+ </td>
+ <td style="text-align:center">
+ <a href="/admin/roles/<%= role.id %>" class="btn btn-secondary btn-sm">View</a>
+ </td>
+ </tr>
+ <% }); %>
+ </tbody>
+ </table>
+ </div>
 
-      <div style="margin-top:2rem;">
-        <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
-      </div>
+ <!-- PERMISSIONS OVERVIEW -->
+ <div style="margin-top:2rem;">
+ <h2 style="margin-bottom:1rem;font-size:1.125rem;"> All Permissions in System</h2>
+ <div class="card">
+ <p style="font-size:0.875rem;color:var(--gray-600);margin-bottom:1rem;">
+ Permissions yang tersedia untuk di-assign ke role:
+ </p>
+ <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+ <% roles.length > 0 && roles[0] && (() => { %>
+ <%
+ const allPerms = [];
+ roles.forEach(r => r.permissions.forEach(rp => {
+ if (!allPerms.find(p => p.id === rp.permission.id)) {
+ allPerms.push(rp.permission);
+ }
+ }));
+ %>
+ <% })() %>
+ </div>
+ <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+ <%
+ // Collect unique permissions from all roles
+ const seenIds = new Set();
+ const uniquePerms = [];
+ roles.forEach(r => r.permissions.forEach(rp => {
+ if (!seenIds.has(rp.permission.id)) {
+ seenIds.add(rp.permission.id);
+ uniquePerms.push(rp.permission);
+ }
+ }));
+ %>
+ <% uniquePerms.sort((a,b) => a.name.localeCompare(b.name)).forEach(p => { %>
+ <span style="background:var(--primary-light);color:var(--primary);padding:0.25rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:500;">
+ <%= p.name %>
+ </span>
+ <% }); %>
+ <% if (uniquePerms.length === 0) { %>
+ <span style="color:var(--gray-600);font-size:0.875rem;">No permissions found</span>
+ <% } %>
+ </div>
+ </div>
+ </div>
 
-    </div>
-  </main>
+ <div style="margin-top:2rem;">
+ <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+ </div>
+
+ </div>
+ </main>
 </div>
 </body>
 </html>
+

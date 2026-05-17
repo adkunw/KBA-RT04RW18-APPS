@@ -1,131 +1,156 @@
-<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+﻿<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
-  <!-- MAIN CONTENT -->
-  <main class="admin-main">
-    <div class="admin-content">
+ <!-- MAIN CONTENT -->
+ <main class="admin-main flex flex-col">
+ <!-- TOP HEADER -->
+ <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+ <div class="flex items-center gap-4">
+ <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
+ </div>
 
-      <div class="page-header">
-        <div style="display:flex; align-items:center; gap:1rem;">
-          <h1>👤 <%= viewedUser.name %></h1>
-          <a href="/admin/users/<%= viewedUser.id %>/edit" class="btn btn-primary btn-sm">✏️ Edit</a>
-        </div>
-        <a href="/admin/users" class="btn btn-secondary">← Back to Users</a>
-      </div>
+ <div class="flex items-center gap-4">
+ <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+ <i data-lucide="bell" class="w-5 h-5"></i>
+ <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+ <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+ <% } %>
+ </a>
+ <div class="h-8 w-px bg-slate-200 mx-1"></div>
+ <div class="flex items-center gap-2">
+ <% if (typeof user !== 'undefined' && user && user.name) { %>
+ <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+ <%= user.name.charAt(0).toUpperCase() %>
+ </div>
+ <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+ <% } %>
+ </div>
+ </div>
+ </header>
+ <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
 
-      <% if (viewedUser.status === 'created') { %>
-        <div class="alert" style="background:#FEF3C7; border-left-color:var(--warning); color:#92400E; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <strong>⚠️ Pending Activation:</strong> This user hasn't activated their account yet.<br>
-            <span style="font-size:0.875rem; font-family:monospace; margin-top:0.5rem; display:inline-block; background:rgba(0,0,0,0.05); padding:0.25rem 0.5rem; border-radius:4px;"><%= activationLink %></span>
-          </div>
-          <button onclick="navigator.clipboard.writeText('<%= activationLink %>').then(() => alert('Copied to clipboard!'))" class="btn btn-primary btn-sm" style="flex-shrink:0; margin-left:1rem;">
-            Copy Link 📋
-          </button>
-        </div>
-      <% } %>
+ <div class="page-header">
+ <div style="display:flex; align-items:center; gap:1rem;">
+ <h1> <%= viewedUser.name %></h1>
+ <a href="/admin/users/<%= viewedUser.id %>/edit" class="btn btn-primary btn-sm"> Edit</a>
+ </div>
+ <a href="/admin/users" class="btn btn-secondary">← Back to Users</a>
+ </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+ <% if (viewedUser.status === 'created') { %>
+ <div class="alert" style="background:#FEF3C7; border-left-color:var(--warning); color:#92400E; display:flex; justify-content:space-between; align-items:center;">
+ <div>
+ <strong> Pending Activation:</strong> This user hasn't activated their account yet.<br>
+ <span style="font-size:0.875rem; font-family:monospace; margin-top:0.5rem; display:inline-block; background:rgba(0,0,0,0.05); padding:0.25rem 0.5rem; border-radius:4px;"><%= activationLink %></span>
+ </div>
+ <button onclick="navigator.clipboard.writeText('<%= activationLink %>').then(() => alert('Copied to clipboard!'))" class="btn btn-primary btn-sm" style="flex-shrink:0; margin-left:1rem;">
+ Copy Link 
+ </button>
+ </div>
+ <% } %>
 
-        <!-- Profile Info Card -->
-        <div class="card">
-          <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;">Profile Information</h3>
-          <table style="width:100%; border-collapse:collapse;">
-            <tr style="border-bottom:1px solid var(--gray-100);">
-              <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem; width:40%;">Name</td>
-              <td style="padding:0.625rem 0; color:var(--gray-900); font-weight:500;"><%= viewedUser.name %></td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--gray-100);">
-              <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Phone</td>
-              <td style="padding:0.625rem 0; color:var(--gray-900);"><%= viewedUser.phone %></td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--gray-100);">
-              <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Status</td>
-              <td style="padding:0.625rem 0;">
-                <span class="badge badge-<%= viewedUser.status %>"><%= viewedUser.status %></span>
-              </td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--gray-100);">
-              <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Member Since</td>
-              <td style="padding:0.625rem 0; color:var(--gray-900); font-size:0.875rem;">
-                <%= new Date(viewedUser.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric' }) %>
-              </td>
-            </tr>
-            <% if (viewedUser.lastLogin) { %>
-              <tr>
-                <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Last Login</td>
-                <td style="padding:0.625rem 0; color:var(--gray-900); font-size:0.875rem;">
-                  <%= new Date(viewedUser.lastLogin).toLocaleString('id-ID') %>
-                </td>
-              </tr>
-            <% } %>
-          </table>
-        </div>
+ <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
 
-        <!-- Roles Card -->
-        <div class="card">
-          <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;">Assigned Roles</h3>
-          <% if (viewedUser.roles.length > 0) { %>
-            <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.5rem;">
-              <% viewedUser.roles.forEach(ur => { %>
-                <li style="padding:0.75rem; background:var(--gray-100); border-radius:6px; border-left:4px solid var(--primary);">
-                  <strong style="color:var(--gray-900)"><%= ur.role.name %></strong>
-                  <% if (ur.role.permissions && ur.role.permissions.length > 0) { %>
-                    <div style="margin-top:0.4rem; font-size:0.8rem; color:var(--gray-600);">
-                      <% ur.role.permissions.forEach(rp => { %>
-                        <span style="display:inline-block; background:var(--primary-light); color:var(--primary); padding:1px 6px; border-radius:4px; margin:2px; font-size:0.75rem; font-weight:500;">
-                          <%= rp.permission.name %>
-                        </span>
-                      <% }); %>
-                    </div>
-                  <% } %>
-                </li>
-              <% }); %>
-            </ul>
-          <% } else { %>
-            <p style="color:var(--gray-600); font-style:italic;">No roles assigned</p>
-          <% } %>
-        </div>
+ <!-- Profile Info Card -->
+ <div class="card">
+ <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;">Profile Information</h3>
+ <table style="width:100%; border-collapse:collapse;">
+ <tr style="border-bottom:1px solid var(--gray-100);">
+ <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem; width:40%;">Name</td>
+ <td style="padding:0.625rem 0; color:var(--gray-900); font-weight:500;"><%= viewedUser.name %></td>
+ </tr>
+ <tr style="border-bottom:1px solid var(--gray-100);">
+ <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Phone</td>
+ <td style="padding:0.625rem 0; color:var(--gray-900);"><%= viewedUser.phone %></td>
+ </tr>
+ <tr style="border-bottom:1px solid var(--gray-100);">
+ <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Status</td>
+ <td style="padding:0.625rem 0;">
+ <span class="badge badge-<%= viewedUser.status %>"><%= viewedUser.status %></span>
+ </td>
+ </tr>
+ <tr style="border-bottom:1px solid var(--gray-100);">
+ <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Member Since</td>
+ <td style="padding:0.625rem 0; color:var(--gray-900); font-size:0.875rem;">
+ <%= new Date(viewedUser.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric' }) %>
+ </td>
+ </tr>
+ <% if (viewedUser.lastLogin) { %>
+ <tr>
+ <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Last Login</td>
+ <td style="padding:0.625rem 0; color:var(--gray-900); font-size:0.875rem;">
+ <%= new Date(viewedUser.lastLogin).toLocaleString('id-ID') %>
+ </td>
+ </tr>
+ <% } %>
+ </table>
+ </div>
 
-      </div>
+ <!-- Roles Card -->
+ <div class="card">
+ <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;">Assigned Roles</h3>
+ <% if (viewedUser.roles.length > 0) { %>
+ <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.5rem;">
+ <% viewedUser.roles.forEach(ur => { %>
+ <li style="padding:0.75rem; background:var(--gray-100); border-radius:6px; border-left:4px solid var(--primary);">
+ <strong style="color:var(--gray-900)"><%= ur.role.name %></strong>
+ <% if (ur.role.permissions && ur.role.permissions.length > 0) { %>
+ <div style="margin-top:0.4rem; font-size:0.8rem; color:var(--gray-600);">
+ <% ur.role.permissions.forEach(rp => { %>
+ <span style="display:inline-block; background:var(--primary-light); color:var(--primary); padding:1px 6px; border-radius:4px; margin:2px; font-size:0.75rem; font-weight:500;">
+ <%= rp.permission.name %>
+ </span>
+ <% }); %>
+ </div>
+ <% } %>
+ </li>
+ <% }); %>
+ </ul>
+ <% } else { %>
+ <p style="color:var(--gray-600); font-style:italic;">No roles assigned</p>
+ <% } %>
+ </div>
 
-      <!-- Approved Documents Card -->
-      <div class="card" style="margin-bottom: 1.5rem;">
-        <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;">📄 Dokumen Disetujui</h3>
-        <% if (typeof approvedDocuments !== 'undefined' && approvedDocuments.length > 0) { %>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
-            <% approvedDocuments.forEach(doc => { %>
-              <a href="/admin/documents/<%= doc.id %>" style="display:flex; align-items:center; gap:0.75rem; padding:1rem; border:1px solid var(--gray-200); border-radius:8px; text-decoration:none; color:inherit; transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 2px 8px rgba(37,99,235,0.1)';" onmouseout="this.style.borderColor='var(--gray-200)'; this.style.boxShadow='none';">
-                <div style="width:40px; height:40px; border-radius:8px; background:var(--primary-light); color:var(--primary-dark); display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
-                  <%= doc.type === 'ktp' ? '🪪' : doc.type === 'kk' ? '👨‍👩‍👧‍👦' : doc.type === 'surat_keterangan' ? '📝' : '📄' %>
-                </div>
-                <div style="flex:1; min-width:0;">
-                  <div style="font-size:0.875rem; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= doc.title %></div>
-                  <div style="font-size:0.75rem; color:var(--gray-600); margin-top:0.125rem;">
-                    <%= doc.type.replace('_', ' ').toUpperCase() %> • <%= new Date(doc.createdAt).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) %>
-                  </div>
-                </div>
-              </a>
-            <% }) %>
-          </div>
-        <% } else { %>
-          <p style="color:var(--gray-600); font-size:0.875rem; font-style:italic;">Belum ada dokumen yang disetujui</p>
-        <% } %>
-      </div>
+ </div>
 
-      <!-- Action Buttons -->
-      <div class="form-actions" style="margin-top:2rem;">
-        <% if (viewedUser.status === 'active') { %>
-          <form action="/admin/users/<%= viewedUser.id %>/reset-password" method="POST" onsubmit="return confirm('Are you sure you want to reset this user\'s password? They will need to set a new one using a new activation link.');">
-            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
-            <button type="submit" class="btn btn-secondary" style="color:var(--warning); border-color:var(--warning);">
-              🔑 Reset Password
-            </button>
-          </form>
-        <% } %>
-      </div>
+ <!-- Approved Documents Card -->
+ <div class="card" style="margin-bottom: 1.5rem;">
+ <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;"> Dokumen Disetujui</h3>
+ <% if (typeof approvedDocuments !== 'undefined' && approvedDocuments.length > 0) { %>
+ <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+ <% approvedDocuments.forEach(doc => { %>
+ <a href="/admin/documents/<%= doc.id %>" style="display:flex; align-items:center; gap:0.75rem; padding:1rem; border:1px solid var(--gray-200); border-radius:8px; text-decoration:none; color:inherit; transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 2px 8px rgba(37,99,235,0.1)';" onmouseout="this.style.borderColor='var(--gray-200)'; this.style.boxShadow='none';">
+ <div style="width:40px; height:40px; border-radius:8px; background:var(--primary-light); color:var(--primary-dark); display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
+ <%= doc.type === 'ktp' ? '' : doc.type === 'kk' ? '©' : doc.type === 'surat_keterangan' ? '' : '' %>
+ </div>
+ <div style="flex:1; min-width:0;">
+ <div style="font-size:0.875rem; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= doc.title %></div>
+ <div style="font-size:0.75rem; color:var(--gray-600); margin-top:0.125rem;">
+ <%= doc.type.replace('_', ' ').toUpperCase() %> <%= new Date(doc.createdAt).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) %>
+ </div>
+ </div>
+ </a>
+ <% }) %>
+ </div>
+ <% } else { %>
+ <p style="color:var(--gray-600); font-size:0.875rem; font-style:italic;">Belum ada dokumen yang disetujui</p>
+ <% } %>
+ </div>
 
-    </div>
-  </main>
+ <!-- Action Buttons -->
+ <div class="form-actions" style="margin-top:2rem;">
+ <% if (viewedUser.status === 'active') { %>
+ <form action="/admin/users/<%= viewedUser.id %>/reset-password" method="POST" onsubmit="return confirm('Are you sure you want to reset this user\'s password? They will need to set a new one using a new activation link.');">
+ <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+ <button type="submit" class="btn btn-secondary" style="color:var(--warning); border-color:var(--warning);">
+ Reset Password
+ </button>
+ </form>
+ <% } %>
+ </div>
+
+ </div>
+ </main>
 </div>
 </body>
 </html>
+

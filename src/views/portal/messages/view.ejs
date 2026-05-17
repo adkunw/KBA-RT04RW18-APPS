@@ -1,73 +1,73 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= message.title %> - RT Management System</title>
-  <link rel="stylesheet" href="/css/admin.css">
-  <style>
-    body { background: var(--background); }
-    .portal-nav {
-      background: var(--primary);
-      padding: 0.875rem 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
-    .portal-nav a:hover { color: white; }
-    .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
-    .portal-content { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
-  </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title><%= message.title %> - RT Management System</title>
+ <link rel="stylesheet" href="/css/admin.css">
+ <style>
+ body { background: var(--background); }
+ .portal-nav {
+ background: var(--primary);
+ padding: 0.875rem 2rem;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ position: sticky;
+ top: 0;
+ z-index: 50;
+ }
+ .portal-nav a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.875rem; }
+ .portal-nav a:hover { color: white; }
+ .portal-nav .brand { font-weight: 700; color: white; font-size: 1rem; }
+ .portal-content { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
+ </style>
 </head>
 <body>
 
 <nav class="portal-nav">
-  <a href="/portal" class="brand">RT Management</a>
-  <div style="display:flex;align-items:center;gap:1.5rem;">
-    <a href="/portal">🏠 Portal</a>
-    <% if (typeof hasAdminAccess !== 'undefined' && hasAdminAccess) { %>
-      <a href="/admin">⚙️ Admin Panel</a>
-    <% } %>
-    <a href="/auth/logout">Logout →</a>
-  </div>
+ <a href="/portal" class="brand">RT Management</a>
+ <div style="display:flex;align-items:center;gap:1.5rem;">
+ <a href="/portal"> Portal</a>
+ <% if (typeof hasAdminAccess !== 'undefined' && hasAdminAccess) { %>
+ <a href="/admin"> Admin Panel</a>
+ <% } %>
+ <a href="/auth/logout">Logout </a>
+ </div>
 </nav>
 
 <div class="portal-content">
 
-  <div class="page-header">
-    <div>
-      <h1 style="margin-bottom:0.25rem;"><%= message.title %></h1>
-      <p style="margin:0;font-size:0.875rem;color:var(--gray-600);">
-        From <strong><%= message.sender.name %></strong>
-        &nbsp;·&nbsp;
-        <% if (message.type === 'broadcast') { %><span style="color:#7C3AED;">📡 Broadcast</span>
-        <% } else { %><span style="color:var(--primary);">✉️ Personal</span><% } %>
-        &nbsp;·&nbsp;
-        <%= new Date(message.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) %>
-      </p>
-    </div>
-    <a href="/portal/messages" class="btn btn-secondary">← Inbox</a>
-  </div>
+ <div class="page-header">
+ <div>
+ <h1 style="margin-bottom:0.25rem;"><%= message.title %></h1>
+ <p style="margin:0;font-size:0.875rem;color:var(--gray-600);">
+ From <strong><%= message.sender.name %></strong>
+ &nbsp;&nbsp;
+ <% if (message.type === 'broadcast') { %><span style="color:#7C3AED;"> Broadcast</span>
+ <% } else { %><span style="color:var(--primary);"> Personal</span><% } %>
+ &nbsp;&nbsp;
+ <%= new Date(message.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) %>
+ </p>
+ </div>
+ <a href="/portal/messages" class="btn btn-secondary">← Inbox</a>
+ </div>
 
-  <div class="card">
-    <div style="background:var(--gray-100);border-radius:6px;padding:1.5rem;line-height:1.8;color:var(--gray-900);white-space:pre-wrap;font-size:0.9375rem;">
-      <%= message.content %>
-    </div>
+ <div class="card">
+ <div style="background:var(--gray-100);border-radius:6px;padding:1.5rem;line-height:1.8;color:var(--gray-900);white-space:pre-wrap;font-size:0.9375rem;">
+ <%= message.content %>
+ </div>
 
-    <% if (recipient.readAt) { %>
-      <p style="margin:1rem 0 0 0;font-size:0.8rem;color:var(--gray-600);">
-        ✓ You read this message on <%= new Date(recipient.readAt).toLocaleString('id-ID') %>
-      </p>
-    <% } %>
-  </div>
+ <% if (recipient.readAt) { %>
+ <p style="margin:1rem 0 0 0;font-size:0.8rem;color:var(--gray-600);">
+ ✓ You read this message on <%= new Date(recipient.readAt).toLocaleString('id-ID') %>
+ </p>
+ <% } %>
+ </div>
 
-  <div style="margin-top:1.5rem;">
-    <a href="/portal/messages" class="btn btn-secondary">← Back to Inbox</a>
-  </div>
+ <div style="margin-top:1.5rem;">
+ <a href="/portal/messages" class="btn btn-secondary">← Back to Inbox</a>
+ </div>
 
 </div>
 </body>

@@ -1,89 +1,114 @@
-<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
+﻿<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
 
-  <main class="admin-main">
-    <div class="admin-content">
+ <main class="admin-main flex flex-col">
+ <!-- TOP HEADER -->
+ <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+ <div class="flex items-center gap-4">
+ <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
+ </div>
 
-      <!-- PAGE HEADER -->
-      <div class="page-header">
-        <h1>📨 Messages</h1>
-        <a href="/admin/messages/create" class="btn btn-primary">+ Compose</a>
-      </div>
+ <div class="flex items-center gap-4">
+ <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+ <i data-lucide="bell" class="w-5 h-5"></i>
+ <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+ <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+ <% } %>
+ </a>
+ <div class="h-8 w-px bg-slate-200 mx-1"></div>
+ <div class="flex items-center gap-2">
+ <% if (typeof user !== 'undefined' && user && user.name) { %>
+ <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+ <%= user.name.charAt(0).toUpperCase() %>
+ </div>
+ <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+ <% } %>
+ </div>
+ </div>
+ </header>
+ <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
 
-      <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-      <% } %>
-      <% if (success) { %>
-        <div class="alert" style="background:#DCFCE7;border-left-color:var(--success);color:#166534;"><%= success %></div>
-      <% } %>
+ <!-- PAGE HEADER -->
+ <div class="page-header">
+ <h1> Messages</h1>
+ <a href="/admin/messages/create" class="btn btn-primary">+ Compose</a>
+ </div>
 
-      <!-- FILTER TABS -->
-      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-        <a href="/admin/messages" class="btn btn-sm <%= !filterType ? 'btn-primary' : 'btn-secondary' %>">All</a>
-        <a href="/admin/messages?type=announcement" class="btn btn-sm <%= filterType === 'announcement' ? 'btn-primary' : 'btn-secondary' %>">📢 Announcements</a>
-        <a href="/admin/messages?type=broadcast" class="btn btn-sm <%= filterType === 'broadcast' ? 'btn-primary' : 'btn-secondary' %>">📡 Broadcast</a>
-        <a href="/admin/messages?type=personal" class="btn btn-sm <%= filterType === 'personal' ? 'btn-primary' : 'btn-secondary' %>">✉️ Personal</a>
-      </div>
+ <% if (error) { %>
+ <div class="alert alert-error"><%= error %></div>
+ <% } %>
+ <% if (success) { %>
+ <div class="alert" style="background:#DCFCE7;border-left-color:var(--success);color:#166534;"><%= success %></div>
+ <% } %>
 
-      <% if (messages.length === 0) { %>
-        <div class="card empty-state">
-          <p>No messages found<% if (filterType) { %> for this filter<% } %>.</p>
-          <a href="/admin/messages/create" class="btn btn-primary">Compose first message</a>
-        </div>
-      <% } else { %>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th style="text-align:center">Type</th>
-                <th>Sent by</th>
-                <th style="text-align:center">Recipients</th>
-                <th>Date</th>
-                <th style="text-align:center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% messages.forEach(msg => { %>
-                <tr>
-                  <td style="font-weight:500;color:var(--gray-900);max-width:280px;">
-                    <%= msg.title %>
-                  </td>
-                  <td style="text-align:center;">
-                    <% if (msg.type === 'announcement') { %>
-                      <span class="badge" style="background:#DBEAFE;color:var(--primary);">📢 Announcement</span>
-                    <% } else if (msg.type === 'broadcast') { %>
-                      <span class="badge" style="background:#F3E8FF;color:#7C3AED;">📡 Broadcast</span>
-                    <% } else { %>
-                      <span class="badge badge-created">✉️ Personal</span>
-                    <% } %>
-                  </td>
-                  <td style="color:var(--gray-600);font-size:0.875rem;"><%= msg.sender.name %></td>
-                  <td style="text-align:center;color:var(--gray-600);font-size:0.875rem;">
-                    <% if (msg.type === 'announcement') { %>
-                      <span style="color:var(--gray-600);font-style:italic;">Public</span>
-                    <% } else { %>
-                      <span style="font-weight:600;color:var(--primary);"><%= msg._count.recipients %></span>
-                    <% } %>
-                  </td>
-                  <td style="color:var(--gray-600);font-size:0.875rem;">
-                    <%= new Date(msg.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) %>
-                  </td>
-                  <td style="text-align:center;">
-                    <a href="/admin/messages/<%= msg.id %>" class="btn btn-secondary btn-sm">View</a>
-                  </td>
-                </tr>
-              <% }); %>
-            </tbody>
-          </table>
-        </div>
-      <% } %>
+ <!-- FILTER TABS -->
+ <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+ <a href="/admin/messages" class="btn btn-sm <%= !filterType ? 'btn-primary' : 'btn-secondary' %>">All</a>
+ <a href="/admin/messages?type=announcement" class="btn btn-sm <%= filterType === 'announcement' ? 'btn-primary' : 'btn-secondary' %>"> Announcements</a>
+ <a href="/admin/messages?type=broadcast" class="btn btn-sm <%= filterType === 'broadcast' ? 'btn-primary' : 'btn-secondary' %>"> Broadcast</a>
+ <a href="/admin/messages?type=personal" class="btn btn-sm <%= filterType === 'personal' ? 'btn-primary' : 'btn-secondary' %>"> Personal</a>
+ </div>
 
-      <div style="margin-top:2rem;">
-        <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
-      </div>
+ <% if (messages.length === 0) { %>
+ <div class="card empty-state">
+ <p>No messages found<% if (filterType) { %> for this filter<% } %>.</p>
+ <a href="/admin/messages/create" class="btn btn-primary">Compose first message</a>
+ </div>
+ <% } else { %>
+ <div class="table-wrapper">
+ <table>
+ <thead>
+ <tr>
+ <th>Title</th>
+ <th style="text-align:center">Type</th>
+ <th>Sent by</th>
+ <th style="text-align:center">Recipients</th>
+ <th>Date</th>
+ <th style="text-align:center">Actions</th>
+ </tr>
+ </thead>
+ <tbody>
+ <% messages.forEach(msg => { %>
+ <tr>
+ <td style="font-weight:500;color:var(--gray-900);max-width:280px;">
+ <%= msg.title %>
+ </td>
+ <td style="text-align:center;">
+ <% if (msg.type === 'announcement') { %>
+ <span class="badge" style="background:#DBEAFE;color:var(--primary);"> Announcement</span>
+ <% } else if (msg.type === 'broadcast') { %>
+ <span class="badge" style="background:#F3E8FF;color:#7C3AED;"> Broadcast</span>
+ <% } else { %>
+ <span class="badge badge-created"> Personal</span>
+ <% } %>
+ </td>
+ <td style="color:var(--gray-600);font-size:0.875rem;"><%= msg.sender.name %></td>
+ <td style="text-align:center;color:var(--gray-600);font-size:0.875rem;">
+ <% if (msg.type === 'announcement') { %>
+ <span style="color:var(--gray-600);font-style:italic;">Public</span>
+ <% } else { %>
+ <span style="font-weight:600;color:var(--primary);"><%= msg._count.recipients %></span>
+ <% } %>
+ </td>
+ <td style="color:var(--gray-600);font-size:0.875rem;">
+ <%= new Date(msg.createdAt).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) %>
+ </td>
+ <td style="text-align:center;">
+ <a href="/admin/messages/<%= msg.id %>" class="btn btn-secondary btn-sm">View</a>
+ </td>
+ </tr>
+ <% }); %>
+ </tbody>
+ </table>
+ </div>
+ <% } %>
 
-    </div>
-  </main>
+ <div style="margin-top:2rem;">
+ <a href="/admin" class="btn btn-secondary">← Back to Dashboard</a>
+ </div>
+
+ </div>
+ </main>
 </div>
 </body>
 </html>
+

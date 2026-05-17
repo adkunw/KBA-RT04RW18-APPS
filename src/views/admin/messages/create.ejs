@@ -1,119 +1,144 @@
-<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
+﻿<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
 
-  <main class="admin-main">
-    <div class="admin-content">
+ <main class="admin-main flex flex-col">
+ <!-- TOP HEADER -->
+ <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+ <div class="flex items-center gap-4">
+ <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
+ </div>
 
-      <div class="page-header">
-        <h1>✏️ Compose Message</h1>
-        <a href="/admin/messages" class="btn btn-secondary">← Back</a>
-      </div>
+ <div class="flex items-center gap-4">
+ <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+ <i data-lucide="bell" class="w-5 h-5"></i>
+ <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+ <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+ <% } %>
+ </a>
+ <div class="h-8 w-px bg-slate-200 mx-1"></div>
+ <div class="flex items-center gap-2">
+ <% if (typeof user !== 'undefined' && user && user.name) { %>
+ <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+ <%= user.name.charAt(0).toUpperCase() %>
+ </div>
+ <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+ <% } %>
+ </div>
+ </div>
+ </header>
+ <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
 
-      <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-      <% } %>
+ <div class="page-header">
+ <h1> Compose Message</h1>
+ <a href="/admin/messages" class="btn btn-secondary">← Back</a>
+ </div>
 
-      <div style="max-width:680px;">
-        <form method="POST" action="/admin/messages" id="compose-form">
+ <% if (error) { %>
+ <div class="alert alert-error"><%= error %></div>
+ <% } %>
 
-          <!-- TYPE SELECTOR -->
-          <div class="card" style="margin-bottom:1.25rem;">
-            <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">Message Type</h3>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+ <div style="max-width:680px;">
+ <form method="POST" action="/admin/messages" id="compose-form">
 
-              <label id="type-announcement" style="cursor:pointer;">
-                <input type="radio" name="type" value="announcement" required style="display:none;" onchange="handleTypeChange(this)">
-                <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
-                  <div style="font-size:1.75rem;margin-bottom:0.5rem;">📢</div>
-                  <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Announcement</div>
-                  <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Tampil di portal semua warga</div>
-                </div>
-              </label>
+ <!-- TYPE SELECTOR -->
+ <div class="card" style="margin-bottom:1.25rem;">
+ <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">Message Type</h3>
+ <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
 
-              <label id="type-broadcast" style="cursor:pointer;">
-                <input type="radio" name="type" value="broadcast" required style="display:none;" onchange="handleTypeChange(this)">
-                <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
-                  <div style="font-size:1.75rem;margin-bottom:0.5rem;">📡</div>
-                  <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Broadcast</div>
-                  <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Inbox semua warga aktif</div>
-                </div>
-              </label>
+ <label id="type-announcement" style="cursor:pointer;">
+ <input type="radio" name="type" value="announcement" required style="display:none;" onchange="handleTypeChange(this)">
+ <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
+ <div style="font-size:1.75rem;margin-bottom:0.5rem;"></div>
+ <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Announcement</div>
+ <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Tampil di portal semua warga</div>
+ </div>
+ </label>
 
-              <label id="type-personal" style="cursor:pointer;">
-                <input type="radio" name="type" value="personal" required style="display:none;" onchange="handleTypeChange(this)">
-                <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
-                  <div style="font-size:1.75rem;margin-bottom:0.5rem;">✉️</div>
-                  <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Personal</div>
-                  <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Warga tertentu saja</div>
-                </div>
-              </label>
+ <label id="type-broadcast" style="cursor:pointer;">
+ <input type="radio" name="type" value="broadcast" required style="display:none;" onchange="handleTypeChange(this)">
+ <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
+ <div style="font-size:1.75rem;margin-bottom:0.5rem;"></div>
+ <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Broadcast</div>
+ <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Inbox semua warga aktif</div>
+ </div>
+ </label>
 
-            </div>
-          </div>
+ <label id="type-personal" style="cursor:pointer;">
+ <input type="radio" name="type" value="personal" required style="display:none;" onchange="handleTypeChange(this)">
+ <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
+ <div style="font-size:1.75rem;margin-bottom:0.5rem;"></div>
+ <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Personal</div>
+ <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Warga tertentu saja</div>
+ </div>
+ </label>
 
-          <!-- RECIPIENT SELECTOR (only for Personal) -->
-          <div id="recipient-section" class="card" style="margin-bottom:1.25rem;display:none;">
-            <h3 style="margin-bottom:0.75rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
-              Select Recipients
-            </h3>
-            <div style="max-height:220px;overflow-y:auto;border:1px solid var(--gray-300);border-radius:6px;padding:0.5rem;">
-              <% if (activeUsers.length === 0) { %>
-                <p style="color:var(--gray-600);font-size:0.875rem;padding:0.5rem;">No active users available</p>
-              <% } else { %>
-                <% activeUsers.forEach(u => { %>
-                  <label style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.625rem;border-radius:4px;cursor:pointer;">
-                    <input type="checkbox" name="recipientIds" value="<%= u.id %>" style="width:auto;accent-color:var(--primary);">
-                    <span style="font-size:0.875rem;color:var(--gray-900);"><%= u.name %></span>
-                    <span style="font-size:0.8rem;color:var(--gray-600);">(<%= u.phone %>)</span>
-                  </label>
-                <% }); %>
-              <% } %>
-            </div>
-            <p style="font-size:0.8rem;color:var(--gray-600);margin-top:0.5rem;margin-bottom:0;">Check all users who should receive this message.</p>
-          </div>
+ </div>
+ </div>
 
-          <!-- MESSAGE CONTENT -->
-          <div class="card" style="margin-bottom:1.25rem;">
-            <div class="form-group">
-              <label for="title">Title / Subject</label>
-              <input type="text" id="title" name="title" required placeholder="Enter message title...">
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label for="content">Message Content</label>
-              <textarea id="content" name="content" required rows="6" style="resize:vertical;" placeholder="Write your message here..."></textarea>
-            </div>
-          </div>
+ <!-- RECIPIENT SELECTOR (only for Personal) -->
+ <div id="recipient-section" class="card" style="margin-bottom:1.25rem;display:none;">
+ <h3 style="margin-bottom:0.75rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
+ Select Recipients
+ </h3>
+ <div style="max-height:220px;overflow-y:auto;border:1px solid var(--gray-300);border-radius:6px;padding:0.5rem;">
+ <% if (activeUsers.length === 0) { %>
+ <p style="color:var(--gray-600);font-size:0.875rem;padding:0.5rem;">No active users available</p>
+ <% } else { %>
+ <% activeUsers.forEach(u => { %>
+ <label style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.625rem;border-radius:4px;cursor:pointer;">
+ <input type="checkbox" name="recipientIds" value="<%= u.id %>" style="width:auto;accent-color:var(--primary);">
+ <span style="font-size:0.875rem;color:var(--gray-900);"><%= u.name %></span>
+ <span style="font-size:0.8rem;color:var(--gray-600);">(<%= u.phone %>)</span>
+ </label>
+ <% }); %>
+ <% } %>
+ </div>
+ <p style="font-size:0.8rem;color:var(--gray-600);margin-top:0.5rem;margin-bottom:0;">Check all users who should receive this message.</p>
+ </div>
 
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" style="flex:1;">Send Message</button>
-            <a href="/admin/messages" class="btn btn-secondary" style="flex:1;text-align:center;">Cancel</a>
-          </div>
-        </form>
-      </div>
+ <!-- MESSAGE CONTENT -->
+ <div class="card" style="margin-bottom:1.25rem;">
+ <div class="form-group">
+ <label for="title">Title / Subject</label>
+ <input type="text" id="title" name="title" required placeholder="Enter message title...">
+ </div>
+ <div class="form-group" style="margin-bottom:0;">
+ <label for="content">Message Content</label>
+ <textarea id="content" name="content" required rows="6" style="resize:vertical;" placeholder="Write your message here..."></textarea>
+ </div>
+ </div>
 
-    </div>
-  </main>
+ <div class="form-actions">
+ <button type="submit" class="btn btn-primary" style="flex:1;">Send Message</button>
+ <a href="/admin/messages" class="btn btn-secondary" style="flex:1;text-align:center;">Cancel</a>
+ </div>
+ </form>
+ </div>
+
+ </div>
+ </main>
 </div>
 
 <script>
 function handleTypeChange(radio) {
-  // Highlight selected type card
-  document.querySelectorAll('.type-card').forEach(card => {
-    card.style.borderColor = 'var(--gray-300)';
-    card.style.background = 'white';
-  });
-  radio.closest('label').querySelector('.type-card').style.borderColor = 'var(--primary)';
-  radio.closest('label').querySelector('.type-card').style.background = 'var(--primary-light)';
+ // Highlight selected type card
+ document.querySelectorAll('.type-card').forEach(card => {
+ card.style.borderColor = 'var(--gray-300)';
+ card.style.background = 'white';
+ });
+ radio.closest('label').querySelector('.type-card').style.borderColor = 'var(--primary)';
+ radio.closest('label').querySelector('.type-card').style.background = 'var(--primary-light)';
 
-  // Show/hide recipient section
-  const recipientSection = document.getElementById('recipient-section');
-  if (radio.value === 'personal') {
-    recipientSection.style.display = 'block';
-  } else {
-    recipientSection.style.display = 'none';
-    // Uncheck all recipients when not personal
-    document.querySelectorAll('input[name="recipientIds"]').forEach(cb => cb.checked = false);
-  }
+ // Show/hide recipient section
+ const recipientSection = document.getElementById('recipient-section');
+ if (radio.value === 'personal') {
+ recipientSection.style.display = 'block';
+ } else {
+ recipientSection.style.display = 'none';
+ // Uncheck all recipients when not personal
+ document.querySelectorAll('input[name="recipientIds"]').forEach(cb => cb.checked = false);
+ }
 }
 </script>
 </body>
 </html>
+

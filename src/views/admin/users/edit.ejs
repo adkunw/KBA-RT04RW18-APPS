@@ -1,65 +1,90 @@
-<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+﻿<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
-  <!-- MAIN CONTENT -->
-  <main class="admin-main">
-    <div class="admin-content">
+ <!-- MAIN CONTENT -->
+ <main class="admin-main flex flex-col">
+ <!-- TOP HEADER -->
+ <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+ <div class="flex items-center gap-4">
+ <h2 class="font-display font-bold text-xl"><%= typeof title !== 'undefined' ? title : 'Admin Panel' %></h2>
+ </div>
 
-      <div class="page-header">
-        <h1>✏️ Edit User: <%= editUser.name %></h1>
-        <a href="/admin/users/<%= editUser.id %>" class="btn btn-secondary">← Back to Profile</a>
-      </div>
+ <div class="flex items-center gap-4">
+ <a href="/admin/messages" class="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors relative">
+ <i data-lucide="bell" class="w-5 h-5"></i>
+ <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+ <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+ <% } %>
+ </a>
+ <div class="h-8 w-px bg-slate-200 mx-1"></div>
+ <div class="flex items-center gap-2">
+ <% if (typeof user !== 'undefined' && user && user.name) { %>
+ <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+ <%= user.name.charAt(0).toUpperCase() %>
+ </div>
+ <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+ <% } %>
+ </div>
+ </div>
+ </header>
+ <div class="p-6 lg:p-8 flex-1 overflow-y-auto">
 
-      <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-      <% } %>
+ <div class="page-header">
+ <h1> Edit User: <%= editUser.name %></h1>
+ <a href="/admin/users/<%= editUser.id %>" class="btn btn-secondary">← Back to Profile</a>
+ </div>
 
-      <div class="card" style="max-width: 640px; margin-bottom: 2rem;">
-        <form method="POST" action="/admin/users/<%= editUser.id %>/edit" style="display:flex; flex-direction:column; gap:1.25rem;">
-          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+ <% if (error) { %>
+ <div class="alert alert-error"><%= error %></div>
+ <% } %>
 
-          <div class="form-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" value="<%= editUser.name %>" required autofocus>
-          </div>
+ <div class="card" style="max-width: 640px; margin-bottom: 2rem;">
+ <form method="POST" action="/admin/users/<%= editUser.id %>/edit" style="display:flex; flex-direction:column; gap:1.25rem;">
+ <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
 
-          <div class="form-group">
-            <label for="phone">Phone Number (Login ID)</label>
-            <input type="text" id="phone" name="phone" value="<%= editUser.phone %>" required>
-          </div>
+ <div class="form-group">
+ <label for="name">Full Name</label>
+ <input type="text" id="name" name="name" value="<%= editUser.name %>" required autofocus>
+ </div>
 
-          <div class="form-group">
-            <label for="status">Account Status</label>
-            <select id="status" name="status" required>
-              <option value="created" <%= editUser.status === 'created' ? 'selected' : '' %>>Created (Pending Activation)</option>
-              <option value="active" <%= editUser.status === 'active' ? 'selected' : '' %>>Active</option>
-              <option value="inactive" <%= editUser.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
-              <option value="blocked" <%= editUser.status === 'blocked' ? 'selected' : '' %>>Blocked</option>
-            </select>
-          </div>
+ <div class="form-group">
+ <label for="phone">Phone Number (Login ID)</label>
+ <input type="text" id="phone" name="phone" value="<%= editUser.phone %>" required>
+ </div>
 
-          <div class="form-group">
-            <label for="roleId">Assigned Role</label>
-            <select id="roleId" name="roleId" required>
-              <% 
-                const currentRoleId = editUser.roles.length > 0 ? editUser.roles[0].roleId : '';
-              %>
-              <option value="">-- Select a role --</option>
-              <% roles.forEach(role => { %>
-                <option value="<%= role.id %>" <%= role.id === currentRoleId ? 'selected' : '' %>><%= role.name %></option>
-              <% }); %>
-            </select>
-            <small style="color:var(--gray-500); display:block; margin-top:0.25rem;">Changing the role will replace any existing roles.</small>
-          </div>
+ <div class="form-group">
+ <label for="status">Account Status</label>
+ <select id="status" name="status" required>
+ <option value="created" <%= editUser.status === 'created' ? 'selected' : '' %>>Created (Pending Activation)</option>
+ <option value="active" <%= editUser.status === 'active' ? 'selected' : '' %>>Active</option>
+ <option value="inactive" <%= editUser.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+ <option value="blocked" <%= editUser.status === 'blocked' ? 'selected' : '' %>>Blocked</option>
+ </select>
+ </div>
 
-          <div class="form-actions" style="margin-top:0.5rem;">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="/admin/users/<%= editUser.id %>" class="btn btn-secondary">Cancel</a>
-          </div>
-        </form>
-      </div>
+ <div class="form-group">
+ <label for="roleId">Assigned Role</label>
+ <select id="roleId" name="roleId" required>
+ <% 
+ const currentRoleId = editUser.roles.length > 0 ? editUser.roles[0].roleId : '';
+ %>
+ <option value="">-- Select a role --</option>
+ <% roles.forEach(role => { %>
+ <option value="<%= role.id %>" <%= role.id === currentRoleId ? 'selected' : '' %>><%= role.name %></option>
+ <% }); %>
+ </select>
+ <small style="color:var(--gray-500); display:block; margin-top:0.25rem;">Changing the role will replace any existing roles.</small>
+ </div>
 
-    </div>
-  </main>
+ <div class="form-actions" style="margin-top:0.5rem;">
+ <button type="submit" class="btn btn-primary">Save Changes</button>
+ <a href="/admin/users/<%= editUser.id %>" class="btn btn-secondary">Cancel</a>
+ </div>
+ </form>
+ </div>
+
+ </div>
+ </main>
 </div>
 </body>
 </html>
+

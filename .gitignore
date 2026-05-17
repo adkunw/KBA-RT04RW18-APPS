@@ -32,3 +32,6 @@ Thumbs.db
 # Prisma
 .env.*.local
 prisma/generated/
+
+# Other
+EXAMPLE PAGE.tsx
