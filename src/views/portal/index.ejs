@@ -42,7 +42,7 @@
       </select>
     </form>
 
-    <a href="/auth/logout">Logout →</a>
+    <a href="/auth/logout"><%= user.language === 'en' ? 'Logout' : 'Keluar' %> →</a>
   </div>
 </nav>
 
@@ -124,10 +124,10 @@
               font-weight: 600;
             "
           >
-            My Profile
+            <%= user.language === 'en' ? 'My Profile' : 'Profil Saya' %>
           </h3>
           <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-            View and edit information
+            <%= user.language === 'en' ? 'View and edit information' : 'Lihat dan ubah informasi' %>
           </p>
         </div>
       </a>
@@ -157,7 +157,7 @@
         >
           <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
             <div style="position:absolute;top:1rem;right:1rem;background:var(--error);color:white;font-size:0.75rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:10px;">
-              <%= unreadCount %> NEW
+              <%= unreadCount %> <%= user.language === 'en' ? 'NEW' : 'BARU' %>
             </div>
           <% } %>
           <div style="font-size: 2rem; margin-bottom: 0.75rem">📢</div>
@@ -169,10 +169,10 @@
               font-weight: 600;
             "
           >
-            Messages
+            <%= user.language === 'en' ? 'Messages' : 'Pesan' %>
           </h3>
           <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-            Check community messages
+            <%= user.language === 'en' ? 'Check community messages' : 'Cek pesan dari RT' %>
           </p>
         </div>
       </a>
@@ -208,10 +208,10 @@
               font-weight: 600;
             "
           >
-            Documents
+            <%= user.language === 'en' ? 'Documents' : 'Dokumen' %>
           </h3>
           <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-            Upload & cek status dokumen
+            <%= user.language === 'en' ? 'Upload & check document status' : 'Upload & cek status dokumen' %>
           </p>
         </div>
       </a>
@@ -247,10 +247,10 @@
               font-weight: 600;
             "
           >
-            Iuran & Kas
+            <%= user.language === 'en' ? 'Dues & Treasury' : 'Iuran & Kas' %>
           </h3>
           <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-            Lapor pembayaran iuran
+            <%= user.language === 'en' ? 'Report dues payment' : 'Lapor pembayaran iuran' %>
           </p>
         </div>
       </a>
@@ -286,10 +286,10 @@
               font-weight: 600;
             "
           >
-            Lapor RT
+            <%= user.language === 'en' ? 'Community Report' : 'Lapor RT' %>
           </h3>
           <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-            Forum laporan warga
+            <%= user.language === 'en' ? 'Community reporting forum' : 'Forum laporan warga' %>
           </p>
         </div>
       </a>
@@ -349,7 +349,7 @@
                   "
                 ><%= ann.content %></p>
                 <p style="color: var(--gray-600); font-size: 0.75rem; margin: 0">
-                  Posted on <%= new Date(ann.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %> by <%= ann.sender.name %>
+                  <%= user.language === 'en' ? 'Posted on' : 'Diposting pada' %> <%= new Date(ann.createdAt).toLocaleDateString(user.language === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) %> <%= user.language === 'en' ? 'by' : 'oleh' %> <%= ann.sender.name %>
                 </p>
               </div>
               <% if (index === 0) { %>
@@ -364,7 +364,7 @@
                     white-space: nowrap;
                   "
                 >
-                  New
+                  <%= user.language === 'en' ? 'New' : 'Baru' %>
                 </span>
               <% } %>
             </div>
@@ -372,7 +372,7 @@
         <% }); %>
       <% } else { %>
         <div style="background:var(--white);border:1px solid var(--gray-300);border-radius:8px;padding:2rem;text-align:center;color:var(--gray-600);">
-          There are no announcements right now.
+          <%= user.language === 'en' ? 'There are no announcements right now.' : 'Belum ada pengumuman saat ini.' %>
         </div>
       <% } %>
     </div>
@@ -404,13 +404,13 @@
     </p>
     <div style="display: grid; gap: 0.5rem">
       <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-        📞 <strong>Phone:</strong> <%= typeof settings !== 'undefined' && settings.emergency_phone ? settings.emergency_phone : '+62-XXX-XXXX' %>
+        📞 <strong><%= user.language === 'en' ? 'Phone' : 'Telepon' %>:</strong> <%= typeof settings !== 'undefined' && settings.emergency_phone ? settings.emergency_phone : '+62-XXX-XXXX' %>
       </p>
       <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
         📧 <strong>Email:</strong> <%= typeof settings !== 'undefined' && settings.emergency_email ? settings.emergency_email : 'rt@example.com' %>
       </p>
       <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0">
-        🏘️ <strong>Hours:</strong> <%= typeof settings !== 'undefined' && settings.emergency_hours ? settings.emergency_hours : 'Mon-Fri, 8 AM - 5 PM' %>
+        🏘️ <strong><%= user.language === 'en' ? 'Hours' : 'Jam Operasional' %>:</strong> <%= typeof settings !== 'undefined' && settings.emergency_hours ? settings.emergency_hours : (user.language === 'en' ? 'Mon-Fri, 8 AM - 5 PM' : 'Senin-Jumat, 08:00 - 17:00') %>
       </p>
     </div>
   </div>
