@@ -1,7 +1,7 @@
 const express = require("express");
 const userController = require("../controllers/user.controller");
 const { isAuthenticated } = require("../middlewares/authMiddleware");
-const { requirePermission } = require("../middlewares/rbacMiddleware");
+const { requirePermission, requireAnyPermission } = require("../middlewares/rbacMiddleware");
 const multer = require("multer");
 
 const router = express.Router();
@@ -15,7 +15,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get(
   "/",
   isAuthenticated,
-  requirePermission("warga.read"),
+  requireAnyPermission(["warga.read", "warga.read_corridor"]),
   userController.listUsers,
 );
 
@@ -72,7 +72,7 @@ router.post(
 router.get(
   "/:id",
   isAuthenticated,
-  requirePermission("warga.read"),
+  requireAnyPermission(["warga.read", "warga.read_corridor"]),
   userController.viewUser,
 );
 
@@ -98,6 +98,14 @@ router.post(
   isAuthenticated,
   requirePermission("warga.update"),
   userController.resetPassword,
+);
+
+// POST /admin/users/:id/recreate-activation - Recreate activation token when expired
+router.post(
+  "/:id/recreate-activation",
+  isAuthenticated,
+  requirePermission("warga.update"),
+  userController.recreateActivationKey,
 );
 
 module.exports = router;

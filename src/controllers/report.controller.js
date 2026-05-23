@@ -6,6 +6,7 @@ const messageService = require("../services/message.service");
 const createReportSchema = z.object({
   title: z.string().min(3, "Judul minimal 3 karakter").max(100),
   content: z.string().min(10, "Isi laporan minimal 10 karakter"),
+  isAnonymous: z.coerce.boolean().optional().default(false),
 });
 
 const createReplySchema = z.object({
@@ -40,7 +41,7 @@ const getReports = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading reports", { error: error.message });
+    logger.error("Error loading reports", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat daftar laporan");
     res.redirect("/portal");
   }
@@ -61,7 +62,7 @@ const getCreateForm = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading create report form", { error: error.message });
+    logger.error("Error loading create report form", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat form");
     res.redirect("/portal/reports");
   }
@@ -75,7 +76,7 @@ const postCreateReport = async (req, res) => {
       return res.redirect("/portal/reports/create");
     }
 
-    const { title, content } = validation.data;
+    const { title, content, isAnonymous } = validation.data;
     let mediaPath = null;
     
     if (req.file) {
@@ -86,12 +87,13 @@ const postCreateReport = async (req, res) => {
       title,
       content,
       mediaPath,
+      isAnonymous,
     });
 
     req.flash("success", "Laporan berhasil dibuat");
     res.redirect("/portal/reports");
   } catch (error) {
-    logger.error("Error creating report", { error: error.message });
+    logger.error("Error creating report", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal membuat laporan");
     res.redirect("/portal/reports/create");
   }
@@ -123,7 +125,7 @@ const getReportDetail = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading report detail", { error: error.message });
+    logger.error("Error loading report detail", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat detail laporan");
     res.redirect("/portal/reports");
   }
@@ -156,7 +158,7 @@ const postCreateReply = async (req, res) => {
     req.flash("success", "Balasan berhasil ditambahkan");
     res.redirect(`/portal/reports/${req.params.id}`);
   } catch (error) {
-    logger.error("Error creating reply", { error: error.message });
+    logger.error("Error creating reply", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menambahkan balasan");
     res.redirect(`/portal/reports/${req.params.id}`);
   }
@@ -187,7 +189,7 @@ const postUpdateStatus = async (req, res) => {
     req.flash("success", "Status laporan berhasil diubah");
     res.redirect(`/portal/reports/${req.params.id}`);
   } catch (error) {
-    logger.error("Error updating report status", { error: error.message });
+    logger.error("Error updating report status", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal mengubah status laporan");
     res.redirect(`/portal/reports/${req.params.id}`);
   }
@@ -229,7 +231,7 @@ const postDeleteReport = async (req, res) => {
     req.flash("success", "Laporan berhasil dihapus");
     res.redirect("/portal/reports");
   } catch (error) {
-    logger.error("Error deleting report", { error: error.message });
+    logger.error("Error deleting report", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menghapus laporan");
     res.redirect(`/portal/reports/${req.params.id}`);
   }

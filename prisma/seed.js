@@ -23,6 +23,9 @@ async function main() {
     { name: "report.delete_any" },
     { name: "setting.manage" },
     { name: "error_log.read" },
+    { name: "warga.read_corridor" },
+    { name: "finance.manage_corridor" },
+    { name: "message.create_corridor" },
   ];
 
   const createdPermissions = await Promise.all(

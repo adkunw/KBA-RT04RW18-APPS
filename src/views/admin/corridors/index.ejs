@@ -1,0 +1,100 @@
+<%- include('../_sidebar.ejs', { currentPage: 'corridors' }) %>
+
+<!-- MAIN CONTENT -->
+<main class="admin-main flex flex-col">
+  <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0 sticky top-0 z-40">
+    <div class="flex items-center gap-4">
+      <h2 class="font-display font-bold text-xl">Manajemen Koridor</h2>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <% if (typeof user !== 'undefined' && user && user.name) { %>
+          <div class="w-8 h-8 rounded-full bg-brand-100 border border-slate-200 flex items-center justify-center text-brand-700 font-bold text-sm">
+            <%= user.name.charAt(0).toUpperCase() %>
+          </div>
+          <span class="text-sm font-semibold hidden lg:block"><%= user.name %></span>
+        <% } %>
+      </div>
+    </div>
+  </header>
+
+  <div class="p-6 lg:p-8 flex-1 overflow-y-auto bg-slate-50">
+    <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-700 text-sm font-medium flex gap-3 items-start">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500"></i>
+        <span><%= error_msg %></span>
+      </div>
+    <% } %>
+    <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+      <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-medium flex gap-3 items-start">
+        <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-emerald-500"></i>
+        <span><%= success_msg %></span>
+      </div>
+    <% } %>
+
+    <div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Manajemen Koridor</h1>
+    <p class="text-sm text-gray-500">Kelola master data koridor dan area tempat tinggal warga</p>
+  </div>
+  <a href="/admin/corridors/create" class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700">
+    <i data-lucide="plus" class="mr-2 h-4 w-4"></i>
+    Tambah Koridor
+  </a>
+</div>
+
+<div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+        <tr>
+          <th scope="col" class="px-6 py-4 font-medium">Nama Koridor</th>
+          <th scope="col" class="px-6 py-4 font-medium">Deskripsi</th>
+          <th scope="col" class="px-6 py-4 font-medium text-right">Aksi</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <% if (corridors && corridors.length > 0) { %>
+          <% corridors.forEach(function(corridor) { %>
+            <tr class="hover:bg-gray-50/50">
+              <td class="px-6 py-4 font-medium text-gray-900">
+                <%= corridor.name %>
+              </td>
+              <td class="px-6 py-4 text-gray-600">
+                <%= corridor.description || '-' %>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end space-x-2">
+                  <a href="/admin/corridors/<%= corridor.id %>/edit" class="rounded p-1 text-gray-400 hover:bg-brand-50 hover:text-brand-600 transition-colors" title="Edit">
+                    <i data-lucide="edit" class="h-4 w-4"></i>
+                  </a>
+                  <form action="/admin/corridors/<%= corridor.id %>/delete" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus koridor ini?');">
+                    <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                    <button type="submit" class="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors" title="Hapus">
+                      <i data-lucide="trash-2" class="h-4 w-4"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="3" class="px-6 py-8 text-center text-gray-500">
+              <div class="flex flex-col items-center justify-center">
+                <i data-lucide="map" class="mb-2 h-8 w-8 text-gray-300"></i>
+                <p>Belum ada data koridor.</p>
+              </div>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  </div>
+</div>
+  </div>
+</main>
+</div>
+</body>
+</html>

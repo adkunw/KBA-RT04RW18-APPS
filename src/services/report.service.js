@@ -43,6 +43,7 @@ const createReport = async (authorId, data) => {
       title: data.title,
       content: data.content,
       mediaPath: data.mediaPath || null,
+      isAnonymous: data.isAnonymous || false,
       status: "open"
     }
   });

@@ -105,6 +105,24 @@
           <p class="text-[10px] text-slate-400">Jadwal resmi untuk pelayanan tanda tangan surat keterangan fisik.</p>
         </div>
 
+        <!-- PAYMENT METHODS CONFIGURATION -->
+        <div class="pt-6 border-t border-slate-100 space-y-4">
+          <h2 class="font-bold text-lg text-slate-900 flex items-center gap-2 pb-2">
+            <i data-lucide="credit-card" class="w-5 h-5 text-brand-600"></i> Metode Pembayaran Kas RT
+          </h2>
+          <p class="text-xs text-slate-400">Tambahkan opsi transfer bank atau e-wallet resmi Kas RT agar warga dapat memilih metode pembayaran iuran.</p>
+
+          <input type="hidden" name="payment_methods_json" id="payment-methods-json">
+          
+          <div id="payment-methods-list" class="space-y-4">
+            <!-- Rendered dynamically via JS -->
+          </div>
+
+          <button type="button" onclick="addPaymentMethod()" class="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 bg-brand-50 border border-brand-100 hover:bg-brand-100 font-bold py-2 px-4 rounded-xl transition-all text-xs">
+            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Metode Pembayaran
+          </button>
+        </div>
+
         <!-- Submit Button -->
         <div class="pt-4 border-t border-slate-100 flex justify-end">
           <button type="submit" class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md shadow-brand-500/25 hover:scale-[1.02] text-sm">
@@ -115,6 +133,92 @@
     </div>
   </div>
 </main>
+
+<script>
+  let paymentMethods = [];
+  try {
+    paymentMethods = JSON.parse('<%- (settings.payment_methods || "[]").replace(/\'/g, "\\'") %>');
+  } catch (e) {
+    paymentMethods = [];
+  }
+
+  function renderPaymentMethods() {
+    const container = document.getElementById('payment-methods-list');
+    container.innerHTML = '';
+    
+    if (paymentMethods.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-6 text-slate-400 font-medium bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-xs">
+          Belum ada metode pembayaran yang ditambahkan.
+        </div>
+      `;
+      return;
+    }
+
+    paymentMethods.forEach((method, index) => {
+      container.innerHTML += `
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 relative space-y-3">
+          <button type="button" onclick="removePaymentMethod(${index})" class="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors" title="Hapus">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nama Bank / Metode</label>
+              <input type="text" oninput="updateMethodField(${index}, 'bankName', this.value)" value="${escapeHtml(method.bankName || '')}" required placeholder="Contoh: BANK MANDIRI, GOPAY" class="block w-full px-3 py-2 border border-slate-350 rounded-xl focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-xs bg-white">
+            </div>
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nomor Rekening / HP</label>
+              <input type="text" oninput="updateMethodField(${index}, 'accountNumber', this.value)" value="${escapeHtml(method.accountNumber || '')}" required placeholder="Contoh: 130-00-2401040-7" class="block w-full px-3 py-2 border border-slate-350 rounded-xl focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-xs bg-white">
+            </div>
+            <div class="space-y-1">
+              <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Atas Nama / Penerima</label>
+              <input type="text" oninput="updateMethodField(${index}, 'accountHolder', this.value)" value="${escapeHtml(method.accountHolder || '')}" required placeholder="Contoh: KAS RT 04 KBA" class="block w-full px-3 py-2 border border-slate-350 rounded-xl focus:ring-1 focus:ring-brand-500 focus:border-brand-500 text-xs bg-white">
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    // Reinitialize lucide icons for dynamic trash button
+    lucide.createIcons();
+    // Update hidden input
+    document.getElementById('payment-methods-json').value = JSON.stringify(paymentMethods);
+  }
+
+  function addPaymentMethod() {
+    paymentMethods.push({
+      bankName: '',
+      accountNumber: '',
+      accountHolder: ''
+    });
+    renderPaymentMethods();
+  }
+
+  function removePaymentMethod(index) {
+    if (confirm('Apakah Anda yakin ingin menghapus metode pembayaran ini?')) {
+      paymentMethods.splice(index, 1);
+      renderPaymentMethods();
+    }
+  }
+
+  function updateMethodField(index, field, value) {
+    paymentMethods[index][field] = value;
+    document.getElementById('payment-methods-json').value = JSON.stringify(paymentMethods);
+  }
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  // Initialize
+  renderPaymentMethods();
+</script>
 </div>
 </body>
 </html>

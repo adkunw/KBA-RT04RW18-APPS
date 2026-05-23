@@ -60,9 +60,21 @@ const getDocumentById = async (documentId) => {
  * Get all documents (admin view), with optional status filter
  * @param {string|null} status - Optional status filter
  */
-const getAllDocuments = async (status = null) => {
+const getAllDocuments = async (status = null, search = null) => {
+  const where = {};
+  if (status) {
+    where.status = status;
+  }
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: 'insensitive' } },
+      { uploader: { name: { contains: search, mode: 'insensitive' } } },
+      { uploader: { houseNumber: { contains: search, mode: 'insensitive' } } }
+    ];
+  }
+
   return await prisma.document.findMany({
-    where: status ? { status } : {},
+    where,
     include: {
       uploader: { select: { id: true, name: true, phone: true } },
       reviewer: { select: { id: true, name: true } },

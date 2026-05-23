@@ -13,6 +13,7 @@ const financeRoutes = require("./finance.routes");
 const adminFinanceRoutes = require("./admin.finance.routes");
 const adminSettingRoutes = require("./admin.setting.routes");
 const adminErrorLogRoutes = require("./admin.error-log.routes");
+const adminCorridorRoutes = require("./admin.corridor.routes");
 const portalRoutes = require("./portal.routes");
 const reportRoutes = require("./report.routes");
 const { isAuthenticated } = require("../middlewares/authMiddleware");
@@ -37,6 +38,7 @@ router.use("/admin/documents", adminDocumentRoutes);
 router.use("/admin/finance", adminFinanceRoutes);
 router.use("/admin/settings", adminSettingRoutes);
 router.use("/admin/error-logs", adminErrorLogRoutes);
+router.use("/admin/corridors", adminCorridorRoutes);
 
 // Portal routes
 router.use("/portal", portalRoutes);

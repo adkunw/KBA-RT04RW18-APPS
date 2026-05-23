@@ -2,6 +2,9 @@ const { z } = require("zod");
 const logger = require("../utils/logger");
 const financeService = require("../services/finance.service");
 const messageService = require("../services/message.service");
+const userService = require("../services/user.service");
+const prisma = require("../config/database");
+const settingService = require("../services/setting.service");
 
 // Schemas
 const createPeriodSchema = z.object({
@@ -47,29 +50,75 @@ const createIncomeSchema = z.object({
 
 const getMyFinance = async (req, res) => {
   try {
-    const [payments, activePeriods, unreadCount] = await Promise.all([
-      financeService.getPaymentsByUser(req.session.userId),
+    const userId = req.session.userId;
+    const userDetails = await userService.getUserById(userId);
+    const canManageFinance = req.session.userPermissions?.includes("finance.manage") || false;
+    
+    let viewCorridorId = userDetails?.corridorId || null;
+    let viewCorridorName = userDetails?.corridor?.name || null;
+
+    if (canManageFinance && req.query.corridorId) {
+      viewCorridorId = req.query.corridorId;
+      const c = await prisma.corridor.findUnique({ where: { id: viewCorridorId } });
+      if (c) {
+        viewCorridorName = c.name;
+      }
+    }
+
+    const [
+      payments,
+      activePeriods,
+      unreadCount,
+      rtSummary,
+      rtTransactions,
+      corridorSummary,
+      corridorTransactions,
+      allCorridors,
+      settings
+    ] = await Promise.all([
+      financeService.getPaymentsByUser(userId),
       financeService.getActivePeriods(),
-      messageService.getUnreadCount(req.session.userId),
+      messageService.getUnreadCount(userId),
+      financeService.getFinanceSummary(null),
+      financeService.getRecentTransactions(10, null),
+      viewCorridorId ? financeService.getFinanceSummary(viewCorridorId) : null,
+      viewCorridorId ? financeService.getRecentTransactions(10, viewCorridorId) : null,
+      canManageFinance ? prisma.corridor.findMany({ orderBy: { name: 'asc' } }) : [],
+      settingService.getAllSettings(),
     ]);
 
     const hasAdminAccess = req.session.userPermissions?.includes("dashboard.view") || false;
-    const canManageFinance = req.session.userPermissions?.includes("finance.manage") || false;
     const flash = req.flash();
 
     res.render("portal/finance/index", {
       title: "Iuran & Keuangan",
-      user: { id: req.session.userId, name: req.session.userName },
+      user: {
+        id: userId,
+        name: req.session.userName,
+        corridorId: userDetails?.corridorId || null, // Keep original user corridor for identity
+        corridorName: userDetails?.corridor?.name || null,
+        language: userDetails?.language || "id",
+      },
+      viewCorridor: {
+        id: viewCorridorId,
+        name: viewCorridorName
+      },
+      allCorridors,
       payments,
       activePeriods,
       unreadCount,
       hasAdminAccess,
       canManageFinance,
+      rtSummary,
+      rtTransactions,
+      corridorSummary,
+      corridorTransactions,
+      settings,
       error: flash.error?.[0] || null,
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading finance portal", { error: error.message });
+    logger.error("Error loading finance portal", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat halaman keuangan");
     res.redirect("/portal");
   }
@@ -101,7 +150,7 @@ const getPaymentForm = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading payment form", { error: error.message });
+    logger.error("Error loading payment form", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat form pembayaran");
     res.redirect("/portal/finance");
   }
@@ -132,7 +181,7 @@ const postPayment = async (req, res) => {
     req.flash("success", "Laporan pembayaran berhasil dikirim dan sedang diproses.");
     res.redirect("/portal/finance");
   } catch (error) {
-    logger.error("Error submitting payment", { error: error.message });
+    logger.error("Error submitting payment", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Gagal mengirim laporan pembayaran");
     res.redirect(`/portal/finance/pay?periodId=${req.body.periodId}`);
   }
@@ -160,7 +209,7 @@ const getMyPaymentDetail = async (req, res) => {
       success: null,
     });
   } catch (error) {
-    logger.error("Error loading payment detail", { error: error.message });
+    logger.error("Error loading payment detail", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat detail pembayaran");
     res.redirect("/portal/finance");
   }
@@ -172,12 +221,25 @@ const getMyPaymentDetail = async (req, res) => {
 
 const adminGetFinanceDashboard = async (req, res) => {
   try {
-    const [periods, expenses, incomes, summary, transactions] = await Promise.all([
+    const permissions = req.session.userPermissions || [];
+    const hasGlobalFinance = permissions.includes("finance.manage");
+    let filterCorridorId = undefined;
+    
+    if (hasGlobalFinance) {
+      if (req.query.corridorId) {
+        filterCorridorId = req.query.corridorId;
+      }
+    } else if (permissions.includes("finance.manage_corridor")) {
+      filterCorridorId = req.session.userCorridorId || null;
+    }
+
+    const [periods, expenses, incomes, summary, transactions, corridors] = await Promise.all([
       financeService.getAllPeriods(),
-      financeService.getAllExpenses(),
-      financeService.getAllIncomes(),
-      financeService.getFinanceSummary(),
-      financeService.getRecentTransactions(10),
+      financeService.getAllExpenses(filterCorridorId),
+      financeService.getAllIncomes(filterCorridorId),
+      financeService.getFinanceSummary(filterCorridorId),
+      financeService.getRecentTransactions(10, filterCorridorId),
+      prisma.corridor.findMany({ orderBy: { name: 'asc' } })
     ]);
     const flash = req.flash();
 
@@ -189,11 +251,14 @@ const adminGetFinanceDashboard = async (req, res) => {
       incomes,
       summary,
       transactions,
+      corridors,
+      hasGlobalFinance,
+      filterCorridorId,
       error: flash.error?.[0] || null,
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading admin finance", { error: error.message });
+    logger.error("Error loading admin finance", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat data keuangan");
     res.redirect("/admin");
   }
@@ -209,16 +274,25 @@ const adminCreateExpense = async (req, res) => {
 
     const proofFilePath = req.file ? `/uploads/payments/${req.file.filename}` : null;
 
+    const permissions = req.session.userPermissions || [];
+    let corridorId = null;
+    if (permissions.includes("finance.manage")) {
+      corridorId = validation.data.corridorId || null;
+    } else if (permissions.includes("finance.manage_corridor")) {
+      corridorId = req.session.userCorridorId || null;
+    }
+
     await financeService.createExpense({
       ...validation.data,
       proofFilePath,
       createdById: req.session.userId,
+      corridorId,
     });
 
     req.flash("success", "Pengeluaran kas RT berhasil dicatat");
     res.redirect("/admin/finance");
   } catch (error) {
-    logger.error("Error creating expense", { error: error.message });
+    logger.error("Error creating expense", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal mencatat pengeluaran keuangan");
     res.redirect("/admin/finance");
   }
@@ -234,16 +308,25 @@ const adminCreateIncome = async (req, res) => {
 
     const proofFilePath = req.file ? `/uploads/payments/${req.file.filename}` : null;
 
+    const permissions = req.session.userPermissions || [];
+    let corridorId = null;
+    if (permissions.includes("finance.manage")) {
+      corridorId = validation.data.corridorId || null;
+    } else if (permissions.includes("finance.manage_corridor")) {
+      corridorId = req.session.userCorridorId || null;
+    }
+
     await financeService.createIncome({
       ...validation.data,
       proofFilePath,
       createdById: req.session.userId,
+      corridorId,
     });
 
     req.flash("success", "Pemasukan manual kas RT berhasil dicatat");
     res.redirect("/admin/finance");
   } catch (error) {
-    logger.error("Error creating manual income", { error: error.message });
+    logger.error("Error creating manual income", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal mencatat pemasukan keuangan");
     res.redirect("/admin/finance");
   }
@@ -261,7 +344,7 @@ const adminCreatePeriod = async (req, res) => {
     req.flash("success", "Periode baru berhasil dibuat");
     res.redirect("/admin/finance");
   } catch (error) {
-    logger.error("Error creating period", { error: error.message });
+    logger.error("Error creating period", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal membuat periode");
     res.redirect("/admin/finance");
   }
@@ -273,7 +356,7 @@ const adminTogglePeriod = async (req, res) => {
     req.flash("success", "Status periode berhasil diubah");
     res.redirect("/admin/finance");
   } catch (error) {
-    logger.error("Error toggling period", { error: error.message });
+    logger.error("Error toggling period", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal mengubah status periode");
     res.redirect("/admin/finance");
   }
@@ -287,7 +370,18 @@ const adminGetPeriodDetail = async (req, res) => {
       return res.redirect("/admin/finance");
     }
 
-    const { residents, stats } = await financeService.getPeriodResidentStatus(req.params.id);
+    const permissions = req.session.userPermissions || [];
+    let filterCorridorId = undefined;
+    if (!permissions.includes("finance.manage") && permissions.includes("finance.manage_corridor")) {
+      filterCorridorId = req.session.userCorridorId || null;
+    }
+
+    const { residents, stats } = await financeService.getPeriodResidentStatus(req.params.id, filterCorridorId);
+
+    let handoverStatus = [];
+    if (permissions.includes("finance.manage")) {
+      handoverStatus = await financeService.getCorridorHandoverStatus(req.params.id);
+    }
 
     // Filter logic
     const currentFilter = req.query.filter || 'all';
@@ -311,11 +405,12 @@ const adminGetPeriodDetail = async (req, res) => {
       residents: filteredResidents,
       stats,
       currentFilter,
+      handoverStatus,
       error: flash.error?.[0] || null,
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading period detail", { error: error.message });
+    logger.error("Error loading period detail", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat detail periode");
     res.redirect("/admin/finance");
   }
@@ -339,7 +434,7 @@ const adminGetPaymentDetail = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading admin payment detail", { error: error.message });
+    logger.error("Error loading admin payment detail", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat detail laporan");
     res.redirect("/admin/finance");
   }
@@ -355,7 +450,7 @@ const adminApprovePayment = async (req, res) => {
     req.flash("success", "Pembayaran berhasil disetujui");
     res.redirect(`/admin/finance/period/${payment.periodId}`);
   } catch (error) {
-    logger.error("Error approving payment", { error: error.message });
+    logger.error("Error approving payment", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menyetujui pembayaran");
     res.redirect(`/admin/finance/payment/${req.params.id}`);
   }
@@ -370,7 +465,7 @@ const adminRejectPayment = async (req, res) => {
     req.flash("success", "Pembayaran telah ditolak");
     res.redirect(`/admin/finance/period/${payment.periodId}`);
   } catch (error) {
-    logger.error("Error rejecting payment", { error: error.message });
+    logger.error("Error rejecting payment", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menolak pembayaran");
     res.redirect(`/admin/finance/payment/${req.params.id}`);
   }
@@ -403,7 +498,7 @@ const adminMarkPaid = async (req, res, next) => {
     req.flash("success", "Status pembayaran warga berhasil ditandai sebagai LUNAS dengan rincian.");
     res.redirect(`/admin/finance/period/${periodId}`);
   } catch (error) {
-    logger.error("Error marking user paid", { error: error.message });
+    logger.error("Error marking user paid", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Gagal menandai lunas");
     res.redirect(`/admin/finance/period/${req.params.periodId}`);
   }
@@ -426,7 +521,20 @@ const adminExportFinanceReport = async (req, res) => {
     }
 
     const { startDate, endDate } = validation.data;
-    const records = await financeService.exportFinanceReport(startDate, endDate);
+    
+    const permissions = req.session.userPermissions || [];
+    const hasGlobalFinance = permissions.includes("finance.manage");
+    let filterCorridorId = undefined;
+    
+    if (hasGlobalFinance) {
+      if (req.query.corridorId) {
+        filterCorridorId = req.query.corridorId;
+      }
+    } else if (permissions.includes("finance.manage_corridor")) {
+      filterCorridorId = req.session.userCorridorId || null;
+    }
+
+    const records = await financeService.exportFinanceReport(startDate, endDate, filterCorridorId);
 
     // Build CSV safely supporting semicolon separator for Excel compatibility
     let csv = "\uFEFF"; // Add UTF-8 BOM for Indonesian Excel to parse accents/characters correctly
@@ -446,9 +554,50 @@ const adminExportFinanceReport = async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename="laporan_keuangan_rt_${startDate}_to_${endDate}.csv"`);
     return res.send(csv);
   } catch (error) {
-    logger.error("Error exporting finance report", { error: error.message });
+    logger.error("Error exporting finance report", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memproses ekspor laporan keuangan");
     res.redirect("/admin/finance");
+  }
+};
+
+const adminHandoverKas = async (req, res) => {
+  try {
+    const { periodId, corridorId } = req.params;
+    const { amountKas, amountFixed, amountOther, notes } = req.body;
+    
+    // Check permission - only global finance.manage can hand over
+    const permissions = req.session.userPermissions || [];
+    if (!permissions.includes("finance.manage")) {
+      req.flash("error", "Anda tidak memiliki izin untuk menyerahkan kas");
+      return res.redirect(`/admin/finance/period/${periodId}`);
+    }
+
+    let otherDetails = {};
+    if (typeof amountOther === 'object' && amountOther !== null) {
+      // Loop over keys to parse amounts
+      Object.keys(amountOther).forEach(key => {
+        const val = parseInt(amountOther[key]);
+        if (!isNaN(val) && val > 0) {
+          otherDetails[key] = val;
+        }
+      });
+    }
+
+    await financeService.createFinanceHandover(req.session.userId, {
+      periodId,
+      corridorId,
+      amountKas: parseInt(amountKas) || 0,
+      amountFixed: parseInt(amountFixed) || 0,
+      otherDetails,
+      notes
+    });
+
+    req.flash("success", "Penyerahan kas berhasil dicatat");
+    res.redirect(`/admin/finance/period/${periodId}`);
+  } catch (error) {
+    logger.error("Error handing over kas", { error: error.message, stack: error.stack });
+    req.flash("error", error.message || "Gagal menyerahkan kas");
+    res.redirect(`/admin/finance/period/${req.params.periodId}`);
   }
 };
 
@@ -468,4 +617,5 @@ module.exports = {
   adminCreateExpense,
   adminCreateIncome,
   adminExportFinanceReport,
+  adminHandoverKas,
 };

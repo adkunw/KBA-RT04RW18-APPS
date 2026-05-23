@@ -75,6 +75,7 @@ resource.action
 - warga.read
 - warga.update
 - warga.delete
+- warga.read_corridor
 
 ---
 
@@ -89,6 +90,7 @@ resource.action
 
 - message.create
 - message.read
+- message.create_corridor
 
 ---
 
@@ -106,6 +108,7 @@ resource.action
 ### FINANCE MANAGEMENT
 
 - finance.manage
+- finance.manage_corridor
 
 ---
 
@@ -157,6 +160,20 @@ resource.action
 
 - dashboard.view
 - finance.manage (Mengelola keuangan & menandai iuran warga lunas secara manual)
+
+---
+
+### KOORDINATOR
+
+- dashboard.view
+- warga.read_corridor (Melihat warga di koridornya)
+- message.create_corridor (Mengirim pengumuman/pesan ke warga koridornya)
+- message.read
+- finance.manage_corridor (Mengelola keuangan kas koridornya)
+- report.create
+- report.read
+- report.update (own only)
+- report.delete (own only)
 
 ---
 

@@ -15,7 +15,7 @@ const getSettings = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading settings", { error: error.message });
+    logger.error("Error loading settings", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat pengaturan");
     res.redirect("/admin");
   }
@@ -23,18 +23,19 @@ const getSettings = async (req, res) => {
 
 const postUpdateSettings = async (req, res) => {
   try {
-    const { emergency_phone, emergency_email, emergency_hours } = req.body;
+    const { emergency_phone, emergency_email, emergency_hours, payment_methods_json } = req.body;
     
     await settingService.updateManySettings({
       emergency_phone,
       emergency_email,
       emergency_hours,
+      payment_methods: payment_methods_json || "[]",
     });
 
     req.flash("success", "Pengaturan berhasil disimpan");
     res.redirect("/admin/settings");
   } catch (error) {
-    logger.error("Error updating settings", { error: error.message });
+    logger.error("Error updating settings", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menyimpan pengaturan");
     res.redirect("/admin/settings");
   }

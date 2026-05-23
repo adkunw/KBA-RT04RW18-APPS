@@ -1,4 +1,4 @@
-﻿<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'users' }) %>
 
  <!-- MAIN CONTENT -->
  <main class="admin-main flex flex-col">
@@ -35,7 +35,7 @@
 
  <!-- Success Banner -->
  <div class="alert" style="background:#DCFCE7; border-left-color:var(--success); color:#166534; margin-bottom:1.5rem;">
- User <strong><%= user.name %></strong> has been created with phone <strong><%= user.phone %></strong>.
+ User <strong><%= createdUser.name %></strong> has been created with phone <strong><%= createdUser.phone %></strong>.
  </div>
 
  <!-- Activation Link Card -->

@@ -63,6 +63,9 @@ const submitPaymentReport = async (userId, data) => {
     throw new Error("Anda sudah mengirim laporan untuk periode ini");
   }
 
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const corridorId = user?.corridorId || null;
+
   const fixedDuesAmount = hasFixedDues ? period.fixedDuesAmount : 0;
   const kas = hasKas ? Number(kasAmount) : 0;
   const other = Number(otherAmount) || 0;
@@ -81,6 +84,7 @@ const submitPaymentReport = async (userId, data) => {
       totalAmount,
       proofFilePath: filePath,
       status: "pending",
+      corridorId,
     },
   });
 
@@ -99,13 +103,18 @@ const getPaymentsByUser = async (userId) => {
   });
 };
 
-const getPeriodResidentStatus = async (periodId) => {
-  // Get all active users except super_admin
+const getPeriodResidentStatus = async (periodId, corridorId = undefined) => {
+  // Get all active/created users except system admins
+  const whereUsers = {
+    status: { in: ["active", "created"] },
+    roles: { none: { role: { name: { in: ["super_admin", "admin", "system_admin"] } } } }
+  };
+  if (corridorId !== undefined) {
+    whereUsers.corridorId = corridorId;
+  }
+
   const users = await prisma.user.findMany({
-    where: { 
-      status: "active",
-      roles: { none: { role: { name: "super_admin" } } }
-    },
+    where: whereUsers,
     select: { 
       id: true, 
       name: true, 
@@ -114,7 +123,8 @@ const getPeriodResidentStatus = async (periodId) => {
       familyDetails: true,
       spouseName: true,
       children: true,
-      spousePhone: true
+      spousePhone: true,
+      corridorId: true
     }
   });
 
@@ -299,6 +309,9 @@ const markUserPaid = async (periodId, userId, reviewerId, details) => {
   const reviewerName = reviewer ? reviewer.name : "System";
   const reviewerRoles = reviewer ? reviewer.roles.map(r => r.role.name) : [];
 
+  const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+  const corridorId = targetUser?.corridorId || null;
+
   let roleDisplayName = "Admin";
   if (reviewerRoles.includes("super_admin")) {
     roleDisplayName = "Super Admin";
@@ -320,8 +333,9 @@ const markUserPaid = async (periodId, userId, reviewerId, details) => {
     totalAmount,
     status: "approved",
     reviewedBy: reviewerId,
-    reviewedAt: new Date(),
+      reviewedAt: new Date(),
     notes: finalNotes,
+    corridorId,
   };
 
   if (existingPayment) {
@@ -341,6 +355,7 @@ const markUserPaid = async (periodId, userId, reviewerId, details) => {
         userId,
         periodId,
         proofFilePath: "manual",
+        corridorId,
         ...paymentData,
       },
     });
@@ -349,7 +364,7 @@ const markUserPaid = async (periodId, userId, reviewerId, details) => {
   }
 };
 
-const createExpense = async ({ amount, description, category, recipient, date, proofFilePath, createdById }) => {
+const createExpense = async ({ amount, description, category, recipient, date, proofFilePath, createdById, corridorId }) => {
   const expense = await prisma.financeExpense.create({
     data: {
       amount: Number(amount),
@@ -359,22 +374,32 @@ const createExpense = async ({ amount, description, category, recipient, date, p
       date: new Date(date),
       proofFilePath: proofFilePath || null,
       createdById,
+      corridorId: corridorId || null,
     },
   });
   logger.info("Finance expense recorded", { expenseId: expense.id, amount, category });
   return expense;
 };
 
-const getAllExpenses = async () => {
+const getAllExpenses = async (corridorId = undefined) => {
+  const where = {};
+  if (corridorId !== undefined) {
+    // If corridorId is explicitly null, we look for Kas RT (corridorId: null)
+    // If corridorId is a specific ID, we look for that Koridor's Kas
+    where.corridorId = corridorId;
+  }
+
   return await prisma.financeExpense.findMany({
+    where,
     include: {
       createdBy: { select: { id: true, name: true } },
+      corridor: true,
     },
     orderBy: { date: "desc" },
   });
 };
 
-const createIncome = async ({ amount, description, category, source, date, proofFilePath, createdById }) => {
+const createIncome = async ({ amount, description, category, source, date, proofFilePath, createdById, corridorId }) => {
   const income = await prisma.financeIncome.create({
     data: {
       amount: Number(amount),
@@ -384,31 +409,67 @@ const createIncome = async ({ amount, description, category, source, date, proof
       date: new Date(date),
       proofFilePath: proofFilePath || null,
       createdById,
+      corridorId: corridorId || null,
     },
   });
   logger.info("Finance manual income recorded", { incomeId: income.id, amount, category });
   return income;
 };
 
-const getAllIncomes = async () => {
+const getAllIncomes = async (corridorId = undefined) => {
+  const where = {};
+  if (corridorId !== undefined) {
+    where.corridorId = corridorId;
+  }
+
   return await prisma.financeIncome.findMany({
+    where,
     include: {
       createdBy: { select: { id: true, name: true } },
+      corridor: true,
     },
     orderBy: { date: "desc" },
   });
 };
 
-const getFinanceSummary = async () => {
-  // Total Citizen Payments
-  const citizenIncomeResult = await prisma.paymentReport.aggregate({
-    where: { status: "approved" },
-    _sum: { totalAmount: true },
-  });
-  const totalCitizenIncome = citizenIncomeResult._sum.totalAmount || 0;
+const getFinanceSummary = async (corridorId = undefined) => {
+  const paymentWhere = { status: "approved" };
+  const incomeWhere = {};
+  const expenseWhere = {};
+
+  if (corridorId !== undefined) {
+    if (corridorId !== null) {
+      paymentWhere.corridorId = corridorId;
+    }
+    incomeWhere.corridorId = corridorId;
+    expenseWhere.corridorId = corridorId;
+  }
+
+  let totalCitizenIncome = 0;
+
+  if (corridorId) {
+    const handoverResult = await prisma.financeHandover.aggregate({
+      where: { corridorId },
+      _sum: { totalAmount: true },
+    });
+    totalCitizenIncome = handoverResult._sum.totalAmount || 0;
+  } else {
+    const citizenIncomeResult = await prisma.paymentReport.aggregate({
+      where: paymentWhere,
+      _sum: { totalAmount: true },
+    });
+    totalCitizenIncome = citizenIncomeResult._sum.totalAmount || 0;
+  }
 
   // Total Manual Other Income
+  // Exclude 'Penerimaan RT' category (handovers) for corridor queries to prevent double counting
+  const summaryIncomeWhere = { ...incomeWhere };
+  if (corridorId) {
+    summaryIncomeWhere.category = { not: 'Penerimaan RT' };
+  }
+
   const manualIncomeResult = await prisma.financeIncome.aggregate({
+    where: summaryIncomeWhere,
     _sum: { amount: true },
   });
   const totalManualIncome = manualIncomeResult._sum.amount || 0;
@@ -417,6 +478,7 @@ const getFinanceSummary = async () => {
 
   // Total Expense
   const expenseResult = await prisma.financeExpense.aggregate({
+    where: expenseWhere,
     _sum: { amount: true },
   });
   const totalExpense = expenseResult._sum.amount || 0;
@@ -430,18 +492,31 @@ const getFinanceSummary = async () => {
   };
 };
 
-const getRecentTransactions = async (limit = 10) => {
+const getRecentTransactions = async (limit = 10, corridorId = undefined) => {
+  const incomeWhere = {};
+  const expenseWhere = {};
+
+  if (corridorId !== undefined) {
+    incomeWhere.corridorId = corridorId;
+    expenseWhere.corridorId = corridorId;
+  }
+
+  const fetchPayments = !corridorId; // Only fetch citizen payments for global RT kas
+
   const [approvedPayments, manualIncomes, expenses] = await Promise.all([
-    prisma.paymentReport.findMany({
-      where: { status: "approved" },
-      include: {
-        user: { select: { id: true, name: true } },
-        period: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: limit,
-    }),
+    fetchPayments
+      ? prisma.paymentReport.findMany({
+          where: { status: "approved" },
+          include: {
+            user: { select: { id: true, name: true } },
+            period: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: limit,
+        })
+      : Promise.resolve([]),
     prisma.financeIncome.findMany({
+      where: incomeWhere,
       include: {
         createdBy: { select: { id: true, name: true } },
       },
@@ -449,6 +524,7 @@ const getRecentTransactions = async (limit = 10) => {
       take: limit,
     }),
     prisma.financeExpense.findMany({
+      where: expenseWhere,
       include: {
         createdBy: { select: { id: true, name: true } },
       },
@@ -471,7 +547,7 @@ const getRecentTransactions = async (limit = 10) => {
     ...manualIncomes.map(i => ({
       id: i.id,
       type: "income",
-      title: `Pemasukan Lain - ${i.category} (${i.description})`,
+      title: i.category === 'Penerimaan RT' ? i.description : `Pemasukan Lain - ${i.category} (${i.description})`,
       subtitle: `Sumber: ${i.source}`,
       amount: i.amount,
       date: i.date,
@@ -480,7 +556,7 @@ const getRecentTransactions = async (limit = 10) => {
     ...expenses.map(e => ({
       id: e.id,
       type: "expense",
-      title: `Pengeluaran - ${e.category} (${e.description})`,
+      title: e.category === 'Distribusi Koridor' ? e.description : `Pengeluaran - ${e.category} (${e.description})`,
       subtitle: `Penerima: ${e.recipient}`,
       amount: e.amount,
       date: e.date,
@@ -491,6 +567,141 @@ const getRecentTransactions = async (limit = 10) => {
   return transactions
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, limit);
+};
+
+/**
+ * Finance Handover (Penyerahan Kas ke Koridor)
+ */
+
+const getCorridorHandoverStatus = async (periodId) => {
+  // 1. Get all approved payments for this period grouped by corridor
+  const payments = await prisma.paymentReport.findMany({
+    where: { periodId, status: "approved", corridorId: { not: null } },
+  });
+
+  const corridors = await prisma.corridor.findMany();
+  
+  // 2. Get all handovers for this period
+  const handovers = await prisma.financeHandover.findMany({
+    where: { periodId },
+  });
+
+  const statusList = corridors.map(c => {
+    const corridorPayments = payments.filter(p => p.corridorId === c.id);
+    const totalKasCollected = corridorPayments.reduce((sum, p) => sum + (p.kasAmount || 0), 0);
+    const totalFixedCollected = corridorPayments.reduce((sum, p) => sum + (p.fixedDuesAmount || 0), 0);
+    
+    const totalOthersCollected = {};
+    corridorPayments.forEach(p => {
+      if (p.otherAmount > 0 && p.otherDescription) {
+        const desc = p.otherDescription.trim();
+        totalOthersCollected[desc] = (totalOthersCollected[desc] || 0) + p.otherAmount;
+      }
+    });
+
+    const corridorHandovers = handovers.filter(h => h.corridorId === c.id);
+    const handedKas = corridorHandovers.reduce((sum, h) => sum + h.amountKas, 0);
+    const handedFixed = corridorHandovers.reduce((sum, h) => sum + h.amountFixed, 0);
+    
+    const handedOthers = {};
+    corridorHandovers.forEach(h => {
+      if (h.otherDetails) {
+        const details = typeof h.otherDetails === 'string' ? JSON.parse(h.otherDetails) : h.otherDetails;
+        Object.keys(details).forEach(desc => {
+          handedOthers[desc] = (handedOthers[desc] || 0) + Number(details[desc]);
+        });
+      }
+    });
+
+    const pendingOthers = {};
+    let totalPendingOther = 0;
+    Object.keys(totalOthersCollected).forEach(desc => {
+      const pending = totalOthersCollected[desc] - (handedOthers[desc] || 0);
+      if (pending > 0) {
+        pendingOthers[desc] = pending;
+        totalPendingOther += pending;
+      }
+    });
+
+    return {
+      corridor: c,
+      collected: { kas: totalKasCollected, fixed: totalFixedCollected, others: totalOthersCollected },
+      handed: { kas: handedKas, fixed: handedFixed, others: handedOthers },
+      pending: {
+        kas: totalKasCollected - handedKas,
+        fixed: totalFixedCollected - handedFixed,
+        others: pendingOthers,
+        hasPending: (totalKasCollected - handedKas) > 0 || (totalFixedCollected - handedFixed) > 0 || totalPendingOther > 0
+      },
+      history: corridorHandovers
+    };
+  });
+
+  return statusList;
+};
+
+const createFinanceHandover = async (bendaharaId, data) => {
+  const { periodId, corridorId, amountKas, amountFixed, otherDetails, notes } = data;
+  
+  // otherDetails will be an object like {"Agustusan": 50000, "Sampah": 20000}
+  const amountOther = otherDetails ? Object.values(otherDetails).reduce((sum, val) => sum + Number(val), 0) : 0;
+  
+  const totalAmount = (amountKas || 0) + (amountFixed || 0) + amountOther;
+  if (totalAmount <= 0) throw new Error("Nominal penyerahan harus lebih dari 0");
+
+  // We need to fetch the corridor name for the description
+  const corridor = await prisma.corridor.findUnique({ where: { id: corridorId } });
+  const corridorName = corridor ? corridor.name : 'Koridor';
+
+  const handover = await prisma.$transaction(async (tx) => {
+    // 1. Create the Handover Record
+    const newHandover = await tx.financeHandover.create({
+      data: {
+        periodId,
+        corridorId,
+        amountKas: amountKas || 0,
+        amountFixed: amountFixed || 0,
+        amountOther,
+        otherDetails: otherDetails || null,
+        totalAmount,
+        notes,
+        handedOverBy: bendaharaId,
+      }
+    });
+
+    // 2. Create Expense for RT (corridorId: null)
+    await tx.financeExpense.create({
+      data: {
+        amount: totalAmount,
+        description: `Penyerahan dana ke ${corridorName}`,
+        category: 'Distribusi Koridor',
+        recipient: `Pengurus ${corridorName}`,
+        date: new Date(),
+        createdById: bendaharaId,
+        corridorId: null,
+        handoverId: newHandover.id,
+      }
+    });
+
+    // 3. Create Income for Corridor (corridorId)
+    await tx.financeIncome.create({
+      data: {
+        amount: totalAmount,
+        description: `Penerimaan dana dari Kas RT`,
+        category: 'Penerimaan RT',
+        source: 'Kas RT / Bendahara',
+        date: new Date(),
+        createdById: bendaharaId,
+        corridorId: corridorId,
+        handoverId: newHandover.id,
+      }
+    });
+
+    return newHandover;
+  });
+
+  logger.info("Finance handover created with matching expense/income", { handoverId: handover.id, periodId, corridorId, totalAmount });
+  return handover;
 };
 
 const exportFinanceReport = async (startDateStr, endDateStr) => {
@@ -583,5 +794,7 @@ module.exports = {
   getAllIncomes,
   getFinanceSummary,
   getRecentTransactions,
+  getCorridorHandoverStatus,
+  createFinanceHandover,
   exportFinanceReport,
 };

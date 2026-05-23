@@ -30,7 +30,7 @@ const listRoles = async (req, res) => {
       success: messages.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error listing roles", { error: error.message });
+    logger.error("Error listing roles", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load roles");
     res.redirect("/admin");
   }
@@ -69,7 +69,7 @@ const createRole = async (req, res) => {
     req.flash("success", `Role "${name}" created successfully`);
     res.redirect("/admin/roles");
   } catch (error) {
-    logger.error("Error creating role", { error: error.message });
+    logger.error("Error creating role", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Failed to create role");
     res.redirect("/admin/roles/create");
   }
@@ -108,7 +108,7 @@ const viewRole = async (req, res) => {
       success: messages.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error viewing role", { error: error.message });
+    logger.error("Error viewing role", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load role");
     res.redirect("/admin/roles");
   }
@@ -125,7 +125,7 @@ const deleteRole = async (req, res) => {
     req.flash("success", "Role deleted successfully");
     res.redirect("/admin/roles");
   } catch (error) {
-    logger.warn("Error deleting role", { error: error.message });
+    logger.warn("Error deleting role", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Failed to delete role");
     res.redirect("/admin/roles");
   }
@@ -148,7 +148,7 @@ const assignPermission = async (req, res) => {
     req.flash("success", "Permission assigned successfully");
     res.redirect(`/admin/roles/${id}`);
   } catch (error) {
-    logger.error("Error assigning permission", { error: error.message });
+    logger.error("Error assigning permission", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Failed to assign permission");
     res.redirect(`/admin/roles/${req.params.id}`);
   }
@@ -166,7 +166,7 @@ const revokePermission = async (req, res) => {
     req.flash("success", "Permission revoked successfully");
     res.redirect(`/admin/roles/${id}`);
   } catch (error) {
-    logger.warn("Error revoking permission", { error: error.message });
+    logger.warn("Error revoking permission", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Failed to revoke permission");
     res.redirect(`/admin/roles/${req.params.id}`);
   }

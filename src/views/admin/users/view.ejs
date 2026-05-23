@@ -48,17 +48,41 @@ const formatDate = (dateStr) => {
  <a href="/admin/users" class="btn btn-secondary">← Back to Users</a>
  </div>
 
- <% if (viewedUser.status === 'created') { %>
- <div class="alert" style="background:#FEF3C7; border-left-color:var(--warning); color:#92400E; display:flex; justify-content:space-between; align-items:center;">
- <div>
- <strong> Pending Activation:</strong> This user hasn't activated their account yet.<br>
- <span style="font-size:0.875rem; font-family:monospace; margin-top:0.5rem; display:inline-block; background:rgba(0,0,0,0.05); padding:0.25rem 0.5rem; border-radius:4px;"><%= activationLink %></span>
- </div>
- <button onclick="navigator.clipboard.writeText('<%= activationLink %>').then(() => alert('Copied to clipboard!'))" class="btn btn-primary btn-sm" style="flex-shrink:0; margin-left:1rem;">
- Copy Link 
- </button>
- </div>
- <% } %>
+  <% 
+  const isExpired = viewedUser.status === 'created' && viewedUser.activationTokens && viewedUser.activationTokens.length > 0 && new Date() > new Date(viewedUser.activationTokens[0].expiredAt);
+  %>
+  <% if (viewedUser.status === 'created' && isExpired) { %>
+  <div class="alert alert-error" style="display:flex; justify-content:space-between; align-items:center; background:#FEE2E2; border-left-color:#EF4444; color:#991B1B; margin-bottom: 1.5rem;">
+    <div>
+      <strong style="display:flex; align-items:center; gap:0.5rem;">⚠️ Kunci Aktivasi Kedaluwarsa (Activation Key Expired)</strong>
+      <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #7F1D1D;">Tautan aktivasi untuk warga ini telah kedaluwarsa. Silakan buat kunci aktivasi baru agar warga dapat mendaftar.</p>
+    </div>
+    <form action="/admin/users/<%= viewedUser.id %>/recreate-activation" method="POST" class="m-0" style="margin:0;">
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+      <button type="submit" class="btn btn-primary btn-sm" style="background:#DC2626; border-color:#DC2626; color:white; font-size:0.875rem; padding: 0.5rem 1rem; border-radius: 6px;">
+        Buat Kunci Baru
+      </button>
+    </form>
+  </div>
+  <% } else if (viewedUser.status === 'created') { %>
+  <div class="alert" style="background:#FEF3C7; border-left-color:var(--warning); color:#92400E; display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+  <div>
+  <strong> Pending Activation:</strong> This user hasn't activated their account yet.<br>
+  <span style="font-size:0.875rem; font-family:monospace; margin-top:0.5rem; display:inline-block; background:rgba(0,0,0,0.05); padding:0.25rem 0.5rem; border-radius:4px;"><%= activationLink %></span>
+  </div>
+  <div style="display:flex; gap:0.5rem; align-items:center;">
+    <button onclick="navigator.clipboard.writeText('<%= activationLink %>').then(() => alert('Copied to clipboard!'))" class="btn btn-primary btn-sm" style="flex-shrink:0;">
+    Copy Link 
+    </button>
+    <form action="/admin/users/<%= viewedUser.id %>/recreate-activation" method="POST" class="m-0" style="margin:0;">
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+      <button type="submit" class="btn btn-secondary btn-sm" style="font-size:0.875rem; color: var(--gray-700);">
+        Regenerate Link
+      </button>
+    </form>
+  </div>
+  </div>
+  <% } %>
 
  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
 
@@ -79,12 +103,18 @@ const formatDate = (dateStr) => {
  <td style="padding:0.625rem 0; color:var(--gray-900); font-weight:500;"><%= viewedUser.houseNumber || '-' %></td>
  </tr>
 
- <tr style="border-bottom:1px solid var(--gray-100);">
- <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Status</td>
- <td style="padding:0.625rem 0;">
- <span class="badge badge-<%= viewedUser.status %>"><%= viewedUser.status %></span>
- </td>
- </tr>
+  <tr style="border-bottom:1px solid var(--gray-100);">
+  <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Status</td>
+  <td style="padding:0.625rem 0;">
+    <% if (viewedUser.status === 'created' && isExpired) { %>
+      <span class="badge badge-warning" style="background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5; font-size:0.75rem; font-weight:700;">Activation Expired</span>
+    <% } else if (viewedUser.status === 'created') { %>
+      <span class="badge badge-created" style="background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; font-size:0.75rem; font-weight:700;">Pending Activation</span>
+    <% } else { %>
+      <span class="badge badge-<%= viewedUser.status %>" style="font-size:0.75rem; font-weight:700;"><%= viewedUser.status %></span>
+    <% } %>
+  </td>
+  </tr>
  <tr style="border-bottom:1px solid var(--gray-100);">
  <td style="padding:0.625rem 0; color:var(--gray-600); font-size:0.875rem;">Member Since</td>
  <td style="padding:0.625rem 0; color:var(--gray-900); font-size:0.875rem;">

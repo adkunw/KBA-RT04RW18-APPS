@@ -47,7 +47,7 @@ const getPortal = async (req, res) => {
       hasAdminAccess,
     });
   } catch (error) {
-    logger.error("Error loading portal", { error: error.message });
+    logger.error("Error loading portal", { error: error.message, stack: error.stack });
     res.render("portal/index", {
       title: "Portal",
       user: { id: req.session.userId, name: req.session.userName, language: req.session.userLanguage || "id" },
@@ -78,7 +78,7 @@ const getInbox = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading inbox", { error: error.message });
+    logger.error("Error loading inbox", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load inbox");
     res.redirect("/portal");
   }
@@ -112,7 +112,7 @@ const readMessage = async (req, res) => {
       hasAdminAccess,
     });
   } catch (error) {
-    logger.error("Error reading message", { error: error.message });
+    logger.error("Error reading message", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load message");
     res.redirect("/portal/messages");
   }
@@ -136,7 +136,7 @@ const getProfile = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading profile", { error: error.message });
+    logger.error("Error loading profile", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load profile");
     res.redirect("/portal");
   }
@@ -223,7 +223,7 @@ const updateProfile = async (req, res) => {
     req.flash("success", "Profile updated successfully");
     res.redirect("/portal/profile");
   } catch (error) {
-    logger.error("Error updating profile", { error: error.message });
+    logger.error("Error updating profile", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to update profile");
     res.redirect("/portal/profile");
   }
@@ -241,7 +241,7 @@ const postChangeLanguage = async (req, res) => {
     }
     res.redirect("back"); // Return to the page they were on
   } catch (error) {
-    logger.error("Error updating language", { error: error.message });
+    logger.error("Error updating language", { error: error.message, stack: error.stack });
     res.redirect("/portal");
   }
 };

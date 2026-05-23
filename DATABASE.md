@@ -45,8 +45,23 @@ Menyimpan data utama user (warga & admin)
 | spouseBirthDate| string   | optional, tanggal lahir pasangan        |
 | spouseNik      | string   | optional, NIK pasangan                  |
 | children       | json     | optional, array data anak [{name, birthDate, nik}] |
+| corridorId     | string   | optional, FK → corridors.id             |
 | created_at     | datetime | auto                                    |
 | updated_at     | datetime | auto                                    |
+
+---
+
+### 1B. CORRIDORS
+
+Menyimpan daftar koridor untuk pengelompokan warga.
+
+| Field       | Type     | Notes                                   |
+| ----------- | -------- | --------------------------------------- |
+| id          | string   | primary key (cuid)                      |
+| name        | string   | unique, nama koridor (cth: G Tengah)    |
+| description | string   | optional, deskripsi area koridor        |
+| created_at  | datetime | auto                                    |
+| updated_at  | datetime | auto                                    |
 
 ---
 
@@ -167,6 +182,7 @@ Menyimpan bukti pembayaran iuran bulanan dari warga.
 | `id` | String | PK, cuid | Primary key |
 | `userId` | String | FK | Warga yang mengunggah |
 | `periodId` | String | FK | Periode iuran terkait |
+| `corridorId`| String?| FK | Mengunci data koridor warga saat iuran dibayar |
 | `hasFixedDues` | Boolean | DEFAULT(false) | Bayar iuran tetap bulanan |
 | `fixedDuesAmount` | Int | DEFAULT(0) | Nominal iuran tetap dibayar |
 | `hasKas` | Boolean | DEFAULT(false) | Bayar kas sukarela |
@@ -193,6 +209,8 @@ Menyimpan rincian pencatatan pengeluaran dana kas RT.
 | `date` | DateTime | | Tanggal transaksi pengeluaran |
 | `proofFilePath` | String? | | Bukti transaksi pengeluaran (path berkas) |
 | `createdById` | String | FK | ID pembuat data (warga/admin) |
+| `corridorId` | String?| FK | FK ke `corridors.id` jika pengeluaran koridor |
+| `handoverId` | String?| FK | FK ke `finance_handovers.id` jika transaksi dihasilkan dari penyerahan kas |
 
 ### 4. Pemasukan Lain-lain (`finance_incomes`)
 Menyimpan rincian pencatatan pemasukan manual lain di luar iuran bulanan.
@@ -207,6 +225,25 @@ Menyimpan rincian pencatatan pemasukan manual lain di luar iuran bulanan.
 | `date` | DateTime | | Tanggal transaksi pemasukan |
 | `proofFilePath` | String? | | Bukti transaksi pemasukan (path berkas) |
 | `createdById` | String | FK | ID pembuat data (warga/admin) |
+| `corridorId` | String?| FK | FK ke `corridors.id` jika pemasukan koridor |
+| `handoverId` | String?| FK | FK ke `finance_handovers.id` jika transaksi dihasilkan dari penyerahan kas |
+
+### 4B. Penyerahan Kas Koridor (`finance_handovers`)
+Menyimpan data transaksi penyerahan kas dari bendahara/RT ke koordinator koridor per periode tertentu.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `periodId` | String | FK | Reference ke `finance_periods.id` |
+| `corridorId` | String | FK | Reference ke `corridors.id` |
+| `amountKas` | Int | DEFAULT(0) | Nominal iuran kas sukarela yang diserahkan |
+| `amountFixed` | Int | DEFAULT(0) | Nominal iuran wajib tetap yang diserahkan |
+| `amountOther` | Int | DEFAULT(0) | Nominal iuran rincian lain yang diserahkan |
+| `otherDetails` | Json? | | Rincian detail iuran lain (cth: {"Agustusan": 50000}) |
+| `totalAmount` | Int | | Total keseluruhan nominal penyerahan |
+| `notes` | String? | | Catatan opsional |
+| `handedOverAt` | DateTime | DEFAULT(now()) | Waktu transaksi dilakukan |
+| `handedOverBy` | String | FK | Reference ke `users.id` (Bendahara) |
 
 ### 5. Sesi Login PostgreSQL (`session`)
 Menyimpan sesi login aplikasi untuk keamanan persisten.
@@ -237,6 +274,7 @@ Menyimpan post laporan warga.
 | `title` | String | | Judul laporan |
 | `content` | String | | Isi laporan |
 | `mediaPath` | String? | | Path file media (foto/video) jika ada |
+| `isAnonymous`| Boolean| DEFAULT(false)| Tampilkan laporan sebagai anonymous (kecuali admin) |
 | `status` | ReportStatus | DEFAULT(open)| Status penanganan laporan |
 | `createdAt` | DateTime | DEFAULT(now())| Waktu post dibuat |
 | `updatedAt` | DateTime | updatedAt | Waktu post diupdate |

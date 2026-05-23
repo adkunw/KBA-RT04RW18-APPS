@@ -33,7 +33,7 @@ const listMessages = async (req, res) => {
       success: messages_flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error listing messages", { error: error.message });
+    logger.error("Error listing messages", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load messages");
     res.redirect("/admin");
   }
@@ -54,7 +54,7 @@ const showCreateForm = async (req, res) => {
       error: flash.error?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading compose form", { error: error.message });
+    logger.error("Error loading compose form", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load form");
     res.redirect("/admin/messages");
   }
@@ -95,7 +95,7 @@ const createMessage = async (req, res) => {
     req.flash("success", `${typeLabels[type]} "${title}" sent successfully`);
     res.redirect("/admin/messages");
   } catch (error) {
-    logger.error("Error creating message", { error: error.message });
+    logger.error("Error creating message", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Failed to send message");
     res.redirect("/admin/messages/create");
   }
@@ -128,7 +128,7 @@ const viewMessage = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error viewing message", { error: error.message });
+    logger.error("Error viewing message", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load message");
     res.redirect("/admin/messages");
   }
@@ -144,7 +144,7 @@ const deleteMessage = async (req, res) => {
     req.flash("success", "Message deleted successfully");
     res.redirect("/admin/messages");
   } catch (error) {
-    logger.error("Error deleting message", { error: error.message });
+    logger.error("Error deleting message", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Failed to delete message");
     res.redirect("/admin/messages");
   }

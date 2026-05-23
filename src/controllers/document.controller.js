@@ -58,7 +58,7 @@ const getMyDocuments = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading documents", { error: error.message });
+    logger.error("Error loading documents", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat dokumen");
     res.redirect("/portal");
   }
@@ -82,7 +82,7 @@ const getUploadForm = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading upload form", { error: error.message });
+    logger.error("Error loading upload form", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat form upload");
     res.redirect("/portal/documents");
   }
@@ -126,7 +126,7 @@ const postUploadDocument = async (req, res) => {
     );
     res.redirect("/portal/documents");
   } catch (error) {
-    logger.error("Error uploading document", { error: error.message });
+    logger.error("Error uploading document", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal mengupload dokumen. Coba lagi.");
     res.redirect("/portal/documents/upload");
   }
@@ -159,7 +159,7 @@ const getMyDocumentDetail = async (req, res) => {
       success: null,
     });
   } catch (error) {
-    logger.error("Error loading document detail", { error: error.message });
+    logger.error("Error loading document detail", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat detail dokumen");
     res.redirect("/portal/documents");
   }
@@ -180,8 +180,10 @@ const adminGetAllDocuments = async (req, res) => {
       ? statusFilter
       : null;
 
+    const search = req.query.search || null;
+
     const [documents, stats] = await Promise.all([
-      documentService.getAllDocuments(filterStatus),
+      documentService.getAllDocuments(filterStatus, search),
       documentService.getDocumentStats(),
     ]);
 
@@ -193,11 +195,12 @@ const adminGetAllDocuments = async (req, res) => {
       documents,
       stats,
       filterStatus,
+      search,
       error: flash.error?.[0] || null,
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading admin documents", { error: error.message });
+    logger.error("Error loading admin documents", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memuat data dokumen");
     res.redirect("/admin");
   }
@@ -256,7 +259,7 @@ const adminApproveDocument = async (req, res) => {
     req.flash("success", `Dokumen "${document.title}" berhasil disetujui`);
     res.redirect(`/admin/documents/${req.params.id}`);
   } catch (error) {
-    logger.error("Error approving document", { error: error.message });
+    logger.error("Error approving document", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menyetujui dokumen");
     res.redirect(`/admin/documents/${req.params.id}`);
   }
@@ -285,7 +288,7 @@ const adminRejectDocument = async (req, res) => {
     req.flash("success", `Dokumen "${document.title}" telah ditolak`);
     res.redirect(`/admin/documents/${req.params.id}`);
   } catch (error) {
-    logger.error("Error rejecting document", { error: error.message });
+    logger.error("Error rejecting document", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menolak dokumen");
     res.redirect(`/admin/documents/${req.params.id}`);
   }
@@ -307,7 +310,7 @@ const adminDeleteDocument = async (req, res) => {
     req.flash("success", `Dokumen "${document.title}" berhasil dihapus`);
     res.redirect("/admin/documents");
   } catch (error) {
-    logger.error("Error deleting document", { error: error.message });
+    logger.error("Error deleting document", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal menghapus dokumen");
     res.redirect("/admin/documents");
   }

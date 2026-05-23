@@ -43,7 +43,7 @@ const showActivationForm = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error("Error showing activation form", { error: error.message });
+    logger.error("Error showing activation form", { error: error.message, stack: error.stack });
     res.render("auth/activate-error", {
       title: "Activation Error",
       error: "An error occurred. Please try again later.",

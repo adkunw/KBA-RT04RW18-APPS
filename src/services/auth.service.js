@@ -64,6 +64,7 @@ const authenticateUser = async (phone, password) => {
     language: user.language || "id",
     roles: user.roles.map((ur) => ur.role.name),
     permissions: [...new Set(permissions)], // Remove duplicates
+    corridorId: user.corridorId,
   };
 };
 
@@ -79,6 +80,7 @@ const createSession = (req, userData) => {
   req.session.userLanguage = userData.language;
   req.session.userRoles = userData.roles;
   req.session.userPermissions = userData.permissions;
+  req.session.userCorridorId = userData.corridorId;
 };
 
 /**

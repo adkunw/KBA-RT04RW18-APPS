@@ -10,6 +10,7 @@ const createUserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().min(1, "Phone is required"),
   roleId: z.string().min(1, "Role is required"),
+  corridorId: z.string().optional().nullable(),
 });
 
 const updateUserSchema = z.object({
@@ -17,6 +18,7 @@ const updateUserSchema = z.object({
   phone: z.string().min(1, "Phone is required"),
   status: z.enum(["created", "active", "inactive", "blocked"]),
   roleId: z.string().min(1, "Role is required"),
+  corridorId: z.string().optional().nullable(),
   houseNumber: z.string().optional().nullable(),
   familyDetails: z.string().optional().nullable(),
   birthDate: z.string().optional().nullable(),
@@ -41,15 +43,33 @@ const listUsers = async (req, res) => {
     const search = req.query.search || "";
     const status = req.query.status || "";
     const roleId = req.query.roleId || "";
+    let corridorId = req.query.corridorId || "";
 
-    const filters = { search, status, roleId };
+    const filters = { 
+      search, 
+      status, 
+      roleId, 
+      corridorId,
+      excludeRoles: ["super_admin", "admin", "system_admin"] 
+    };
+
+    // Implement warga.read_corridor permission
+    const permissions = req.session.userPermissions || [];
+    if (!permissions.includes("warga.read") && permissions.includes("warga.read_corridor")) {
+      filters.corridorId = req.session.userCorridorId || null;
+    }
 
     const users = await userService.listUsers(skip, limit, filters);
     const totalCount = await userService.countUsers(filters);
     const totalPages = Math.ceil(totalCount / limit);
 
     // Get all available roles for the filter dropdown
-    const roles = await prisma.role.findMany();
+    const roles = await prisma.role.findMany({
+      where: {
+        name: { notIn: ["super_admin", "admin", "system_admin"] }
+      }
+    });
+    const corridors = await prisma.corridor.findMany({ orderBy: { name: 'asc' } });
 
     res.render("admin/users/index", {
       title: "User Management",
@@ -61,13 +81,15 @@ const listUsers = async (req, res) => {
       search,
       status,
       roleId,
+      corridorId,
+      corridors,
       user: {
         id: req.session.userId,
         name: req.session.userName,
       },
     });
   } catch (error) {
-    logger.error("Error listing users", { error: error.message });
+    logger.error("Error listing users", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load users");
     res.redirect("/admin");
   }
@@ -79,12 +101,18 @@ const listUsers = async (req, res) => {
 const showCreateForm = async (req, res) => {
   try {
     // Get all available roles
-    const roles = await prisma.role.findMany();
+    const roles = await prisma.role.findMany({
+      where: {
+        name: { notIn: ["super_admin", "admin", "system_admin"] }
+      }
+    });
+    const corridors = await prisma.corridor.findMany({ orderBy: { name: 'asc' } });
     const flash = req.flash();
 
     res.render("admin/users/create", {
       title: "Create User",
       roles,
+      corridors,
       user: {
         id: req.session.userId,
         name: req.session.userName,
@@ -93,7 +121,7 @@ const showCreateForm = async (req, res) => {
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading create form", { error: error.message });
+    logger.error("Error loading create form", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load form");
     res.redirect("/admin/users");
   }
@@ -115,11 +143,11 @@ const createUser = async (req, res) => {
       return res.redirect("/admin/users/create");
     }
 
-    const { name, phone, roleId } = validation.data;
+    const { name, phone, roleId, corridorId } = validation.data;
 
     // Create user and token
     const { user, activationToken } = await userService.createUser(
-      { name, phone },
+      { name, phone, corridorId },
       roleId,
     );
 
@@ -131,10 +159,10 @@ const createUser = async (req, res) => {
       createdBy: req.session.userId,
     });
 
-    // Render confirmation page with activation link
     res.render("admin/users/created", {
       title: "User Created",
-      user,
+      user: { id: req.session.userId, name: req.session.userName },
+      createdUser: user,
       activationLink,
       activationToken: activationToken.token,
     });
@@ -146,7 +174,7 @@ const createUser = async (req, res) => {
       });
       req.flash("error", "Phone number already exists");
     } else {
-      logger.error("Error creating user", { error: error.message });
+      logger.error("Error creating user", { error: error.message, stack: error.stack });
       req.flash("error", error.message || "Failed to create user");
     }
     res.redirect("/admin/users/create");
@@ -181,13 +209,13 @@ const viewUser = async (req, res) => {
 
     res.render("admin/users/view", {
       title: "User Details",
-      user,
+      user: { id: req.session.userId, name: req.session.userName },
       viewedUser: user,
       activationLink,
       approvedDocuments,
     });
   } catch (error) {
-    logger.error("Error viewing user", { error: error.message });
+    logger.error("Error viewing user", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load user");
     res.redirect("/admin/users");
   }
@@ -224,8 +252,38 @@ const resetPassword = async (req, res) => {
     req.flash("success", `Password reset for ${user.name}. New activation link generated.`);
     res.redirect(`/admin/users/${id}`);
   } catch (error) {
-    logger.error("Error resetting password", { error: error.message });
+    logger.error("Error resetting password", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to reset password");
+    res.redirect(`/admin/users/${req.params.id}`);
+  }
+};
+
+/**
+ * POST /admin/users/:id/recreate-activation - Recreate activation token when expired
+ */
+const recreateActivationKey = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await userService.getUserById(id);
+
+    if (!user) {
+      req.flash("error", "User not found");
+      return res.redirect("/admin/users");
+    }
+
+    if (user.status !== "created") {
+      req.flash("error", "Warga sudah aktif atau berstatus non-aktif");
+      return res.redirect(`/admin/users/${id}`);
+    }
+
+    // Generate new token (it invalidates old unused ones and creates new one)
+    await activationService.resendActivationToken(id);
+
+    req.flash("success", `Kunci aktivasi baru berhasil dibuat untuk warga ${user.name}.`);
+    res.redirect(`/admin/users/${id}`);
+  } catch (error) {
+    logger.error("Error recreating activation key", { error: error.message, stack: error.stack });
+    req.flash("error", "Gagal membuat kunci aktivasi baru");
     res.redirect(`/admin/users/${req.params.id}`);
   }
 };
@@ -242,19 +300,25 @@ const showEditForm = async (req, res) => {
       return res.redirect("/admin/users");
     }
 
-    const roles = await prisma.role.findMany();
+    const roles = await prisma.role.findMany({
+      where: {
+        name: { notIn: ["super_admin", "admin", "system_admin"] }
+      }
+    });
+    const corridors = await prisma.corridor.findMany({ orderBy: { name: 'asc' } });
     const flash = req.flash();
 
     res.render("admin/users/edit", {
       title: "Edit User",
       editUser: user,
       roles,
+      corridors,
       user: { id: req.session.userId, name: req.session.userName },
       error: flash.error?.[0] || null,
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading edit form", { error: error.message });
+    logger.error("Error loading edit form", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to load edit form");
     res.redirect("/admin/users");
   }
@@ -278,6 +342,7 @@ const updateUser = async (req, res) => {
       phone, 
       status, 
       roleId, 
+      corridorId,
       houseNumber, 
       familyDetails,
       birthDate,
@@ -327,7 +392,8 @@ const updateUser = async (req, res) => {
       data: { 
         name, 
         phone, 
-        status, 
+        status,
+        corridorId,
         houseNumber, 
         familyDetails,
         birthDate,
@@ -350,7 +416,7 @@ const updateUser = async (req, res) => {
     req.flash("success", "User updated successfully");
     res.redirect(`/admin/users/${id}`);
   } catch (error) {
-    logger.error("Error updating user", { error: error.message });
+    logger.error("Error updating user", { error: error.message, stack: error.stack });
     req.flash("error", "Failed to update user");
     res.redirect(`/admin/users/${req.params.id}/edit`);
   }
@@ -422,9 +488,9 @@ const downloadImportTemplate = (req, res) => {
   res.setHeader("Content-Disposition", 'attachment; filename="template_bulk_warga.csv"');
   // UTF-8 BOM to support proper opening in Excel without character issues
   res.write("\uFEFF");
-  res.write("Nama,Telepon,Nomor Rumah\n");
-  res.write("Budi Santoso,08123456789,B-12\n");
-  res.write("Siti Aminah,08987654321,C-05\n");
+  res.write("Nama,Telepon,Nomor Rumah,Koridor\n");
+  res.write("Budi Santoso,08123456789,B-12,G Bawah\n");
+  res.write("Siti Aminah,08987654321,C-05,G Tengah\n");
   res.end();
 };
 
@@ -450,6 +516,7 @@ const uploadAndReviewImport = async (req, res) => {
     const nameIdx = headers.indexOf("nama");
     const phoneIdx = headers.indexOf("telepon");
     const houseNumberIdx = headers.indexOf("nomor rumah");
+    const corridorIdx = headers.indexOf("koridor");
 
     if (nameIdx === -1 || phoneIdx === -1 || houseNumberIdx === -1) {
       req.flash("error", "Format header CSV salah. Harus memiliki kolom: Nama, Telepon, dan Nomor Rumah.");
@@ -465,10 +532,11 @@ const uploadAndReviewImport = async (req, res) => {
       const name = row[nameIdx] || "";
       const phone = (row[phoneIdx] || "").trim().replace(/[-\s]/g, ""); // Clean formatting like dashes/spaces
       const houseNumber = (row[houseNumberIdx] || "").trim();
+      const corridorName = corridorIdx !== -1 ? (row[corridorIdx] || "").trim() : "";
 
       if (!name || !phone) continue;
 
-      entries.push({ name, phone, houseNumber, roleName: "warga" });
+      entries.push({ name, phone, houseNumber, corridorName, roleName: "warga" });
     }
 
     if (entries.length === 0) {
@@ -479,7 +547,7 @@ const uploadAndReviewImport = async (req, res) => {
     req.session.tempImportData = entries;
     res.redirect("/admin/users/import/review");
   } catch (error) {
-    logger.error("Error parsing import file", { error: error.message });
+    logger.error("Error parsing import file", { error: error.message, stack: error.stack });
     req.flash("error", "Gagal memproses berkas CSV. Pastikan formatnya benar.");
     res.redirect("/admin/users");
   }
@@ -509,6 +577,7 @@ const showImportReview = async (req, res) => {
           name: entry.name,
           phone: entry.phone,
           houseNumber: entry.houseNumber,
+          corridorName: entry.corridorName,
           roleName: entry.roleName || "warga",
           exists: !!existingUser,
           dbName: existingUser ? existingUser.name : null,
@@ -530,7 +599,7 @@ const showImportReview = async (req, res) => {
       success: req.flash("success")?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading import review", { error: error.message });
+    logger.error("Error loading import review", { error: error.message, stack: error.stack });
     req.flash("error", "Terjadi kesalahan saat memuat data review.");
     res.redirect("/admin/users");
   }
@@ -556,6 +625,7 @@ const processImport = async (req, res) => {
 
     const rowIndices = Array.isArray(selectedRows) ? selectedRows.map(Number) : [Number(selectedRows)];
     const roles = await prisma.role.findMany();
+    const corridors = await prisma.corridor.findMany();
 
     let createdCount = 0;
     let updatedCount = 0;
@@ -575,6 +645,15 @@ const processImport = async (req, res) => {
         where: { phone: row.phone }
       });
 
+      // Resolve corridorId if corridorName is provided
+      let corridorId = null;
+      if (row.corridorName) {
+        const matchingCorridor = corridors.find(c => c.name.toLowerCase() === row.corridorName.toLowerCase());
+        if (matchingCorridor) {
+          corridorId = matchingCorridor.id;
+        }
+      }
+
       if (existingUser) {
         // Overwrite/menimpa data lama
         await prisma.$transaction(async (tx) => {
@@ -582,7 +661,8 @@ const processImport = async (req, res) => {
             where: { id: existingUser.id },
             data: { 
               name: row.name,
-              houseNumber: row.houseNumber || null
+              houseNumber: row.houseNumber || null,
+              corridorId: corridorId || existingUser.corridorId
             }
           });
 
@@ -602,7 +682,7 @@ const processImport = async (req, res) => {
       } else {
         // Create new user (using transaction via userService)
         await userService.createUser(
-          { name: row.name, phone: row.phone, houseNumber: row.houseNumber },
+          { name: row.name, phone: row.phone, houseNumber: row.houseNumber, corridorId },
           dbRole.id
         );
         createdCount++;
@@ -615,7 +695,7 @@ const processImport = async (req, res) => {
     req.flash("success", `Berhasil memproses import warga. Warga Baru: ${createdCount}, Data Diperbarui: ${updatedCount}.`);
     res.redirect("/admin/users");
   } catch (error) {
-    logger.error("Error processing import", { error: error.message });
+    logger.error("Error processing import", { error: error.message, stack: error.stack });
     req.flash("error", `Terjadi kesalahan saat memproses import: ${error.message}`);
     res.redirect("/admin/users/import/review");
   }
@@ -629,6 +709,7 @@ module.exports = {
   showEditForm,
   updateUser,
   resetPassword,
+  recreateActivationKey,
   downloadImportTemplate,
   uploadAndReviewImport,
   showImportReview,

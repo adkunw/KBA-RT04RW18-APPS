@@ -163,6 +163,50 @@
       </div>
     </div>
 
+    <!-- HANDOVER STATUS -->
+    <% if (typeof handoverStatus !== 'undefined' && handoverStatus.length > 0) { %>
+      <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm mb-8">
+        <div class="p-6 border-b border-slate-100">
+          <h2 class="font-bold text-lg text-slate-900">Status Penyerahan Dana Koridor</h2>
+          <p class="text-xs text-slate-400 mt-1">Dana yang terkumpul dan belum diserahkan ke masing-masing Koordinator.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-slate-50">
+          <% handoverStatus.forEach(status => { %>
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col">
+              <h3 class="font-bold text-slate-800 text-lg mb-3 flex items-center gap-2">
+                <i data-lucide="map-pin" class="w-4 h-4 text-brand-500"></i> <%= status.corridor.name %>
+              </h3>
+              <div class="space-y-2 mb-5 flex-1">
+                <div class="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+                  <span class="text-slate-500 font-medium">Kas RT Pending</span>
+                  <span class="font-bold <%= status.pending.kas > 0 ? 'text-amber-600' : 'text-slate-800' %>">Rp <%= status.pending.kas.toLocaleString('id-ID') %></span>
+                </div>
+                <div class="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+                  <span class="text-slate-500 font-medium">Iuran Tetap Pending</span>
+                  <span class="font-bold <%= status.pending.fixed > 0 ? 'text-amber-600' : 'text-slate-800' %>">Rp <%= status.pending.fixed.toLocaleString('id-ID') %></span>
+                </div>
+                <% Object.keys(status.pending.others).forEach(desc => { %>
+                  <div class="flex justify-between items-center text-sm border-b border-slate-100 pb-2 pt-2">
+                    <span class="text-slate-500 font-medium">Lainnya: <%= desc %></span>
+                    <span class="font-bold text-amber-600">Rp <%= status.pending.others[desc].toLocaleString('id-ID') %></span>
+                  </div>
+                <% }) %>
+              </div>
+              <% if (status.pending.hasPending) { %>
+                <button onclick="openHandoverModal('<%= status.corridor.id %>', '<%= status.corridor.name %>', <%= status.pending.kas %>, <%= status.pending.fixed %>, '<%= JSON.stringify(status.pending.others).replace(/'/g, `\\'`).replace(/"/g, `&quot;`) %>')" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-md shadow-brand-500/20 transition-all flex justify-center items-center gap-2">
+                  <i data-lucide="send" class="w-4 h-4"></i> Serahkan Dana
+                </button>
+              <% } else { %>
+                <div class="w-full py-2.5 bg-slate-100 text-slate-400 rounded-xl text-sm font-bold text-center border border-slate-200 flex justify-center items-center gap-2">
+                  <i data-lucide="check" class="w-4 h-4"></i> Tuntas
+                </div>
+              <% } %>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
     <!-- PAYMENTS TABLE -->
     <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
       <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -269,6 +313,80 @@
           </table>
         </div>
       <% } %>
+    </div>
+  </div>
+
+  <!-- HANDOVER MODAL -->
+  <div id="handoverModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200 flex flex-col">
+      <div class="flex justify-between items-center px-6 py-5 border-b border-slate-100">
+        <h3 class="font-bold text-lg text-slate-900 flex items-center gap-2">
+          <i data-lucide="send" class="w-5 h-5 text-brand-600"></i> <span id="handoverTitle">Serahkan Dana</span>
+        </h3>
+        <button type="button" onclick="closeHandoverModal()" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <form id="handoverForm" method="POST" action="">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        
+        <div class="p-6 space-y-4">
+          <p class="text-sm font-medium text-slate-600 mb-2">Pilih rincian dana yang akan diserahkan ke Koordinator <span id="handoverCorridorName" class="font-bold text-slate-900"></span>:</p>
+          
+          <!-- Kas -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-2">
+              <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
+                <input type="checkbox" id="checkKas" onchange="toggleHandoverInput('Kas')" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                Kas RT
+              </label>
+              <span class="text-xs font-semibold text-slate-500">Maks: Rp <span id="maxKas">0</span></span>
+            </div>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <span class="text-slate-400 text-sm font-semibold">Rp</span>
+              </div>
+              <input type="number" name="amountKas" id="amountKasInput" value="0" min="0" disabled class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-400 transition-colors">
+            </div>
+          </div>
+
+          <!-- Fixed -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div class="flex justify-between items-center mb-2">
+              <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
+                <input type="checkbox" id="checkFixed" onchange="toggleHandoverInput('Fixed')" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                Iuran Tetap
+              </label>
+              <span class="text-xs font-semibold text-slate-500">Maks: Rp <span id="maxFixed">0</span></span>
+            </div>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <span class="text-slate-400 text-sm font-semibold">Rp</span>
+              </div>
+              <input type="number" name="amountFixed" id="amountFixedInput" value="0" min="0" disabled class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-400 transition-colors">
+            </div>
+          </div>
+
+          <!-- Dynamic Others Container -->
+          <div id="dynamicOthersContainer" class="space-y-4"></div>
+
+          <!-- Notes -->
+          <div class="space-y-1.5 pt-2">
+            <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Catatan Tambahan</label>
+            <textarea name="notes" rows="2" class="px-3.5 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="Misal: Diserahkan tunai ke Bpk. Budi"></textarea>
+          </div>
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+          <button type="button" onclick="closeHandoverModal()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl text-sm hover:bg-slate-100 shadow-sm transition-all">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5">
+            <i data-lucide="send" class="w-4 h-4"></i> Proses Penyerahan
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -433,6 +551,81 @@
       } else {
         container.classList.add("hidden");
       }
+    }
+    function openHandoverModal(corridorId, corridorName, pendingKas, pendingFixed, pendingOthersStr) {
+      document.getElementById("handoverForm").action = `/admin/finance/period/<%= period.id %>/handover/${corridorId}`;
+      document.getElementById("handoverCorridorName").innerText = corridorName;
+      
+      // Kas
+      document.getElementById("maxKas").innerText = pendingKas.toLocaleString('id-ID');
+      document.getElementById("amountKasInput").max = pendingKas;
+      document.getElementById("amountKasInput").value = pendingKas;
+      document.getElementById("amountKasInput").disabled = true;
+      document.getElementById("checkKas").checked = false;
+      document.getElementById("checkKas").disabled = pendingKas <= 0;
+
+      // Fixed
+      document.getElementById("maxFixed").innerText = pendingFixed.toLocaleString('id-ID');
+      document.getElementById("amountFixedInput").max = pendingFixed;
+      document.getElementById("amountFixedInput").value = pendingFixed;
+      document.getElementById("amountFixedInput").disabled = true;
+      document.getElementById("checkFixed").checked = false;
+      document.getElementById("checkFixed").disabled = pendingFixed <= 0;
+
+      // Others
+      const container = document.getElementById("dynamicOthersContainer");
+      container.innerHTML = "";
+      
+      let pendingOthers = {};
+      try {
+        // Decode &quot; back to " before parsing
+        pendingOthers = JSON.parse(pendingOthersStr.replace(/&quot;/g, '"'));
+      } catch(e) {
+        console.error("Failed to parse pendingOthers", e);
+      }
+      
+      if (pendingOthers && typeof pendingOthers === 'object') {
+        let index = 0;
+        for (const [desc, amount] of Object.entries(pendingOthers)) {
+          const idSuffix = "Other_" + index;
+          const escapedDesc = desc.replace(/"/g, '&quot;');
+          const html = `
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div class="flex justify-between items-center mb-2">
+                <label class="flex items-center gap-2 font-bold text-slate-800 cursor-pointer">
+                  <input type="checkbox" id="check${idSuffix}" onchange="toggleHandoverInput('${idSuffix}')" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                  Lainnya: ${escapedDesc}
+                </label>
+                <span class="text-xs font-semibold text-slate-500">Maks: Rp <span>${amount.toLocaleString('id-ID')}</span></span>
+              </div>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <span class="text-slate-400 text-sm font-semibold">Rp</span>
+                </div>
+                <input type="number" name="amountOther[${escapedDesc}]" id="amount${idSuffix}Input" value="${amount}" max="${amount}" min="0" disabled class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:bg-slate-100 disabled:text-slate-400 transition-colors">
+              </div>
+            </div>
+          `;
+          container.insertAdjacentHTML('beforeend', html);
+          index++;
+        }
+      }
+
+      const modal = document.getElementById("handoverModal");
+      modal.style.display = "flex";
+      modal.classList.remove("hidden");
+    }
+
+    function closeHandoverModal() {
+      const modal = document.getElementById("handoverModal");
+      modal.style.display = "none";
+      modal.classList.add("hidden");
+    }
+
+    function toggleHandoverInput(type) {
+      const check = document.getElementById("check" + type);
+      const input = document.getElementById("amount" + type + "Input");
+      input.disabled = !check.checked;
     }
   </script>
 </main>

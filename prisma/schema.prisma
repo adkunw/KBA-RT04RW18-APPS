@@ -19,6 +19,7 @@ model User {
   status    UserStatus @default(created)
   language  String     @default("id")
   lastLogin DateTime?
+  corridorId    String?
   houseNumber   String?
   familyDetails String?
   
@@ -45,11 +46,31 @@ model User {
   reviewedPayments   PaymentReport[]    @relation("PaymentReviewer")
   expensesCreated    FinanceExpense[]   @relation("ExpenseCreator")
   incomesCreated     FinanceIncome[]    @relation("IncomeCreator")
+  handoversCreated   FinanceHandover[]  @relation("HandoverCreator")
 
   reports            Report[]
   reportReplies      ReportReply[]
 
+  corridor           Corridor?          @relation(fields: [corridorId], references: [id])
+
   @@map("users")
+}
+
+// Corridors table
+model Corridor {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users            User[]
+  paymentReports   PaymentReport[]
+  financeIncomes   FinanceIncome[]
+  financeExpenses  FinanceExpense[]
+  financeHandovers FinanceHandover[]
+
+  @@map("corridors")
 }
 
 // User Status Enum
@@ -210,12 +231,40 @@ model FinancePeriod {
   updatedAt       DateTime @updatedAt
 
   payments        PaymentReport[]
+  handovers       FinanceHandover[]
+}
+
+model FinanceHandover {
+  id          String   @id @default(cuid())
+  periodId    String
+  corridorId  String
+  
+  amountKas   Int      @default(0)
+  amountFixed Int      @default(0)
+  amountOther Int      @default(0)
+  otherDetails Json?
+  totalAmount Int
+  
+  notes       String?
+  
+  handedOverAt DateTime @default(now())
+  handedOverBy String
+
+  period      FinancePeriod @relation(fields: [periodId], references: [id])
+  corridor    Corridor      @relation(fields: [corridorId], references: [id])
+  bendahara   User          @relation("HandoverCreator", fields: [handedOverBy], references: [id])
+
+  expenses    FinanceExpense[]
+  incomes     FinanceIncome[]
+
+  @@map("finance_handovers")
 }
 
 model PaymentReport {
   id               String   @id @default(cuid())
   userId           String
   periodId         String
+  corridorId       String?
   
   // Rincian Pembayaran
   hasFixedDues     Boolean  @default(false)
@@ -242,6 +291,7 @@ model PaymentReport {
   user             User          @relation("PaymentUploader", fields: [userId], references: [id])
   reviewer         User?         @relation("PaymentReviewer", fields: [reviewedBy], references: [id])
   period           FinancePeriod @relation(fields: [periodId], references: [id])
+  corridor         Corridor?     @relation(fields: [corridorId], references: [id])
 }
 
 enum PaymentStatus {
@@ -267,6 +317,7 @@ model Report {
   title     String
   content   String
   mediaPath String?
+  isAnonymous Boolean      @default(false)
   status    ReportStatus @default(open)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
@@ -313,10 +364,14 @@ model FinanceExpense {
   date          DateTime // Tanggal pengeluaran
   proofFilePath String?  // Bukti transaksi pengeluaran (foto/PDF/video)
   createdById   String   // ID pembuat data
+  corridorId    String?  // Koridor jika ini pengeluaran koridor
+  handoverId    String?  // ID Handover jika di-generate dari penyerahan kas
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   createdBy     User     @relation("ExpenseCreator", fields: [createdById], references: [id])
+  corridor      Corridor? @relation(fields: [corridorId], references: [id])
+  handover      FinanceHandover? @relation(fields: [handoverId], references: [id], onDelete: Cascade)
 
   @@map("finance_expenses")
 }
@@ -330,10 +385,14 @@ model FinanceIncome {
   date          DateTime // Tanggal pemasukan
   proofFilePath String?  // Bukti transaksi pemasukan (foto/PDF/video)
   createdById   String   // ID pembuat data
+  corridorId    String?  // Koridor jika ini pemasukan koridor
+  handoverId    String?  // ID Handover jika di-generate dari penyerahan kas
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   createdBy     User     @relation("IncomeCreator", fields: [createdById], references: [id])
+  corridor      Corridor? @relation(fields: [corridorId], references: [id])
+  handover      FinanceHandover? @relation(fields: [handoverId], references: [id], onDelete: Cascade)
 
   @@map("finance_incomes")
 }

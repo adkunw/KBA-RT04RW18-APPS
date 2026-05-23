@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
  <meta charset="UTF-8">
@@ -94,7 +94,7 @@
  <a href="/portal/reports/<%= report.id %>" style="text-decoration: none; color: inherit;"><%= report.title %></a>
  </h3>
  <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">
- Oleh <strong><%= report.author.name %></strong> • <%= new Date(report.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+ Oleh <strong><%= report.isAnonymous ? 'Warga Anonim' : report.author.name %></strong> • <%= new Date(report.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
  </p>
  </div>
  <div>

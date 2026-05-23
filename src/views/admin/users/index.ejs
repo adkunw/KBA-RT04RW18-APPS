@@ -81,6 +81,19 @@
             <% } %>
           </select>
         </div>
+
+        <!-- Filter Koridor -->
+        <div class="relative">
+          <select name="corridorId" class="w-full text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" style="padding:0.6rem 1rem;border-radius:12px;border:1px solid var(--gray-300);width:100%;">
+            <option value="">Semua Koridor</option>
+            <option value="null" <%= typeof corridorId !== 'undefined' && corridorId === 'null' ? 'selected' : '' %>>Tidak Ada Koridor</option>
+            <% if (typeof corridors !== 'undefined' && corridors) { %>
+              <% corridors.forEach(c => { %>
+                <option value="<%= c.id %>" <%= typeof corridorId !== 'undefined' && corridorId === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }) %>
+            <% } %>
+          </select>
+        </div>
       </div>
       
       <div class="flex justify-end gap-2 border-t border-slate-100 pt-3" style="display:flex;justify-content:flex-end;gap:0.5rem;border-top:1px solid var(--gray-100);padding-top:0.75rem;">
@@ -111,6 +124,7 @@
               <th>Phone</th>
               <th>Nomor KK</th>
               <th>Nomor Rumah</th>
+              <th>Koridor</th>
               <th>Status</th>
               <th>Roles</th>
               <th>Created</th>
@@ -125,9 +139,23 @@
                 <td style="font-family:monospace; color:var(--gray-700);"><%= u.kkNumber || '-' %></td>
                 <td style="font-weight:600;"><%= u.houseNumber || '-' %></td>
                 <td>
-                  <span class="badge badge-<%= u.status %>">
-                    <%= u.status %>
-                  </span>
+                  <% if (u.corridor) { %>
+                    <span class="badge" style="background:var(--brand-100); color:var(--brand-700);"><%= u.corridor.name %></span>
+                  <% } else { %>
+                    <span style="color:var(--gray-500);">-</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% 
+                  const isExpired = u.status === 'created' && u.activationTokens && u.activationTokens.length > 0 && new Date() > new Date(u.activationTokens[0].expiredAt);
+                  %>
+                  <% if (u.status === 'created' && isExpired) { %>
+                    <span class="badge badge-warning" style="background:#FEE2E2; color:#991B1B; border:1px solid #FCA5A5; font-size:0.75rem; font-weight:700; display:inline-block; padding: 0.25rem 0.5rem; border-radius: 6px;">Activation Expired</span>
+                  <% } else if (u.status === 'created') { %>
+                    <span class="badge badge-created" style="background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; font-size:0.75rem; font-weight:700; display:inline-block; padding: 0.25rem 0.5rem; border-radius: 6px;">Pending Activation</span>
+                  <% } else { %>
+                    <span class="badge badge-<%= u.status %>" style="font-size:0.75rem; font-weight:700; display:inline-block; padding: 0.25rem 0.5rem; border-radius: 6px;"><%= u.status %></span>
+                  <% } %>
                 </td>
                 <td>
                   <% if (u.roles.length > 0) { %>

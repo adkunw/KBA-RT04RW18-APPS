@@ -9,7 +9,7 @@ const activationService = require("./activation.service");
  * @returns {Promise<Object>} Created user with role
  */
 const createUser = async (userData, roleId) => {
-  const { name, phone, houseNumber } = userData;
+  const { name, phone, houseNumber, corridorId } = userData;
 
   // Validate inputs
   if (!name || !phone || !roleId) {
@@ -33,6 +33,7 @@ const createUser = async (userData, roleId) => {
         name,
         phone,
         houseNumber: houseNumber || null,
+        corridorId: corridorId || null,
         status: "created",
         password: null,
       },
@@ -89,6 +90,11 @@ const getUserById = async (userId) => {
           },
         },
       },
+      activationTokens: {
+        where: { usedAt: null },
+        orderBy: { createdAt: "desc" },
+      },
+      corridor: true,
     },
   });
 
@@ -116,7 +122,7 @@ const getUserByPhone = async (phone) => {
  * @returns {Promise<Array>} Users array
  */
 const listUsers = async (skip = 0, take = 10, filters = {}) => {
-  const { search, status, roleId } = filters;
+  const { search, status, roleId, corridorId } = filters;
   const where = {};
 
   if (status) {
@@ -129,6 +135,32 @@ const listUsers = async (skip = 0, take = 10, filters = {}) => {
         roleId: roleId,
       },
     };
+  }
+
+  if (corridorId !== undefined && corridorId !== "") {
+    if (corridorId === "null") {
+      where.corridorId = null;
+    } else {
+      where.corridorId = corridorId;
+    }
+  }
+
+  if (filters.excludeRoles && filters.excludeRoles.length > 0) {
+    if (where.roles) {
+      where.roles.none = {
+        role: {
+          name: { in: filters.excludeRoles },
+        },
+      };
+    } else {
+      where.roles = {
+        none: {
+          role: {
+            name: { in: filters.excludeRoles },
+          },
+        },
+      };
+    }
   }
 
   if (search) {
@@ -150,6 +182,12 @@ const listUsers = async (skip = 0, take = 10, filters = {}) => {
           role: true,
         },
       },
+      corridor: true,
+      activationTokens: {
+        where: { usedAt: null },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -165,7 +203,7 @@ const listUsers = async (skip = 0, take = 10, filters = {}) => {
  * @returns {Promise<number>} Total user count
  */
 const countUsers = async (filters = {}) => {
-  const { search, status, roleId } = filters;
+  const { search, status, roleId, corridorId } = filters;
   const where = {};
 
   if (status) {
@@ -178,6 +216,32 @@ const countUsers = async (filters = {}) => {
         roleId: roleId,
       },
     };
+  }
+
+  if (corridorId !== undefined && corridorId !== "") {
+    if (corridorId === "null") {
+      where.corridorId = null;
+    } else {
+      where.corridorId = corridorId;
+    }
+  }
+
+  if (filters.excludeRoles && filters.excludeRoles.length > 0) {
+    if (where.roles) {
+      where.roles.none = {
+        role: {
+          name: { in: filters.excludeRoles },
+        },
+      };
+    } else {
+      where.roles = {
+        none: {
+          role: {
+            name: { in: filters.excludeRoles },
+          },
+        },
+      };
+    }
   }
 
   if (search) {

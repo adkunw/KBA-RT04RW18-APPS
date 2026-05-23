@@ -44,7 +44,7 @@ const getDashboard = async (req, res) => {
       recentUsers,
     });
   } catch (error) {
-    logger.error("Error loading dashboard", { error: error.message });
+    logger.error("Error loading dashboard", { error: error.message, stack: error.stack });
     res.status(500).send("Error loading dashboard");
   }
 };

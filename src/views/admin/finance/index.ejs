@@ -35,8 +35,20 @@
     <!-- PAGE HEADER -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-slate-900 font-display">Pengelolaan Keuangan RT</h1>
-        <p class="text-sm text-slate-500">Pantau rekap kas warga, kelola periode iuran bulanan, catat pemasukan lain, dan pengeluaran RT.</p>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900 font-display">
+          Pengelolaan Keuangan 
+          <% if (hasGlobalFinance) { %>
+            <select onchange="window.location.href='?corridorId=' + this.value" class="ml-2 inline-block rounded-lg border-slate-300 text-lg font-bold py-1 pl-3 pr-8 focus:ring-brand-500 focus:border-brand-500">
+              <option value="">RT</option>
+              <% corridors.forEach(c => { %>
+                <option value="<%= c.id %>" <%= filterCorridorId === c.id ? 'selected' : '' %>>Koridor <%= c.name %></option>
+              <% }) %>
+            </select>
+          <% } else { %>
+            Koridor
+          <% } %>
+        </h1>
+        <p class="text-sm text-slate-500 mt-1">Pantau rekap kas warga, kelola periode iuran bulanan, catat pemasukan lain, dan pengeluaran <%= hasGlobalFinance && !filterCorridorId ? 'RT' : 'Koridor' %>.</p>
       </div>
       <div class="flex flex-wrap gap-3">
         <button type="button" onclick="openIncomeModal()" class="btn bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold shadow-sm transition-all duration-200">
@@ -138,15 +150,18 @@
       </div>
     </div>
 
-    <!-- 📅 EKSPOR LAPORAN KEUANGAN RT -->
+    <!-- 📅 EKSPOR LAPORAN KEUANGAN -->
     <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <h3 class="font-bold text-base text-slate-900 flex items-center gap-2 font-display">
-          <i data-lucide="download-cloud" class="w-5 h-5 text-indigo-600"></i> Ekspor Laporan Keuangan RT
+          <i data-lucide="download-cloud" class="w-5 h-5 text-indigo-600"></i> Ekspor Laporan Keuangan <%= hasGlobalFinance ? 'RT' : 'Koridor' %>
         </h3>
         <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-100">Format Excel/CSV</span>
       </div>
       <form action="/admin/finance/export" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <% if (filterCorridorId) { %>
+          <input type="hidden" name="corridorId" value="<%= filterCorridorId %>">
+        <% } %>
         <div class="space-y-1.5">
           <label class="block text-xs font-semibold text-slate-700">Tanggal Mulai</label>
           <input type="date" name="startDate" id="exportStartDate" required class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-slate-50/50">
@@ -171,7 +186,7 @@
         <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
           <div class="p-6 border-b border-slate-100 flex items-center justify-between">
             <h2 class="font-bold text-lg text-slate-900 flex items-center gap-2 font-display">
-              <i data-lucide="arrow-down-left" class="w-5 h-5 text-emerald-500"></i> Rincian Pemasukan Lain RT
+              <i data-lucide="arrow-down-left" class="w-5 h-5 text-emerald-500"></i> Rincian Pemasukan Lain <%= hasGlobalFinance ? 'RT' : 'Koridor' %>
             </h2>
             <span class="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100"><%= incomes.length %> Data</span>
           </div>
@@ -192,6 +207,7 @@
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Kategori</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Keterangan / Sumber</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Koridor</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Dicatat Oleh</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Nominal</th>
                   </tr>
@@ -225,6 +241,15 @@
                           <% } %>
                         </div>
                       </td>
+                      <td class="px-6 py-4">
+                        <% if (inc.corridor) { %>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-100">
+                            <%= inc.corridor.name %>
+                          </span>
+                        <% } else { %>
+                          <span class="text-xs text-slate-400 font-medium">Kas RT</span>
+                        <% } %>
+                      </td>
                       <td class="px-6 py-4 text-xs text-slate-500 font-medium">
                         <%= inc.createdBy ? inc.createdBy.name : 'Sistem' %>
                       </td>
@@ -243,7 +268,7 @@
         <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
           <div class="p-6 border-b border-slate-100 flex items-center justify-between">
             <h2 class="font-bold text-lg text-slate-900 flex items-center gap-2 font-display">
-              <i data-lucide="receipt" class="w-5 h-5 text-rose-500"></i> Rincian Pengeluaran Kas RT
+              <i data-lucide="arrow-up-right" class="w-5 h-5 text-rose-500"></i> Rincian Pengeluaran <%= hasGlobalFinance ? 'RT' : 'Koridor' %>
             </h2>
             <span class="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100"><%= expenses.length %> Data</span>
           </div>
@@ -264,6 +289,7 @@
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tanggal</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Kategori</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Keterangan / Penerima</th>
+                    <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Koridor</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Dicatat Oleh</th>
                     <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Nominal</th>
                   </tr>
@@ -297,6 +323,15 @@
                             </a>
                           <% } %>
                         </div>
+                      </td>
+                      <td class="px-6 py-4">
+                        <% if (exp.corridor) { %>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-100">
+                            <%= exp.corridor.name %>
+                          </span>
+                        <% } else { %>
+                          <span class="text-xs text-slate-400 font-medium">Kas RT</span>
+                        <% } %>
                       </td>
                       <td class="px-6 py-4 text-xs text-slate-500 font-medium">
                         <%= exp.createdBy ? exp.createdBy.name : 'Sistem' %>
@@ -493,6 +528,20 @@
         <input type="number" name="amount" required min="1" placeholder="Contoh: 250000" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
       </div>
 
+      <% if (hasGlobalFinance) { %>
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-700">Pilih Koridor (Kosongkan jika Kas RT)</label>
+        <select name="corridorId" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+          <option value="">-- Kas Umum RT --</option>
+          <% if (typeof corridors !== 'undefined') { %>
+            <% corridors.forEach(corridor => { %>
+              <option value="<%= corridor.id %>"><%= corridor.name %></option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+      <% } %>
+
       <div class="space-y-1.5">
         <label class="block text-xs font-semibold text-slate-700">Kategori</label>
         <select name="category" required class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
@@ -555,6 +604,20 @@
         <label class="block text-xs font-semibold text-slate-700">Nominal Pengeluaran (Rp)</label>
         <input type="number" name="amount" required min="1" placeholder="Contoh: 150000" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
       </div>
+
+      <% if (hasGlobalFinance) { %>
+      <div class="space-y-1.5">
+        <label class="block text-xs font-semibold text-slate-700">Pilih Koridor (Kosongkan jika Kas RT)</label>
+        <select name="corridorId" class="block w-full p-2.5 border border-slate-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+          <option value="">-- Kas Umum RT --</option>
+          <% if (typeof corridors !== 'undefined') { %>
+            <% corridors.forEach(corridor => { %>
+              <option value="<%= corridor.id %>"><%= corridor.name %></option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+      <% } %>
 
       <div class="space-y-1.5">
         <label class="block text-xs font-semibold text-slate-700">Kategori</label>
