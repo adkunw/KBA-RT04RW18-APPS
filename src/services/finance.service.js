@@ -7,13 +7,65 @@ const path = require("path");
  * Period Management
  */
 
+const crypto = require("crypto");
+
 const createPeriod = async ({ name, month, year, fixedDuesAmount }) => {
   const period = await prisma.financePeriod.create({
     data: { name, month, year, fixedDuesAmount, isActive: true },
   });
   logger.info("Finance period created", { periodId: period.id, name });
+
+  // Auto-consume any pending BulkPaymentCredits that match this period
+  try {
+    const pendingCredits = await prisma.bulkPaymentCredit.findMany({
+      where: { targetYear: year, targetMonth: month, status: "pending" },
+      include: { user: { select: { id: true, corridorId: true } } },
+    });
+
+    for (const credit of pendingCredits) {
+      // Create an approved PaymentReport for this credit
+      const payment = await prisma.paymentReport.create({
+        data: {
+          userId: credit.userId,
+          periodId: period.id,
+          corridorId: credit.corridorId,
+          groupTransactionId: credit.groupTransactionId,
+          paymentType: "multi",
+          hasFixedDues: true,
+          fixedDuesAmount: credit.fixedDuesAmount,
+          hasKas: false,
+          kasAmount: 0,
+          otherAmount: 0,
+          totalAmount: credit.fixedDuesAmount,
+          proofFilePath: credit.proofFilePath,
+          status: "approved",
+          notes: "Otomatis disetujui dari kredit pembayaran multi-periode",
+          reviewedAt: new Date(),
+        },
+      });
+
+      // Mark credit as consumed
+      await prisma.bulkPaymentCredit.update({
+        where: { id: credit.id },
+        data: { status: "consumed", consumedAt: new Date(), consumedPaymentId: payment.id },
+      });
+
+      logger.info("BulkPaymentCredit consumed into PaymentReport", {
+        creditId: credit.id, paymentId: payment.id, userId: credit.userId,
+        year, month,
+      });
+    }
+
+    if (pendingCredits.length > 0) {
+      logger.info(`Auto-consumed ${pendingCredits.length} BulkPaymentCredits for period ${period.id}`);
+    }
+  } catch (err) {
+    logger.error("Error consuming BulkPaymentCredits during period creation", { error: err.message });
+  }
+
   return period;
 };
+
 
 const getAllPeriods = async () => {
   return await prisma.financePeriod.findMany({
@@ -775,14 +827,230 @@ const exportFinanceReport = async (startDateStr, endDateStr) => {
   return records.sort((a, b) => new Date(a.date) - new Date(b.date));
 };
 
+/**
+ * Multi-Period Payment (Advance Payment)
+ */
+
+/**
+ * Get active periods grouped by year for a specific year
+ */
+const getActivePeriodsByYear = async (year) => {
+  return await prisma.financePeriod.findMany({
+    where: { year, isActive: true },
+    orderBy: { month: "asc" },
+  });
+};
+
+/**
+ * Get all finance periods for a year (active or not), for checking availability
+ */
+const getPeriodsByYear = async (year) => {
+  return await prisma.financePeriod.findMany({
+    where: { year },
+    orderBy: { month: "asc" },
+  });
+};
+
+/**
+ * Submit multi-period (advance) payment.
+ * - Creates PaymentReport records for months that already have a FinancePeriod.
+ * - Creates BulkPaymentCredit records for future months (no period yet).
+ * - First month gets kas & other amounts; subsequent months only get fixedDues.
+ * - Skips months where user already has an approved/pending PaymentReport.
+ * 
+ * @param {string} userId
+ * @param {object} data - { startMonth, startYear, numberOfMonths, hasKas, kasAmount, otherDescription, otherAmount, filePath, fixedDuesAmountOverride? }
+ * @returns {{ created: [], credits: [], skipped: [], warnings: [] }}
+ */
+const submitMultiPaymentReport = async (userId, data) => {
+  const {
+    startMonth, startYear, numberOfMonths,
+    hasKas, kasAmount, otherDescription, otherAmount,
+    filePath,
+  } = data;
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const corridorId = user?.corridorId || null;
+
+  // Generate a shared group ID for all records in this batch
+  const groupTransactionId = crypto.randomUUID();
+
+  const months = []; // { year, month } for each target month
+  let m = startMonth;
+  let y = startYear;
+  for (let i = 0; i < numberOfMonths; i++) {
+    months.push({ year: y, month: m });
+    m++;
+    if (m > 12) { m = 1; y++; }
+  }
+
+  // Check which months already have approved/pending payments (to warn and skip)
+  const existingPayments = await prisma.paymentReport.findMany({
+    where: {
+      userId,
+      status: { in: ["pending", "approved"] },
+    },
+    include: { period: true },
+  });
+
+  // Also check existing BulkPaymentCredits
+  const existingCredits = await prisma.bulkPaymentCredit.findMany({
+    where: { userId, status: "pending" },
+  });
+
+  const skipped = [];
+  const created = [];
+  const credits = [];
+
+  for (let i = 0; i < months.length; i++) {
+    const { year, month } = months[i];
+    const isFirstMonth = i === 0;
+
+    // Check if already paid (via PaymentReport)
+    const alreadyPaid = existingPayments.find(p =>
+      p.period?.year === year && p.period?.month === month
+    );
+    // Check if already has a credit for this month
+    const alreadyCredit = existingCredits.find(c =>
+      c.targetYear === year && c.targetMonth === month
+    );
+
+    if (alreadyPaid || alreadyCredit) {
+      skipped.push({ year, month, reason: alreadyPaid ? alreadyPaid.status : "credit_exists" });
+      continue;
+    }
+
+    // Look for existing FinancePeriod
+    const period = await prisma.financePeriod.findFirst({
+      where: { year, month },
+    });
+
+    // Calculate amounts
+    const periodFixedAmount = period ? period.fixedDuesAmount : 0;
+    // For months without a period, use the first month's period amount as reference
+    // (will be corrected when period is created via auto-consume)
+    const fixedDues = period ? period.fixedDuesAmount : 0;
+    const kas = isFirstMonth && hasKas ? Number(kasAmount) : 0;
+    const other = isFirstMonth ? Number(otherAmount) || 0 : 0;
+    const total = fixedDues + kas + other;
+
+    if (period) {
+      // Create PaymentReport now
+      const payment = await prisma.paymentReport.create({
+        data: {
+          userId,
+          periodId: period.id,
+          corridorId,
+          groupTransactionId,
+          paymentType: "multi",
+          hasFixedDues: true,
+          fixedDuesAmount: fixedDues,
+          hasKas: isFirstMonth && hasKas,
+          kasAmount: kas,
+          otherDescription: isFirstMonth && otherDescription ? otherDescription : null,
+          otherAmount: other,
+          totalAmount: total,
+          proofFilePath: filePath,
+          status: "pending",
+        },
+      });
+      created.push({ year, month, paymentId: payment.id, periodId: period.id });
+    } else {
+      // Create BulkPaymentCredit for future period
+      const credit = await prisma.bulkPaymentCredit.create({
+        data: {
+          userId,
+          corridorId,
+          groupTransactionId,
+          targetYear: year,
+          targetMonth: month,
+          fixedDuesAmount: fixedDues, // Will be 0 until period is created; corrected on consume
+          proofFilePath: filePath,
+          status: "pending",
+        },
+      });
+      credits.push({ year, month, creditId: credit.id });
+    }
+  }
+
+  logger.info("Multi-period payment submitted", {
+    userId, groupTransactionId, startMonth, startYear, numberOfMonths,
+    created: created.length, credits: credits.length, skipped: skipped.length,
+  });
+
+  return { groupTransactionId, created, credits, skipped };
+};
+
+/**
+ * Bulk approve all PaymentReports in a group transaction
+ */
+const bulkApproveByGroup = async (groupTransactionId, reviewerId) => {
+  const payments = await prisma.paymentReport.findMany({
+    where: {
+      groupTransactionId,
+      status: { in: ["pending", "rejected"] },
+    },
+  });
+
+  if (payments.length === 0) {
+    throw new Error("Tidak ada pembayaran yang perlu disetujui dalam grup ini");
+  }
+
+  const updated = await prisma.paymentReport.updateMany({
+    where: {
+      groupTransactionId,
+      status: { in: ["pending", "rejected"] },
+    },
+    data: {
+      status: "approved",
+      reviewedBy: reviewerId,
+      reviewedAt: new Date(),
+      notes: "Disetujui massal melalui approve grup multi-periode",
+    },
+  });
+
+  logger.info("Bulk approve by group", {
+    groupTransactionId, reviewerId, count: updated.count,
+  });
+
+  return { count: updated.count };
+};
+
+/**
+ * Get payment history for a specific user (for admin view)
+ */
+const getUserPaymentHistory = async (userId) => {
+  const [payments, credits] = await Promise.all([
+    prisma.paymentReport.findMany({
+      where: { userId },
+      include: {
+        period: true,
+        reviewer: { select: { id: true, name: true } },
+      },
+      orderBy: [{ createdAt: "desc" }],
+    }),
+    prisma.bulkPaymentCredit.findMany({
+      where: { userId },
+      orderBy: [{ targetYear: "desc" }, { targetMonth: "desc" }],
+    }),
+  ]);
+
+  return { payments, credits };
+};
+
 module.exports = {
   createPeriod,
   getAllPeriods,
   getPeriodById,
   getActivePeriods,
+  getActivePeriodsByYear,
+  getPeriodsByYear,
   togglePeriodStatus,
   submitPaymentReport,
+  submitMultiPaymentReport,
+  bulkApproveByGroup,
   getPaymentsByUser,
+  getUserPaymentHistory,
   getPeriodResidentStatus,
   getPaymentReportById,
   approvePayment,

@@ -23,6 +23,16 @@ const submitPaymentSchema = z.object({
   otherAmount: z.coerce.number().min(0).optional(),
 });
 
+const submitMultiPaymentSchema = z.object({
+  startMonth: z.coerce.number().min(1).max(12),
+  startYear: z.coerce.number().min(2000).max(2100),
+  numberOfMonths: z.coerce.number().min(2).max(120),
+  hasKas: z.preprocess((val) => val === "true" || val === "on", z.boolean()),
+  kasAmount: z.coerce.number().min(0).optional(),
+  otherDescription: z.string().max(255).optional(),
+  otherAmount: z.coerce.number().min(0).optional(),
+});
+
 const reviewPaymentSchema = z.object({
   notes: z.string().max(500).optional(),
   otherDescription: z.string().max(255).optional(),
@@ -184,6 +194,69 @@ const postPayment = async (req, res) => {
     logger.error("Error submitting payment", { error: error.message, stack: error.stack });
     req.flash("error", error.message || "Gagal mengirim laporan pembayaran");
     res.redirect(`/portal/finance/pay?periodId=${req.body.periodId}`);
+  }
+};
+
+const getMultiPaymentForm = async (req, res) => {
+  try {
+    const hasAdminAccess = req.session.userPermissions?.includes("dashboard.view") || false;
+    const flash = req.flash();
+    
+    // Default fixed dues fallback if no period is available to copy from yet
+    let defaultFixedDues = 100000;
+    const allPeriods = await financeService.getAllPeriods();
+    if (allPeriods.length > 0) {
+      defaultFixedDues = allPeriods[0].fixedDuesAmount;
+    }
+
+    res.render("portal/finance/pay-multi", {
+      title: "Bayar Multi-Periode",
+      user: { id: req.session.userId, name: req.session.userName },
+      hasAdminAccess,
+      defaultFixedDues,
+      error: flash.error?.[0] || null,
+      success: flash.success?.[0] || null,
+    });
+  } catch (error) {
+    logger.error("Error loading multi-payment form", { error: error.message, stack: error.stack });
+    req.flash("error", "Gagal memuat form pembayaran multi-periode");
+    res.redirect("/portal/finance");
+  }
+};
+
+const postMultiPayment = async (req, res) => {
+  try {
+    if (!req.file) {
+      req.flash("error", "Bukti transfer harus diupload");
+      return res.redirect("/portal/finance/pay-multi");
+    }
+
+    const validation = submitMultiPaymentSchema.safeParse(req.body);
+    if (!validation.success) {
+      req.flash("error", "Data tidak valid. Periksa kembali input Anda.");
+      return res.redirect("/portal/finance/pay-multi");
+    }
+
+    const filePath = `/uploads/payments/${req.file.filename}`;
+    const data = {
+      ...validation.data,
+      filePath,
+      fileName: req.file.originalname,
+    };
+
+    const result = await financeService.submitMultiPaymentReport(req.session.userId, data);
+    
+    let msg = `Berhasil mensubmit pembayaran untuk ${result.created.length + result.credits.length} bulan. `;
+    if (result.skipped.length > 0) {
+      msg += `(${result.skipped.length} bulan dilewati karena sudah dibayar).`;
+    }
+
+    req.flash("success", msg);
+    res.redirect("/portal/finance");
+  } catch (error) {
+    logger.error("Error submitting multi payment", { error: error.message, stack: error.stack });
+    req.flash("error", error.message || "Gagal mengirim laporan pembayaran");
+    res.redirect("/portal/finance/pay-multi");
   }
 };
 
@@ -601,10 +674,25 @@ const adminHandoverKas = async (req, res) => {
   }
 };
 
+const adminBulkApproveGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const result = await financeService.bulkApproveByGroup(groupId, req.session.userId);
+    req.flash("success", `Berhasil menyetujui massal ${result.count} bulan untuk grup transaksi tersebut.`);
+    res.redirect("back"); // Redirect back to wherever they were (period detail or user detail)
+  } catch (error) {
+    logger.error("Error bulk approving group", { error: error.message, stack: error.stack });
+    req.flash("error", error.message || "Gagal menyetujui massal");
+    res.redirect("back");
+  }
+};
+
 module.exports = {
   getMyFinance,
   getPaymentForm,
+  getMultiPaymentForm,
   postPayment,
+  postMultiPayment,
   getMyPaymentDetail,
   adminGetFinanceDashboard,
   adminCreatePeriod,
@@ -613,6 +701,7 @@ module.exports = {
   adminGetPaymentDetail,
   adminApprovePayment,
   adminRejectPayment,
+  adminBulkApproveGroup,
   adminMarkPaid,
   adminCreateExpense,
   adminCreateIncome,

@@ -2,6 +2,7 @@ const logger = require("../utils/logger");
 const userService = require("../services/user.service");
 const activationService = require("../services/activation.service");
 const documentService = require("../services/document.service");
+const financeService = require("../services/finance.service");
 const prisma = require("../config/database");
 const { z } = require("zod");
 
@@ -195,24 +196,23 @@ const viewUser = async (req, res) => {
     }
 
     const approvedDocuments = await documentService.getDocumentsByUser(id, "approved");
+    const paymentHistory = await financeService.getUserPaymentHistory(id);
 
     let activationLink = null;
     if (user.status === "created") {
-      const tokenRecord = await prisma.activationToken.findFirst({
-        where: { userId: id, usedAt: null },
-        orderBy: { createdAt: "desc" },
-      });
-      if (tokenRecord) {
-        activationLink = `${process.env.APP_URL || "http://localhost:3000"}/activate/${tokenRecord.token}`;
+      const activeToken = user.activationTokens?.find((t) => !t.usedAt && new Date(t.expiredAt) > new Date());
+      if (activeToken) {
+        activationLink = `${process.env.APP_URL || "http://localhost:3000"}/activate/${activeToken.token}`;
       }
     }
 
     res.render("admin/users/view", {
-      title: "User Details",
+      title: "View User",
       user: { id: req.session.userId, name: req.session.userName },
       viewedUser: user,
-      activationLink,
       approvedDocuments,
+      paymentHistory,
+      activationLink,
     });
   } catch (error) {
     logger.error("Error viewing user", { error: error.message, stack: error.stack });

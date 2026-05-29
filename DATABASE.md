@@ -183,6 +183,8 @@ Menyimpan bukti pembayaran iuran bulanan dari warga.
 | `userId` | String | FK | Warga yang mengunggah |
 | `periodId` | String | FK | Periode iuran terkait |
 | `corridorId`| String?| FK | Mengunci data koridor warga saat iuran dibayar |
+| `groupTransactionId`| String?| | Group ID untuk pembayaran multi-periode sekaligus |
+| `paymentType`| String | DEFAULT("monthly") | Tipe pembayaran (monthly / multi) |
 | `hasFixedDues` | Boolean | DEFAULT(false) | Bayar iuran tetap bulanan |
 | `fixedDuesAmount` | Int | DEFAULT(0) | Nominal iuran tetap dibayar |
 | `hasKas` | Boolean | DEFAULT(false) | Bayar kas sukarela |
@@ -195,6 +197,23 @@ Menyimpan bukti pembayaran iuran bulanan dari warga.
 | `notes` | String? | | Catatan penilai / bendahara |
 | `reviewedBy` | String? | FK | Admin/bendahara penilai |
 | `reviewedAt` | DateTime? | | Tanggal penilaian |
+
+### 2B. Kredit Pembayaran Multi-Periode (`bulk_payment_credits`)
+Menyimpan pembayaran di muka untuk bulan/tahun yang belum dibuat periodenya oleh admin.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | String | PK, cuid | Primary key |
+| `userId` | String | FK | Reference ke tabel `users` |
+| `corridorId`| String?| FK | Mengunci data koridor warga saat iuran dibayar |
+| `groupTransactionId`| String | | Group ID untuk mencocokkan dengan `payment_reports` pada satu sesi bayar |
+| `targetYear`| Int | | Tahun target iuran |
+| `targetMonth`| Int | | Bulan target iuran (1-12) |
+| `fixedDuesAmount`| Int | DEFAULT(0) | Nominal iuran tetap |
+| `proofFilePath`| String | | Path berkas bukti transfer gabungan |
+| `status` | String | DEFAULT("pending") | Status ("pending", "consumed", "cancelled") |
+| `consumedAt`| DateTime?| | Tanggal kredit dipakai/di-convert ke `payment_reports` |
+| `consumedPaymentId`| String?| | ID `payment_reports` hasil convert |
 
 ### 3. Pengeluaran Keuangan (`finance_expenses`)
 Menyimpan rincian pencatatan pengeluaran dana kas RT.

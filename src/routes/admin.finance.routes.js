@@ -23,6 +23,8 @@ router.get("/payment/:id", financeController.adminGetPaymentDetail);
 router.post("/payment/:id/approve", financeController.adminApprovePayment);
 router.post("/payment/:id/reject", financeController.adminRejectPayment);
 
+router.post("/group/:groupId/approve", financeController.adminBulkApproveGroup);
+
 router.post("/period/:periodId/handover/:corridorId", financeController.adminHandoverKas);
 
 module.exports = router;

@@ -365,13 +365,19 @@
           <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-brand-500/10 rounded-full blur-xl"></div>
           
           <div class="relative z-10">
-            <div class="flex items-center gap-2 mb-6">
-              <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-                <i data-lucide="receipt" class="w-4 h-4 text-brand-200"></i>
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                  <i data-lucide="receipt" class="w-4 h-4 text-brand-200"></i>
+                </div>
+                <h2 class="font-bold text-lg text-brand-100">
+                  <%= user.language === 'en' ? 'Active Bills' : 'Tagihan Aktif Saya' %>
+                </h2>
               </div>
-              <h2 class="font-bold text-lg text-brand-100">
-                <%= user.language === 'en' ? 'Active Bills' : 'Tagihan Aktif Saya' %>
-              </h2>
+              <a href="/portal/finance/pay-multi" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-500 hover:bg-brand-400 text-white text-xs font-bold rounded-lg transition-colors shadow-sm">
+                <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+                <span><%= user.language === 'en' ? 'Pay Annual/Multi' : 'Bayar Tahunan/Multi' %></span>
+              </a>
             </div>
 
             <% if (activePeriods.length === 0) { %>

@@ -52,6 +52,7 @@ model User {
   reportReplies      ReportReply[]
 
   corridor           Corridor?          @relation(fields: [corridorId], references: [id])
+  bulkPaymentCredits BulkPaymentCredit[]
 
   @@map("users")
 }
@@ -69,6 +70,7 @@ model Corridor {
   financeIncomes   FinanceIncome[]
   financeExpenses  FinanceExpense[]
   financeHandovers FinanceHandover[]
+  bulkPaymentCredits BulkPaymentCredit[]
 
   @@map("corridors")
 }
@@ -266,6 +268,10 @@ model PaymentReport {
   periodId         String
   corridorId       String?
   
+  // Multi-period payment tracking
+  groupTransactionId String?  // Shared ID for all records in one bulk payment submission
+  paymentType        String   @default("monthly") // "monthly" | "multi"
+
   // Rincian Pembayaran
   hasFixedDues     Boolean  @default(false)
   fixedDuesAmount  Int      @default(0)
@@ -395,6 +401,33 @@ model FinanceIncome {
   handover      FinanceHandover? @relation(fields: [handoverId], references: [id], onDelete: Cascade)
 
   @@map("finance_incomes")
+}
+
+// Stores advance payments for future periods that don't have a FinancePeriod yet.
+// When admin creates a matching period, these are consumed → auto-generate approved PaymentReport.
+model BulkPaymentCredit {
+  id                 String   @id @default(cuid())
+  userId             String
+  corridorId         String?
+  groupTransactionId String   // Matches groupTransactionId in PaymentReport for the same submission
+
+  targetYear         Int      // Year of the target period
+  targetMonth        Int      // Month of the target period (1-12)
+
+  fixedDuesAmount    Int      @default(0) // Iuran wajib nominal for this month
+  proofFilePath      String   // Shared proof file from the original submission
+
+  status             String   @default("pending") // "pending" | "consumed" | "cancelled"
+  consumedAt         DateTime? // When it was converted to a PaymentReport
+  consumedPaymentId  String?   // The PaymentReport.id it was converted to
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user               User      @relation(fields: [userId], references: [id])
+  corridor           Corridor? @relation(fields: [corridorId], references: [id])
+
+  @@map("bulk_payment_credits")
 }
 
 model Session {

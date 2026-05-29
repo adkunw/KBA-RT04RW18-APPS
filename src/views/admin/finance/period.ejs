@@ -288,6 +288,11 @@
                       <span class="w-1.5 h-1.5 rounded-full <%= paymentStatus === 'pending' ? 'bg-amber-500' : paymentStatus === 'approved' ? 'bg-emerald-500' : paymentStatus === 'rejected' ? 'bg-rose-500' : 'bg-slate-400' %>"></span>
                       <%= paymentStatus === 'pending' ? 'Menunggu Review' : paymentStatus === 'approved' ? 'Lunas' : paymentStatus === 'rejected' ? 'Ditolak' : 'Belum Bayar' %>
                     </span>
+                    <% if (payment && payment.paymentType === 'multi') { %>
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100" title="Pembayaran ini mencakup beberapa bulan">
+                        <i data-lucide="layers" class="w-3 h-3"></i> Multi-Bulan
+                      </span>
+                    <% } %>
                   </td>
                   <td class="px-6 py-4 text-sm text-slate-500">
                     <%= payment && payment.reviewer ? payment.reviewer.name : '-' %>
@@ -298,6 +303,14 @@
                         <a href="/admin/finance/payment/<%= payment.id %>" class="inline-flex items-center gap-1 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors">
                           <i data-lucide="eye" class="w-3.5 h-3.5 flex-shrink-0"></i> Review
                         </a>
+                        <% if (payment.paymentType === 'multi' && payment.groupTransactionId && paymentStatus === 'pending') { %>
+                          <form action="/admin/finance/group/<%= payment.groupTransactionId %>/approve" method="POST" class="m-0 inline" onsubmit="return confirm('Setujui pembayaran ini sekaligus untuk bulan-bulan lainnya dalam grup transaksi yang sama?');">
+                            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                            <button type="submit" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors shadow-sm">
+                              <i data-lucide="check-square" class="w-3.5 h-3.5 flex-shrink-0"></i> Setujui Semua
+                            </button>
+                          </form>
+                        <% } %>
                       <% } %>
                       
                       <% if (paymentStatus !== 'approved' && users.length > 0) { %>

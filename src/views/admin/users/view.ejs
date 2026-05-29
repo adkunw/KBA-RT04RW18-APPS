@@ -261,12 +261,12 @@ const formatDate = (dateStr) => {
  <% approvedDocuments.forEach(doc => { %>
  <a href="/admin/documents/<%= doc.id %>" style="display:flex; align-items:center; gap:0.75rem; padding:1rem; border:1px solid var(--gray-200); border-radius:8px; text-decoration:none; color:inherit; transition:all 0.2s ease;" onmouseover="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 2px 8px rgba(37,99,235,0.1)';" onmouseout="this.style.borderColor='var(--gray-200)'; this.style.boxShadow='none';">
  <div style="width:40px; height:40px; border-radius:8px; background:var(--primary-light); color:var(--primary-dark); display:flex; align-items:center; justify-content:center; font-size:1.25rem;">
- <%= doc.type === 'ktp' ? '' : doc.type === 'kk' ? '©' : doc.type === 'surat_keterangan' ? '' : '' %>
+ <%= doc.type === 'ktp' ? '🪪' : doc.type === 'kk' ? '📄' : doc.type === 'surat_keterangan' ? '📝' : '📎' %>
  </div>
  <div style="flex:1; min-width:0;">
  <div style="font-size:0.875rem; font-weight:600; color:var(--gray-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= doc.title %></div>
  <div style="font-size:0.75rem; color:var(--gray-600); margin-top:0.125rem;">
- <%= doc.type.replace('_', ' ').toUpperCase() %> <%= new Date(doc.createdAt).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) %>
+ <%= doc.type.replace('_', ' ').toUpperCase() %> • <%= new Date(doc.createdAt).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) %>
  </div>
  </div>
  </a>
@@ -275,6 +275,74 @@ const formatDate = (dateStr) => {
  <% } else { %>
  <p style="color:var(--gray-600); font-size:0.875rem; font-style:italic;">Belum ada dokumen yang disetujui</p>
  <% } %>
+ </div>
+
+ <!-- Payment History Card -->
+ <div class="card" style="margin-bottom: 1.5rem;">
+   <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;"> Riwayat Pembayaran Keuangan</h3>
+   
+   <% if (typeof paymentHistory !== 'undefined' && (paymentHistory.payments.length > 0 || paymentHistory.credits.length > 0)) { %>
+     <div style="overflow-x: auto;">
+       <table style="width:100%; border-collapse:collapse; font-size:0.875rem; text-align:left;">
+         <thead>
+           <tr style="border-bottom:2px solid var(--gray-200); color:var(--gray-600);">
+             <th style="padding:0.75rem 0.5rem;">Periode / Target</th>
+             <th style="padding:0.75rem 0.5rem;">Total (Rp)</th>
+             <th style="padding:0.75rem 0.5rem;">Tipe</th>
+             <th style="padding:0.75rem 0.5rem;">Status</th>
+             <th style="padding:0.75rem 0.5rem;">Tanggal</th>
+           </tr>
+         </thead>
+         <tbody>
+           <!-- Tampilkan Payments -->
+           <% paymentHistory.payments.forEach(p => { %>
+             <tr style="border-bottom:1px solid var(--gray-100); hover:bg-slate-50;">
+               <td style="padding:0.75rem 0.5rem; font-weight:600;"><%= p.period ? p.period.name : '-' %></td>
+               <td style="padding:0.75rem 0.5rem; color:var(--primary);"><%= p.totalAmount.toLocaleString('id-ID') %></td>
+               <td style="padding:0.75rem 0.5rem;">
+                 <% if (p.paymentType === 'multi') { %>
+                   <span style="font-size:0.7rem; background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; font-weight:bold;">MULTI</span>
+                 <% } else { %>
+                   <span style="font-size:0.7rem; background:#f1f5f9; color:#475569; padding:2px 6px; border-radius:4px; font-weight:bold;">BULANAN</span>
+                 <% } %>
+               </td>
+               <td style="padding:0.75rem 0.5rem;">
+                 <% if (p.status === 'approved') { %>
+                   <span style="color:#16a34a; font-weight:600;">✓ Lunas</span>
+                 <% } else if (p.status === 'pending') { %>
+                   <span style="color:#d97706; font-weight:600;">⏳ Menunggu</span>
+                 <% } else { %>
+                   <span style="color:#dc2626; font-weight:600;">✕ Ditolak</span>
+                 <% } %>
+               </td>
+               <td style="padding:0.75rem 0.5rem; color:var(--gray-500);"><%= new Date(p.createdAt).toLocaleDateString('id-ID') %></td>
+             </tr>
+           <% }) %>
+
+           <!-- Tampilkan Credits (Advance Payment yang belum ada periodenya) -->
+           <% paymentHistory.credits.forEach(c => { %>
+             <tr style="border-bottom:1px solid var(--gray-100); background:#f8fafc;">
+               <td style="padding:0.75rem 0.5rem; font-weight:600;">Bulan <%= c.targetMonth %> Tahun <%= c.targetYear %></td>
+               <td style="padding:0.75rem 0.5rem; color:var(--gray-500);">(Menyesuaikan)</td>
+               <td style="padding:0.75rem 0.5rem;">
+                 <span style="font-size:0.7rem; background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; font-weight:bold;">ADVANCE / MULTI</span>
+               </td>
+               <td style="padding:0.75rem 0.5rem;">
+                 <% if (c.status === 'pending') { %>
+                   <span style="color:#2563eb; font-weight:600;">Menunggu Periode Dibuat</span>
+                 <% } else { %>
+                   <span style="color:#16a34a; font-weight:600;">Sudah Dikonversi</span>
+                 <% } %>
+               </td>
+               <td style="padding:0.75rem 0.5rem; color:var(--gray-500);"><%= new Date(c.createdAt).toLocaleDateString('id-ID') %></td>
+             </tr>
+           <% }) %>
+         </tbody>
+       </table>
+     </div>
+   <% } else { %>
+     <p style="color:var(--gray-600); font-size:0.875rem; font-style:italic;">Belum ada riwayat pembayaran</p>
+   <% } %>
  </div>
 
  <!-- Action Buttons -->

@@ -14,6 +14,12 @@ router.post(
   upload.single("proofFile"),
   financeController.postPayment
 );
+router.get("/pay-multi", financeController.getMultiPaymentForm);
+router.post(
+  "/pay-multi",
+  upload.single("proofFile"),
+  financeController.postMultiPayment
+);
 router.get("/:id", financeController.getMyPaymentDetail);
 
 module.exports = router;
