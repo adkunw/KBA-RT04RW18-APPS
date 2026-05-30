@@ -482,6 +482,22 @@
             </div>
           </div>
 
+          <!-- Multi-Periode Checkbox -->
+          <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 space-y-3">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" name="isMulti" id="isMulti" value="true" onchange="toggleField('multiPeriodContainer', this)" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 mt-1">
+              <div class="flex-1">
+                <span class="text-sm font-bold text-indigo-900">Tandai Lunas Multi-Periode</span>
+                <p class="text-xs text-indigo-700">Warga membayar iuran tetap untuk beberapa bulan sekaligus.</p>
+              </div>
+            </label>
+            <div id="multiPeriodContainer" class="mt-2 pl-7 hidden">
+              <label class="block text-xs font-bold text-indigo-900 mb-1">Bayar Untuk Berapa Bulan?</label>
+              <input type="number" name="numberOfMonths" id="numberOfMonthsInput" value="12" min="2" max="60" class="px-3.5 py-2 w-full border border-indigo-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+              <p class="text-[10px] text-indigo-750 mt-1">Sistem otomatis menandai lunas beberapa bulan berturut-turut.</p>
+            </div>
+          </div>
+
           <!-- Catatan Bendahara -->
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Catatan Pembayaran</label>
@@ -527,6 +543,10 @@
       document.getElementById("otherDescriptionInput").value = "";
       document.getElementById("otherAmountInput").value = 0;
       document.getElementById("otherContainer").classList.add("hidden");
+
+      document.getElementById("isMulti").checked = false;
+      document.getElementById("numberOfMonthsInput").value = 12;
+      document.getElementById("multiPeriodContainer").classList.add("hidden");
       
       const userRoles = <%- JSON.stringify(user.roles || []) %>;
       let roleDisplay = "Admin";

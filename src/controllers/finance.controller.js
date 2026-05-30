@@ -569,6 +569,8 @@ const markPaidFormSchema = z.object({
   otherDescription: z.string().max(255).optional().nullable(),
   otherAmount: z.coerce.number().min(0).default(0),
   notes: z.string().max(500).optional().nullable(),
+  isMulti: z.preprocess((val) => val === "true" || val === "on" || val === true, z.boolean()).default(false),
+  numberOfMonths: z.coerce.number().min(2).max(60).default(12),
 });
 
 const adminMarkPaid = async (req, res, next) => {
@@ -582,9 +584,14 @@ const adminMarkPaid = async (req, res, next) => {
       return res.redirect(`/admin/finance/period/${periodId}`);
     }
 
-    await financeService.markUserPaid(periodId, userId, reviewerId, validation.data);
+    if (validation.data.isMulti) {
+      await financeService.markUserPaidMulti(periodId, userId, reviewerId, validation.data);
+      req.flash("success", "Status pembayaran warga berhasil ditandai LUNAS secara multi-periode.");
+    } else {
+      await financeService.markUserPaid(periodId, userId, reviewerId, validation.data);
+      req.flash("success", "Status pembayaran warga berhasil ditandai sebagai LUNAS dengan rincian.");
+    }
 
-    req.flash("success", "Status pembayaran warga berhasil ditandai sebagai LUNAS dengan rincian.");
     res.redirect(`/admin/finance/period/${periodId}`);
   } catch (error) {
     logger.error("Error marking user paid", { error: error.message, stack: error.stack });

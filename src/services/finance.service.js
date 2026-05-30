@@ -1053,6 +1053,130 @@ const bulkApproveByGroup = async (groupTransactionId, reviewerId) => {
 };
 
 /**
+ * Mark a user as paid for multiple periods manually (admin manual bulk payment)
+ */
+const markUserPaidMulti = async (periodId, userId, reviewerId, details) => {
+  const {
+    hasFixedDues,
+    fixedDuesAmount,
+    hasKas,
+    kasAmount,
+    hasOther,
+    otherDescription,
+    otherAmount,
+    notes,
+    numberOfMonths,
+  } = details;
+
+  const startingPeriod = await prisma.financePeriod.findUnique({
+    where: { id: periodId },
+  });
+  if (!startingPeriod) throw new Error("Periode awal tidak ditemukan");
+
+  const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+  if (!targetUser) throw new Error("Warga tidak ditemukan");
+  const corridorId = targetUser.corridorId || null;
+
+  // Generate sequence of months
+  const months = [];
+  let m = startingPeriod.month;
+  let y = startingPeriod.year;
+  for (let i = 0; i < numberOfMonths; i++) {
+    months.push({ year: y, month: m });
+    m++;
+    if (m > 12) { m = 1; y++; }
+  }
+
+  const groupTransactionId = crypto.randomUUID();
+
+  // Fetch all existing approved or pending payments for this user to skip
+  const existingPayments = await prisma.paymentReport.findMany({
+    where: { userId, status: { in: ["approved", "pending"] } },
+    include: { period: true },
+  });
+
+  const existingCredits = await prisma.bulkPaymentCredit.findMany({
+    where: { userId, status: "pending" },
+  });
+
+  const created = [];
+  const credits = [];
+
+  for (let i = 0; i < months.length; i++) {
+    const { year, month } = months[i];
+    const isFirstMonth = i === 0;
+
+    // Check if already paid
+    const alreadyPaid = existingPayments.find(p => p.period?.year === year && p.period?.month === month);
+    const alreadyCredit = existingCredits.find(c => c.targetYear === year && c.targetMonth === month);
+
+    if (alreadyPaid || alreadyCredit) {
+      continue; // Skip already paid
+    }
+
+    // Look for existing period
+    const period = await prisma.financePeriod.findFirst({
+      where: { year, month },
+    });
+
+    const dues = period ? period.fixedDuesAmount : startingPeriod.fixedDuesAmount;
+    const kas = isFirstMonth && hasKas ? Number(kasAmount) : 0;
+    const other = isFirstMonth && hasOther ? Number(otherAmount) : 0;
+    const total = (hasFixedDues ? dues : 0) + kas + other;
+
+    const reviewer = await prisma.user.findUnique({ where: { id: reviewerId } });
+    const reviewerName = reviewer ? reviewer.name : "Admin";
+
+    if (period) {
+      // Create approved PaymentReport directly
+      const payment = await prisma.paymentReport.create({
+        data: {
+          userId,
+          periodId: period.id,
+          corridorId,
+          groupTransactionId,
+          paymentType: "multi",
+          hasFixedDues: true,
+          fixedDuesAmount: dues,
+          hasKas: isFirstMonth && hasKas,
+          kasAmount: kas,
+          otherDescription: isFirstMonth && hasOther && otherDescription ? otherDescription : null,
+          otherAmount: other,
+          totalAmount: total,
+          proofFilePath: "manual",
+          status: "approved",
+          notes: notes || `Ditandai lunas secara manual oleh Admin (${reviewerName})`,
+          reviewedBy: reviewerId,
+          reviewedAt: new Date(),
+        },
+      });
+      created.push(payment);
+    } else {
+      // Create BulkPaymentCredit
+      const credit = await prisma.bulkPaymentCredit.create({
+        data: {
+          userId,
+          corridorId,
+          groupTransactionId,
+          targetYear: year,
+          targetMonth: month,
+          fixedDuesAmount: dues,
+          proofFilePath: "manual",
+          status: "pending",
+        },
+      });
+      credits.push(credit);
+    }
+  }
+
+  logger.info("Admin manual multi-period payment completed", {
+    userId, reviewerId, created: created.length, credits: credits.length,
+  });
+
+  return { created, credits };
+};
+
+/**
  * Get payment history for a specific user (for admin view)
  */
 const getUserPaymentHistory = async (userId) => {
@@ -1092,6 +1216,7 @@ module.exports = {
   approvePayment,
   rejectPayment,
   markUserPaid,
+  markUserPaidMulti,
   createExpense,
   getAllExpenses,
   createIncome,
