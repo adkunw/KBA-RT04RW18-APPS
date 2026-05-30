@@ -352,8 +352,8 @@ const markUserPaid = async (periodId, userId, reviewerId, details) => {
     hasKas,
     kasAmount,
     hasOther,
-    otherDescription,
-    otherAmount,
+    otherDescriptions,
+    otherAmounts,
     notes,
   } = details;
 
@@ -369,7 +369,25 @@ const markUserPaid = async (periodId, userId, reviewerId, details) => {
 
   const finalFixedDues = hasFixedDues ? Number(fixedDuesAmount) : 0;
   const finalKas = hasKas ? Number(kasAmount) : 0;
-  const finalOther = hasOther ? Number(otherAmount) : 0;
+  
+  // Process multiple manual other payments
+  let finalOther = 0;
+  let otherDescStr = null;
+  if (hasOther && otherDescriptions && otherAmounts) {
+    const items = [];
+    for (let idx = 0; idx < otherDescriptions.length; idx++) {
+      const desc = otherDescriptions[idx]?.trim();
+      const amt = Number(otherAmounts[idx]) || 0;
+      if (desc && amt > 0) {
+        items.push({ desc, amount: amt });
+        finalOther += amt;
+      }
+    }
+    if (items.length > 0) {
+      otherDescStr = JSON.stringify(items);
+    }
+  }
+
   const totalAmount = finalFixedDues + finalKas + finalOther;
 
   const reviewer = await prisma.user.findUnique({
@@ -398,7 +416,7 @@ const markUserPaid = async (periodId, userId, reviewerId, details) => {
     fixedDuesAmount: finalFixedDues,
     hasKas,
     kasAmount: finalKas,
-    otherDescription: hasOther && otherDescription ? otherDescription : null,
+    otherDescription: otherDescStr,
     otherAmount: finalOther,
     totalAmount,
     status: "approved",
@@ -1062,8 +1080,8 @@ const markUserPaidMulti = async (periodId, userId, reviewerId, details) => {
     hasKas,
     kasAmount,
     hasOther,
-    otherDescription,
-    otherAmount,
+    otherDescriptions,
+    otherAmounts,
     notes,
     numberOfMonths,
   } = details;
@@ -1121,7 +1139,25 @@ const markUserPaidMulti = async (periodId, userId, reviewerId, details) => {
 
     const dues = period ? period.fixedDuesAmount : startingPeriod.fixedDuesAmount;
     const kas = isFirstMonth && hasKas ? Number(kasAmount) : 0;
-    const other = isFirstMonth && hasOther ? Number(otherAmount) : 0;
+    
+    // Process multiple other payments for first month
+    let other = 0;
+    let otherDescStr = null;
+    if (isFirstMonth && hasOther && otherDescriptions && otherAmounts) {
+      const items = [];
+      for (let idx = 0; idx < otherDescriptions.length; idx++) {
+        const desc = otherDescriptions[idx]?.trim();
+        const amt = Number(otherAmounts[idx]) || 0;
+        if (desc && amt > 0) {
+          items.push({ desc, amount: amt });
+          other += amt;
+        }
+      }
+      if (items.length > 0) {
+        otherDescStr = JSON.stringify(items);
+      }
+    }
+
     const total = (hasFixedDues ? dues : 0) + kas + other;
 
     const reviewer = await prisma.user.findUnique({ where: { id: reviewerId } });
@@ -1140,7 +1176,7 @@ const markUserPaidMulti = async (periodId, userId, reviewerId, details) => {
           fixedDuesAmount: dues,
           hasKas: isFirstMonth && hasKas,
           kasAmount: kas,
-          otherDescription: isFirstMonth && hasOther && otherDescription ? otherDescription : null,
+          otherDescription: otherDescStr,
           otherAmount: other,
           totalAmount: total,
           proofFilePath: "manual",

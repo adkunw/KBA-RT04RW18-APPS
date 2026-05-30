@@ -566,8 +566,16 @@ const markPaidFormSchema = z.object({
   hasKas: z.preprocess((val) => val === "true" || val === "on" || val === true, z.boolean()).default(false),
   kasAmount: z.coerce.number().min(0).default(0),
   hasOther: z.preprocess((val) => val === "true" || val === "on" || val === true, z.boolean()).default(false),
-  otherDescription: z.string().max(255).optional().nullable(),
-  otherAmount: z.coerce.number().min(0).default(0),
+  otherDescriptions: z.preprocess((val) => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string' && val) return [val];
+    return [];
+  }, z.array(z.string().max(255))),
+  otherAmounts: z.preprocess((val) => {
+    if (Array.isArray(val)) return val.map(Number);
+    if (val !== undefined && val !== '') return [Number(val)];
+    return [];
+  }, z.array(z.number().min(0))),
   notes: z.string().max(500).optional().nullable(),
   isMulti: z.preprocess((val) => val === "true" || val === "on" || val === true, z.boolean()).default(false),
   numberOfMonths: z.coerce.number().min(2).max(60).default(12),

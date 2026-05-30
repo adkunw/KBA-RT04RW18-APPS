@@ -471,14 +471,23 @@
                 <p class="text-xs text-slate-400">Biaya tambahan seperti sampah, sumbangan sosial, dll.</p>
               </div>
             </label>
-            <div id="otherContainer" class="mt-2 pl-7 hidden space-y-2">
-              <input type="text" name="otherDescription" id="otherDescriptionInput" class="px-3.5 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="Keterangan pembayaran (misal: Iuran Sampah)">
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <span class="text-slate-400 text-sm font-semibold">Rp</span>
+            <div id="otherContainer" class="mt-2 pl-7 hidden space-y-3">
+              <div id="adminOtherPaymentsContainer" class="space-y-3">
+                <div class="admin-other-payment-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.5rem; align-items:end;">
+                  <div>
+                    <label style="font-size:0.6875rem; font-weight:700; color:var(--gray-600);">Keterangan</label>
+                    <input type="text" name="otherDescriptions[]" class="px-2 py-1 w-full border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Contoh: Iuran Sampah">
+                  </div>
+                  <div>
+                    <label style="font-size:0.6875rem; font-weight:700; color:var(--gray-600);">Nominal (Rp)</label>
+                    <input type="number" name="otherAmounts[]" min="0" oninput="calculateMarkPaidTotal()" class="px-2 py-1 w-full border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 admin-other-amount-input" placeholder="0">
+                  </div>
+                  <div>
+                    <button type="button" class="btn-remove" style="background:#fee2e2; color:#dc2626; border:none; padding:0.35rem 0.5rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:10px; height:28px;" onclick="removeAdminOtherRow(this)">Hapus</button>
+                  </div>
                 </div>
-                <input type="number" name="otherAmount" id="otherAmountInput" value="0" min="0" oninput="calculateMarkPaidTotal()" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
               </div>
+              <button type="button" style="background:#eff6ff; color:var(--primary); border:1px dashed var(--primary); padding:0.35rem; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.75rem;" onclick="addAdminOtherRow()">+ Tambah Pembayaran</button>
             </div>
           </div>
 
@@ -542,11 +551,41 @@
       }
 
       if (document.getElementById("hasOther").checked) {
-        const otherAmount = parseInt(document.getElementById("otherAmountInput").value) || 0;
-        total += otherAmount;
+        const otherInputs = document.querySelectorAll(".admin-other-amount-input");
+        otherInputs.forEach(input => {
+          total += (parseInt(input.value) || 0);
+        });
       }
 
       document.getElementById("markPaidTotalDisplay").innerText = "Rp " + total.toLocaleString('id-ID');
+    }
+
+    function addAdminOtherRow() {
+      const container = document.getElementById('adminOtherPaymentsContainer');
+      const newRow = document.createElement('div');
+      newRow.className = 'admin-other-payment-row';
+      newRow.style = 'display:grid; grid-template-columns: 1fr 1fr auto; gap:0.5rem; align-items:end;';
+      newRow.innerHTML = `
+        <div>
+          <label style="font-size:0.6875rem; font-weight:700; color:var(--gray-600);">Keterangan</label>
+          <input type="text" name="otherDescriptions[]" class="px-2 py-1 w-full border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Contoh: Iuran Sampah">
+        </div>
+        <div>
+          <label style="font-size:0.6875rem; font-weight:700; color:var(--gray-600);">Nominal (Rp)</label>
+          <input type="number" name="otherAmounts[]" min="0" oninput="calculateMarkPaidTotal()" class="px-2 py-1 w-full border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 admin-other-amount-input" placeholder="0">
+        </div>
+        <div>
+          <button type="button" class="btn-remove" style="background:#fee2e2; color:#dc2626; border:none; padding:0.35rem 0.5rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:10px; height:28px;" onclick="removeAdminOtherRow(this)">Hapus</button>
+        </div>
+      `;
+      container.appendChild(newRow);
+      calculateMarkPaidTotal();
+    }
+
+    function removeAdminOtherRow(btn) {
+      const row = btn.closest('.admin-other-payment-row');
+      row.remove();
+      calculateMarkPaidTotal();
     }
 
     function openMarkPaidModal(userId, userName, defaultFixedDues) {
@@ -570,9 +609,25 @@
       document.getElementById("kasAmountContainer").classList.add("hidden");
       
       document.getElementById("hasOther").checked = false;
-      document.getElementById("otherDescriptionInput").value = "";
-      document.getElementById("otherAmountInput").value = 0;
       document.getElementById("otherContainer").classList.add("hidden");
+
+      // Reset dynamic container to single row
+      const otherContainer = document.getElementById("adminOtherPaymentsContainer");
+      otherContainer.innerHTML = `
+        <div class="admin-other-payment-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.5rem; align-items:end;">
+          <div>
+            <label style="font-size:0.6875rem; font-weight:700; color:var(--gray-600);">Keterangan</label>
+            <input type="text" name="otherDescriptions[]" class="px-2 py-1 w-full border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Contoh: Iuran Sampah">
+          </div>
+          <div>
+            <label style="font-size:0.6875rem; font-weight:700; color:var(--gray-600);">Nominal (Rp)</label>
+            <input type="number" name="otherAmounts[]" min="0" oninput="calculateMarkPaidTotal()" class="px-2 py-1 w-full border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 admin-other-amount-input" placeholder="0">
+          </div>
+          <div>
+            <button type="button" class="btn-remove" style="background:#fee2e2; color:#dc2626; border:none; padding:0.35rem 0.5rem; border-radius:6px; cursor:pointer; font-weight:bold; font-size:10px; height:28px;" onclick="removeAdminOtherRow(this)">Hapus</button>
+          </div>
+        </div>
+      `;
 
       document.getElementById("isMulti").checked = false;
       document.getElementById("numberOfMonthsInput").value = 12;
