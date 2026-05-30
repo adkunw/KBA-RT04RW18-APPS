@@ -19,8 +19,16 @@ const submitPaymentSchema = z.object({
   hasFixedDues: z.preprocess((val) => val === "true" || val === "on", z.boolean()),
   hasKas: z.preprocess((val) => val === "true" || val === "on", z.boolean()),
   kasAmount: z.coerce.number().min(0).optional(),
-  otherDescription: z.string().max(255).optional(),
-  otherAmount: z.coerce.number().min(0).optional(),
+  otherDescriptions: z.preprocess((val) => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string' && val) return [val];
+    return [];
+  }, z.array(z.string().max(255))),
+  otherAmounts: z.preprocess((val) => {
+    if (Array.isArray(val)) return val.map(Number);
+    if (val !== undefined && val !== '') return [Number(val)];
+    return [];
+  }, z.array(z.number().min(0))),
 });
 
 const submitMultiPaymentSchema = z.object({
@@ -29,8 +37,16 @@ const submitMultiPaymentSchema = z.object({
   numberOfMonths: z.coerce.number().min(2).max(120),
   hasKas: z.preprocess((val) => val === "true" || val === "on", z.boolean()),
   kasAmount: z.coerce.number().min(0).optional(),
-  otherDescription: z.string().max(255).optional(),
-  otherAmount: z.coerce.number().min(0).optional(),
+  otherDescriptions: z.preprocess((val) => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string' && val) return [val];
+    return [];
+  }, z.array(z.string().max(255))),
+  otherAmounts: z.preprocess((val) => {
+    if (Array.isArray(val)) return val.map(Number);
+    if (val !== undefined && val !== '') return [Number(val)];
+    return [];
+  }, z.array(z.number().min(0))),
 });
 
 const reviewPaymentSchema = z.object({

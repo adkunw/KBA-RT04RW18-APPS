@@ -116,7 +116,7 @@
         <div style="display:flex; align-items:flex-start; gap:0.75rem; width:100%;">
           <input type="checkbox" name="hasKas" id="hasKas" onchange="toggleKasInput()">
           <div style="flex:1;">
-            <div style="font-weight:600; color:var(--gray-900);">Uang Kas / Sumbangan (Hanya Bulan Pertama)</div>
+            <div style="font-weight:600; color:var(--gray-900);">Uang Kas / Sumbangan</div>
             <div style="font-size:0.8125rem; color:var(--gray-600);">Sumbangan sukarela untuk kas RT.</div>
           </div>
         </div>
@@ -128,19 +128,26 @@
 
       <!-- OTHER / LAIN-LAIN -->
       <div class="checkbox-item" style="flex-direction:column; align-items:stretch;">
-        <div style="font-weight:600; color:var(--gray-900); margin-bottom:0.25rem;">Pembayaran Lain-lain (Hanya Bulan Pertama)</div>
+        <div style="font-weight:600; color:var(--gray-900); margin-bottom:0.25rem;">Pembayaran Lain-lain</div>
         <div style="font-size:0.8125rem; color:var(--gray-600); margin-bottom:0.75rem;">Isi jika ada pembayaran biaya khusus (misal: denda, acara).</div>
         
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
-          <div>
-            <label style="font-size:0.75rem; font-weight:600; color:var(--gray-700);">Keterangan Pembayaran</label>
-            <input type="text" name="otherDescription" class="input-field" placeholder="Contoh: Denda ronda">
-          </div>
-          <div>
-            <label style="font-size:0.75rem; font-weight:600; color:var(--gray-700);">Nominal (Rp)</label>
-            <input type="number" name="otherAmount" id="otherAmount" class="input-field" min="0" placeholder="Contoh: 20000" oninput="calculateTotal()">
+        <div id="otherPaymentsContainer" style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1rem;">
+          <div class="other-payment-row" style="display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end;">
+            <div>
+              <label style="font-size:0.75rem; font-weight:600; color:var(--gray-700);">Keterangan Pembayaran</label>
+              <input type="text" name="otherDescriptions[]" class="input-field" style="margin-top:0.25rem;" placeholder="Contoh: Denda ronda">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; font-weight:600; color:var(--gray-700);">Nominal (Rp)</label>
+              <input type="number" name="otherAmounts[]" class="input-field other-amount-input" style="margin-top:0.25rem;" min="0" placeholder="Contoh: 20000" oninput="calculateTotal()">
+            </div>
+            <div>
+              <button type="button" class="btn-remove" style="background:#fee2e2; color:#dc2626; border:none; padding:0.625rem; border-radius:6px; cursor:pointer; font-weight:bold; height:38px; display:flex; align-items:center; justify-content:center;" onclick="removeOtherRow(this)">Hapus</button>
+            </div>
           </div>
         </div>
+
+        <button type="button" style="background:#eff6ff; color:var(--primary); border:1px dashed var(--primary); padding:0.625rem; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.875rem;" onclick="addOtherRow()">+ Tambah Pembayaran Lain-lain</button>
       </div>
 
       <!-- FILE UPLOAD -->
@@ -182,6 +189,34 @@
     calculateTotal();
   }
 
+  function addOtherRow() {
+    const container = document.getElementById('otherPaymentsContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'other-payment-row';
+    newRow.style = 'display:grid; grid-template-columns: 1fr 1fr auto; gap:0.75rem; align-items:end;';
+    newRow.innerHTML = `
+      <div>
+        <label style="font-size:0.75rem; font-weight:600; color:var(--gray-700);">Keterangan Pembayaran</label>
+        <input type="text" name="otherDescriptions[]" class="input-field" style="margin-top:0.25rem;" placeholder="Contoh: Denda ronda">
+      </div>
+      <div>
+        <label style="font-size:0.75rem; font-weight:600; color:var(--gray-700);">Nominal (Rp)</label>
+        <input type="number" name="otherAmounts[]" class="input-field other-amount-input" style="margin-top:0.25rem;" min="0" placeholder="Contoh: 20000" oninput="calculateTotal()">
+      </div>
+      <div>
+        <button type="button" class="btn-remove" style="background:#fee2e2; color:#dc2626; border:none; padding:0.625rem; border-radius:6px; cursor:pointer; font-weight:bold; height:38px; display:flex; align-items:center; justify-content:center;" onclick="removeOtherRow(this)">Hapus</button>
+      </div>
+    `;
+    container.appendChild(newRow);
+    calculateTotal();
+  }
+
+  function removeOtherRow(btn) {
+    const row = btn.closest('.other-payment-row');
+    row.remove();
+    calculateTotal();
+  }
+
   function calculateTotal() {
     let total = 0;
     
@@ -195,8 +230,11 @@
       total += kasVal;
     }
     
-    const otherVal = parseInt(document.getElementById('otherAmount').value) || 0;
-    total += otherVal;
+    const otherInputs = document.querySelectorAll('.other-amount-input');
+    otherInputs.forEach(input => {
+      const otherVal = parseInt(input.value) || 0;
+      total += otherVal;
+    });
     
     document.getElementById('summaryLabel').innerText = `Total Yang Harus Dibayarkan (${numMonths} Bulan)`;
     document.getElementById('totalAmountDisplay').innerText = 'Rp ' + total.toLocaleString('id-ID');

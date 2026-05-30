@@ -101,7 +101,7 @@ const togglePeriodStatus = async (id) => {
  */
 
 const submitPaymentReport = async (userId, data) => {
-  const { periodId, hasFixedDues, hasKas, kasAmount, otherDescription, otherAmount, filePath, fileName } = data;
+  const { periodId, hasFixedDues, hasKas, kasAmount, otherDescriptions, otherAmounts, filePath, fileName } = data;
 
   const period = await getPeriodById(periodId);
   if (!period) throw new Error("Period not found");
@@ -120,7 +120,25 @@ const submitPaymentReport = async (userId, data) => {
 
   const fixedDuesAmount = hasFixedDues ? period.fixedDuesAmount : 0;
   const kas = hasKas ? Number(kasAmount) : 0;
-  const other = Number(otherAmount) || 0;
+  
+  // Process multiple other payments
+  let other = 0;
+  let otherDescStr = null;
+  if (otherDescriptions && otherAmounts) {
+    const items = [];
+    for (let idx = 0; idx < otherDescriptions.length; idx++) {
+      const desc = otherDescriptions[idx]?.trim();
+      const amt = Number(otherAmounts[idx]) || 0;
+      if (desc && amt > 0) {
+        items.push({ desc, amount: amt });
+        other += amt;
+      }
+    }
+    if (items.length > 0) {
+      otherDescStr = JSON.stringify(items);
+    }
+  }
+
   const totalAmount = fixedDuesAmount + kas + other;
 
   const payment = await prisma.paymentReport.create({
@@ -131,7 +149,7 @@ const submitPaymentReport = async (userId, data) => {
       fixedDuesAmount,
       hasKas,
       kasAmount: kas,
-      otherDescription: otherDescription || null,
+      otherDescription: otherDescStr,
       otherAmount: other,
       totalAmount,
       proofFilePath: filePath,
@@ -140,7 +158,7 @@ const submitPaymentReport = async (userId, data) => {
     },
   });
 
-  logger.info("Payment report submitted", { paymentId: payment.id, userId, periodId });
+  logger.info("Payment report submitted with multiple other payments", { paymentId: payment.id, userId, periodId });
   return payment;
 };
 
@@ -865,7 +883,7 @@ const getPeriodsByYear = async (year) => {
 const submitMultiPaymentReport = async (userId, data) => {
   const {
     startMonth, startYear, numberOfMonths,
-    hasKas, kasAmount, otherDescription, otherAmount,
+    hasKas, kasAmount, otherDescriptions, otherAmounts,
     filePath,
   } = data;
 
@@ -931,7 +949,25 @@ const submitMultiPaymentReport = async (userId, data) => {
     // (will be corrected when period is created via auto-consume)
     const fixedDues = period ? period.fixedDuesAmount : 0;
     const kas = isFirstMonth && hasKas ? Number(kasAmount) : 0;
-    const other = isFirstMonth ? Number(otherAmount) || 0 : 0;
+    
+    // Process multiple other payments for first month
+    let other = 0;
+    let otherDescStr = null;
+    if (isFirstMonth && otherDescriptions && otherAmounts) {
+      const items = [];
+      for (let idx = 0; idx < otherDescriptions.length; idx++) {
+        const desc = otherDescriptions[idx]?.trim();
+        const amt = Number(otherAmounts[idx]) || 0;
+        if (desc && amt > 0) {
+          items.push({ desc, amount: amt });
+          other += amt;
+        }
+      }
+      if (items.length > 0) {
+        otherDescStr = JSON.stringify(items);
+      }
+    }
+
     const total = fixedDues + kas + other;
 
     if (period) {
@@ -947,7 +983,7 @@ const submitMultiPaymentReport = async (userId, data) => {
           fixedDuesAmount: fixedDues,
           hasKas: isFirstMonth && hasKas,
           kasAmount: kas,
-          otherDescription: isFirstMonth && otherDescription ? otherDescription : null,
+          otherDescription: otherDescStr,
           otherAmount: other,
           totalAmount: total,
           proofFilePath: filePath,

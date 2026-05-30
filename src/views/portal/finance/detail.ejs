@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
  <meta charset="UTF-8">
@@ -102,14 +102,35 @@
  </tr>
  <% } %>
  
- <% if (payment.otherAmount > 0) { %>
- <tr style="border-bottom:1px solid var(--gray-100);">
- <td style="padding:0.75rem 0;color:var(--gray-700);">
- Lain-lain: <%= payment.otherDescription || 'Tanpa keterangan' %>
- </td>
- <td style="padding:0.75rem 0;text-align:right;font-weight:600;color:var(--gray-900);">Rp <%= payment.otherAmount.toLocaleString('id-ID') %></td>
- </tr>
- <% } %>
+  <% if (payment.otherAmount > 0) { %>
+    <% 
+      let otherItems = [];
+      let isJson = false;
+      if (payment.otherDescription && payment.otherDescription.trim().startsWith('[')) {
+        try {
+          otherItems = JSON.parse(payment.otherDescription);
+          isJson = Array.isArray(otherItems);
+        } catch (e) {
+          isJson = false;
+        }
+      }
+    %>
+    <% if (isJson) { %>
+      <% otherItems.forEach(item => { %>
+        <tr style="border-bottom:1px solid var(--gray-100);">
+          <td style="padding:0.75rem 0;color:var(--gray-700);">Lain-lain: <%= item.desc || 'Tanpa keterangan' %></td>
+          <td style="padding:0.75rem 0;text-align:right;font-weight:600;color:var(--gray-900);">Rp <%= item.amount.toLocaleString('id-ID') %></td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr style="border-bottom:1px solid var(--gray-100);">
+        <td style="padding:0.75rem 0;color:var(--gray-700);">
+        Lain-lain: <%= payment.otherDescription || 'Tanpa keterangan' %>
+        </td>
+        <td style="padding:0.75rem 0;text-align:right;font-weight:600;color:var(--gray-900);">Rp <%= payment.otherAmount.toLocaleString('id-ID') %></td>
+      </tr>
+    <% } %>
+  <% } %>
  </table>
 
  <h3 style="font-size:1rem;font-weight:700;color:var(--gray-900);margin-bottom:1rem;">Bukti Transfer yang Dikirim</h3>
