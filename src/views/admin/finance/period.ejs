@@ -427,7 +427,7 @@
           <!-- Rincian Iuran Tetap -->
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
             <label class="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" name="hasFixedDues" id="hasFixedDues" value="true" checked onchange="toggleField('fixedDuesAmountContainer', this)" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
+              <input type="checkbox" name="hasFixedDues" id="hasFixedDues" value="true" checked onchange="toggleField('fixedDuesAmountContainer', this); calculateMarkPaidTotal()" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
               <div class="flex-1">
                 <span class="text-sm font-bold text-slate-800">Iuran Tetap Bulanan</span>
                 <p class="text-xs text-slate-400">Pembayaran iuran bulanan wajib warga RT.</p>
@@ -438,7 +438,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <span class="text-slate-400 text-sm font-semibold">Rp</span>
                 </div>
-                <input type="number" name="fixedDuesAmount" id="fixedDuesAmountInput" value="<%= period.fixedDuesAmount %>" min="0" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
+                <input type="number" name="fixedDuesAmount" id="fixedDuesAmountInput" value="<%= period.fixedDuesAmount %>" min="0" oninput="calculateMarkPaidTotal()" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
               </div>
             </div>
           </div>
@@ -446,7 +446,7 @@
           <!-- Rincian Kas RT -->
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
             <label class="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" name="hasKas" id="hasKas" value="true" onchange="toggleField('kasAmountContainer', this)" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
+              <input type="checkbox" name="hasKas" id="hasKas" value="true" onchange="toggleField('kasAmountContainer', this); calculateMarkPaidTotal()" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
               <div class="flex-1">
                 <span class="text-sm font-bold text-slate-800">Kas RT</span>
                 <p class="text-xs text-slate-400">Pembayaran dana kas sukarela / wajib RT.</p>
@@ -457,7 +457,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <span class="text-slate-400 text-sm font-semibold">Rp</span>
                 </div>
-                <input type="number" name="kasAmount" id="kasAmountInput" value="0" min="0" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
+                <input type="number" name="kasAmount" id="kasAmountInput" value="0" min="0" oninput="calculateMarkPaidTotal()" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
               </div>
             </div>
           </div>
@@ -465,7 +465,7 @@
           <!-- Rincian Lain-lain -->
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3">
             <label class="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" name="hasOther" id="hasOther" value="true" onchange="toggleField('otherContainer', this)" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
+              <input type="checkbox" name="hasOther" id="hasOther" value="true" onchange="toggleField('otherContainer', this); calculateMarkPaidTotal()" class="w-4 h-4 rounded text-brand-650 focus:ring-brand-500 border-slate-300 mt-1">
               <div class="flex-1">
                 <span class="text-sm font-bold text-slate-800">Pembayaran Lainnya (Tambahan)</span>
                 <p class="text-xs text-slate-400">Biaya tambahan seperti sampah, sumbangan sosial, dll.</p>
@@ -477,7 +477,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                   <span class="text-slate-400 text-sm font-semibold">Rp</span>
                 </div>
-                <input type="number" name="otherAmount" id="otherAmountInput" value="0" min="0" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
+                <input type="number" name="otherAmount" id="otherAmountInput" value="0" min="0" oninput="calculateMarkPaidTotal()" class="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="0">
               </div>
             </div>
           </div>
@@ -485,7 +485,7 @@
           <!-- Multi-Periode Checkbox -->
           <div class="bg-indigo-50 p-4 rounded-2xl border border-indigo-100 space-y-3">
             <label class="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" name="isMulti" id="isMulti" value="true" onchange="toggleField('multiPeriodContainer', this)" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 mt-1">
+              <input type="checkbox" name="isMulti" id="isMulti" value="true" onchange="toggleField('multiPeriodContainer', this); calculateMarkPaidTotal()" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 mt-1">
               <div class="flex-1">
                 <span class="text-sm font-bold text-indigo-900">Tandai Lunas Multi-Periode</span>
                 <p class="text-xs text-indigo-700">Warga membayar iuran tetap untuk beberapa bulan sekaligus.</p>
@@ -493,9 +493,15 @@
             </label>
             <div id="multiPeriodContainer" class="mt-2 pl-7 hidden">
               <label class="block text-xs font-bold text-indigo-900 mb-1">Bayar Untuk Berapa Bulan?</label>
-              <input type="number" name="numberOfMonths" id="numberOfMonthsInput" value="12" min="2" max="60" class="px-3.5 py-2 w-full border border-indigo-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+              <input type="number" name="numberOfMonths" id="numberOfMonthsInput" value="12" min="2" max="60" oninput="calculateMarkPaidTotal()" class="px-3.5 py-2 w-full border border-indigo-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
               <p class="text-[10px] text-indigo-750 mt-1">Sistem otomatis menandai lunas beberapa bulan berturut-turut.</p>
             </div>
+          </div>
+
+          <!-- Total Box -->
+          <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+            <div class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-1">Total Yang Dicatat Lunas</div>
+            <div id="markPaidTotalDisplay" class="text-2xl font-extrabold text-emerald-700">Rp 0</div>
           </div>
 
           <!-- Catatan Bendahara -->
@@ -519,6 +525,30 @@
   </div>
 
   <script>
+    function calculateMarkPaidTotal() {
+      let total = 0;
+      const hasFixed = document.getElementById("hasFixedDues").checked;
+      const fixedAmount = parseInt(document.getElementById("fixedDuesAmountInput").value) || 0;
+      const isMulti = document.getElementById("isMulti").checked;
+      const numMonths = isMulti ? (parseInt(document.getElementById("numberOfMonthsInput").value) || 2) : 1;
+
+      if (hasFixed) {
+        total += (fixedAmount * numMonths);
+      }
+
+      if (document.getElementById("hasKas").checked) {
+        const kasAmount = parseInt(document.getElementById("kasAmountInput").value) || 0;
+        total += kasAmount;
+      }
+
+      if (document.getElementById("hasOther").checked) {
+        const otherAmount = parseInt(document.getElementById("otherAmountInput").value) || 0;
+        total += otherAmount;
+      }
+
+      document.getElementById("markPaidTotalDisplay").innerText = "Rp " + total.toLocaleString('id-ID');
+    }
+
     function openMarkPaidModal(userId, userName, defaultFixedDues) {
       const modal = document.getElementById("markPaidModal");
       const form = document.getElementById("markPaidForm");
@@ -547,6 +577,9 @@
       document.getElementById("isMulti").checked = false;
       document.getElementById("numberOfMonthsInput").value = 12;
       document.getElementById("multiPeriodContainer").classList.add("hidden");
+      
+      // Calculate initial total
+      calculateMarkPaidTotal();
       
       const userRoles = <%- JSON.stringify(user.roles || []) %>;
       let roleDisplay = "Admin";
