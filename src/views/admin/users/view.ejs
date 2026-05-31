@@ -2,6 +2,12 @@
 <%
 const formatDate = (dateStr) => {
   if (!dateStr) return '-';
+  if (dateStr instanceof Date) {
+    return dateStr.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  if (typeof dateStr !== 'string') {
+    dateStr = String(dateStr);
+  }
   const parts = dateStr.split('-');
   if (parts.length !== 3) return dateStr;
   const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -135,7 +141,7 @@ const formatDate = (dateStr) => {
  <!-- Roles Card -->
  <div class="card">
  <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;">Assigned Roles</h3>
- <% if (viewedUser.roles.length > 0) { %>
+ <% if (viewedUser.roles && Array.isArray(viewedUser.roles) && viewedUser.roles.length > 0) { %>
  <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.5rem;">
  <% viewedUser.roles.forEach(ur => { %>
  <li style="padding:0.75rem; background:var(--gray-100); border-radius:6px; border-left:4px solid var(--primary);">
@@ -221,7 +227,7 @@ const formatDate = (dateStr) => {
           👶 Data Anak
         </h4>
         
-        <% if (viewedUser.children && viewedUser.children.length > 0) { %>
+        <% if (viewedUser.children && Array.isArray(viewedUser.children) && viewedUser.children.length > 0) { %>
           <div style="display:flex; flex-direction:column; gap:1rem;">
             <% viewedUser.children.forEach((child, index) => { %>
               <div style="<%= index > 0 ? 'border-top: 1px solid var(--gray-200); padding-top: 1rem;' : '' %>">
@@ -281,7 +287,7 @@ const formatDate = (dateStr) => {
  <div class="card" style="margin-bottom: 1.5rem;">
    <h3 style="color:var(--primary); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:1rem;"> Riwayat Pembayaran Keuangan</h3>
    
-   <% if (typeof paymentHistory !== 'undefined' && (paymentHistory.payments.length > 0 || paymentHistory.credits.length > 0)) { %>
+   <% if (typeof paymentHistory !== 'undefined' && paymentHistory && ((paymentHistory.payments && paymentHistory.payments.length > 0) || (paymentHistory.credits && paymentHistory.credits.length > 0))) { %>
      <div style="overflow-x: auto;">
        <table style="width:100%; border-collapse:collapse; font-size:0.875rem; text-align:left;">
          <thead>
@@ -295,6 +301,7 @@ const formatDate = (dateStr) => {
          </thead>
          <tbody>
            <!-- Tampilkan Payments -->
+           <% if (paymentHistory.payments && Array.isArray(paymentHistory.payments)) { %>
            <% paymentHistory.payments.forEach(p => { %>
              <tr style="border-bottom:1px solid var(--gray-100); hover:bg-slate-50;">
                <td style="padding:0.75rem 0.5rem; font-weight:600;"><%= p.period ? p.period.name : '-' %></td>
@@ -315,11 +322,13 @@ const formatDate = (dateStr) => {
                    <span style="color:#dc2626; font-weight:600;">✕ Ditolak</span>
                  <% } %>
                </td>
-               <td style="padding:0.75rem 0.5rem; color:var(--gray-500);"><%= new Date(p.createdAt).toLocaleDateString('id-ID') %></td>
+               <td style="padding:0.75rem 0.5rem; color:var(--gray-500);"><%= p.createdAt ? new Date(p.createdAt).toLocaleDateString('id-ID') : '-' %></td>
              </tr>
            <% }) %>
+           <% } %>
 
            <!-- Tampilkan Credits (Advance Payment yang belum ada periodenya) -->
+           <% if (paymentHistory.credits && Array.isArray(paymentHistory.credits)) { %>
            <% paymentHistory.credits.forEach(c => { %>
              <tr style="border-bottom:1px solid var(--gray-100); background:#f8fafc;">
                <td style="padding:0.75rem 0.5rem; font-weight:600;">Bulan <%= c.targetMonth %> Tahun <%= c.targetYear %></td>
@@ -337,6 +346,7 @@ const formatDate = (dateStr) => {
                <td style="padding:0.75rem 0.5rem; color:var(--gray-500);"><%= new Date(c.createdAt).toLocaleDateString('id-ID') %></td>
              </tr>
            <% }) %>
+           <% } %>
          </tbody>
        </table>
      </div>
