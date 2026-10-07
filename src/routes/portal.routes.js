@@ -19,4 +19,7 @@ router.post("/profile", isAuthenticated, portalController.updateProfile);
 // POST /portal/settings/language - Update language
 router.post("/settings/language", isAuthenticated, portalController.postChangeLanguage);
 
+// GET /portal/tutorial - Warga tutorial / guide page
+router.get("/tutorial", isAuthenticated, portalController.getTutorial);
+
 module.exports = router;

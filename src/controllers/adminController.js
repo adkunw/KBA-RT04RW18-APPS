@@ -49,6 +49,31 @@ const getDashboard = async (req, res) => {
   }
 };
 
+/**
+ * GET /admin/tutorial - Admin tutorial page
+ */
+const getTutorial = async (req, res) => {
+  try {
+    const userPermissions = req.session.userPermissions || [];
+
+    res.render("admin/tutorial/index", {
+      title: "Panduan & Tutorial Admin",
+      currentPage: "tutorial",
+      user: {
+        id: req.session.userId,
+        name: req.session.userName,
+        roles: req.session.userRoles,
+      },
+      userPermissions,
+    });
+  } catch (error) {
+    logger.error("Error loading admin tutorial", { error: error.message, stack: error.stack });
+    req.flash("error", "Gagal memuat halaman panduan admin");
+    res.redirect("/admin");
+  }
+};
+
 module.exports = {
   getDashboard,
+  getTutorial,
 };

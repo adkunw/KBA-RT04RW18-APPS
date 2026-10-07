@@ -17,4 +17,12 @@ router.get(
   adminController.getDashboard,
 );
 
+// GET /admin/tutorial - Admin tutorial / guide
+router.get(
+  "/tutorial",
+  isAuthenticated,
+  requirePermission("dashboard.view"),
+  adminController.getTutorial,
+);
+
 module.exports = router;

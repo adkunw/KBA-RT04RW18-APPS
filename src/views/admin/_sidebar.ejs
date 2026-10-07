@@ -222,6 +222,16 @@
  </div>
  </a>
  <% } %>
+
+ <!-- PANDUAN ADMIN -->
+ <a href="/admin/tutorial" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500 <%= typeof currentPage !== 'undefined' && currentPage === 'tutorial' ? 'active' : '' %>">
+ <div class="flex items-center gap-3">
+ <i data-lucide="book-open" class="w-5 h-5 text-indigo-500"></i>
+ <span class="text-sm">Panduan Admin</span>
+ </div>
+ <span class="px-1.5 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-md">Bantuan</span>
+ </a>
+
  <!-- PORTAL & LOGOUT -->
  <div class="mt-4 pt-4 border-t border-slate-100 space-y-1">
  <a href="/portal" class="sidebar-link w-full flex items-center justify-between p-3 rounded-xl font-medium text-slate-500">

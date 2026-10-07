@@ -267,6 +267,32 @@ const postChangeLanguage = async (req, res) => {
   }
 };
 
+/**
+ * GET /portal/tutorial - Warga tutorial / guide page
+ */
+const getTutorial = async (req, res) => {
+  try {
+    const hasAdminAccess = req.session.userPermissions?.includes("dashboard.view") || false;
+    const unreadCount = await messageService.getUnreadCount(req.session.userId);
+
+    res.render("portal/tutorial", {
+      title: "Panduan Portal Warga - RT Management System",
+      user: {
+        id: req.session.userId,
+        name: req.session.userName,
+        language: req.session.userLanguage || "id",
+        roles: req.session.userRoles,
+      },
+      hasAdminAccess,
+      unreadCount,
+    });
+  } catch (error) {
+    logger.error("Error loading portal tutorial", { error: error.message, stack: error.stack });
+    req.flash("error", "Gagal memuat halaman panduan");
+    res.redirect("/portal");
+  }
+};
+
 module.exports = {
   getPortal,
   getInbox,
@@ -274,4 +300,5 @@ module.exports = {
   getProfile,
   updateProfile,
   postChangeLanguage,
+  getTutorial,
 };

@@ -65,6 +65,11 @@
  <span>Admin Panel</span>
  </a>
  <% } %>
+
+ <a href="/portal/tutorial" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-brand-600 bg-white hover:bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg transition-colors shadow-sm" title="Panduan Warga">
+   <i data-lucide="book-open" class="w-4 h-4 text-brand-600"></i>
+   <span class="hidden sm:inline"><%= user.language === 'en' ? 'Guide' : 'Panduan' %></span>
+ </a>
  
  <form action="/portal/settings/language" method="POST" class="m-0">
  <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
@@ -109,6 +114,12 @@
  <p class="text-brand-100 text-lg leading-relaxed">
  <%= user.language === 'en' ? 'Stay connected, stay informed. Make sure you are always up-to-date with the latest news and announcements from RT 04 / RW 18 Kota Baru Arjasari.' : 'Jalin silaturahmi, kawal informasi. Pastikan Anda selalu tahu kabar dan pengumuman terbaru dari RT 04 / RW 18 Kota Baru Arjasari.' %>
  </p>
+ <div class="mt-6 flex flex-wrap items-center gap-3">
+   <a href="/portal/tutorial" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-brand-700 text-xs sm:text-sm font-bold shadow-md hover:bg-brand-50 transition-colors">
+     <i data-lucide="book-open" class="w-4 h-4 text-brand-600"></i>
+     <span><%= user.language === 'en' ? 'Portal User Guide' : 'Buku Panduan Warga' %></span>
+   </a>
+ </div>
  </div>
  <!-- Abstract blobs for modern feel -->
  <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>

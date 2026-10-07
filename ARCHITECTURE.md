@@ -34,8 +34,10 @@ Aplikasi terdiri dari 3 layer utama:
 /logout          → Logout
 
 /portal          → Portal Warga (default setelah login)
+/portal/tutorial → Panduan Portal Warga
 
 /admin           → Admin Panel
+/admin/tutorial  → Panduan Admin (Modular berdasarkan permissions)
 /admin/warga     → CRUD Warga
 /admin/roles     → Role Management
 /admin/permissions → Permission Management

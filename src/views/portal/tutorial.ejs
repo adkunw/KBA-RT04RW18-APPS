@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Panduan Portal Warga' %> - RT Management System</title>
+  <link rel="shortcut icon" href="/images/Logo%20aplikasi%20KBA%200418.png" type="image/x-icon">
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe',
+              300: '#93c5fd', 400: '#60a5fa', 500: '#3b82f6',
+              600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+    .tutorial-section {
+      scroll-margin-top: 5.5rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen font-sans bg-slate-50 text-slate-900 pb-20">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 w-full glass border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/portal" class="flex items-center gap-2.5">
+          <img src="/images/Logo%20aplikasi%20KBA%200418.png" alt="Logo KBA 0418" class="w-10 h-10 object-contain rounded-xl shadow-md border border-slate-200/60 bg-white">
+          <span class="font-display font-bold text-xl tracking-tight hidden sm:block text-slate-800">RT Connect</span>
+        </a>
+        <span class="text-slate-300 hidden sm:inline">|</span>
+        <span class="text-xs sm:text-sm font-semibold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-lg">Panduan Warga</span>
+      </div>
+      
+      <div class="flex items-center gap-3 sm:gap-4">
+        <a href="/portal" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-brand-600 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 transition-colors shadow-sm">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Kembali ke Portal</span>
+        </a>
+
+        <% if (typeof hasAdminAccess !== 'undefined' && hasAdminAccess) { %>
+        <a href="/admin/tutorial" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors border border-indigo-100">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Panduan Admin</span>
+        </a>
+        <% } %>
+
+        <div class="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-full bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 font-bold text-sm shadow-sm">
+            <%= user.name.charAt(0).toUpperCase() %>
+          </div>
+          <span class="text-xs font-semibold text-slate-700 hidden lg:block"><%= user.name %></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 pt-8">
+
+    <!-- Hero Banner -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-indigo-800 p-8 sm:p-12 text-white shadow-xl shadow-brand-500/10 mb-8">
+      <div class="relative z-10 max-w-3xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-brand-100 text-xs font-semibold backdrop-blur-md mb-4 border border-white/20">
+          <i data-lucide="book-open" class="w-3.5 h-3.5 text-brand-200"></i>
+          <span>Panduan Penggunaan Resmi</span>
+        </div>
+        <h1 class="font-display text-3xl sm:text-4xl font-extrabold mb-3 tracking-tight">
+          Pusat Bantuan & Panduan Portal Warga
+        </h1>
+        <p class="text-brand-100 text-base sm:text-lg leading-relaxed">
+          Temukan cara mudah menggunakan seluruh fasilitas di RT Connect RT 04 / RW 18 Kota Baru Arjasari, mulai dari pengelolaan profil keluarga, pembayaran iuran kas, pengurusan surat, hingga pengaduan lingkungan.
+        </p>
+      </div>
+
+      <!-- Abstract shapes -->
+      <div class="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none"></div>
+      <div class="absolute bottom-0 right-1/4 w-48 h-48 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+    </div>
+
+    <!-- Quick Navigation Sticky Pills -->
+    <div class="mb-10 sticky top-20 z-30 bg-slate-50/95 backdrop-blur-md py-2 border-b border-slate-200/80 -mx-4 px-4 overflow-x-auto">
+      <div class="flex items-center gap-2 min-w-max">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Lompat ke:</span>
+        <a href="#profil" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
+          <i data-lucide="user" class="w-3.5 h-3.5 text-blue-500"></i>
+          Profil & Keluarga
+        </a>
+        <a href="#pesan" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
+          <i data-lucide="megaphone" class="w-3.5 h-3.5 text-purple-500"></i>
+          Pengumuman & Pesan
+        </a>
+        <a href="#dokumen" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
+          <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-500"></i>
+          Dokumen & Surat
+        </a>
+        <a href="#iuran" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
+          <i data-lucide="wallet" class="w-3.5 h-3.5 text-amber-500"></i>
+          Iuran & Kas RT
+        </a>
+        <a href="#lapor" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
+          <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500"></i>
+          Lapor RT / Aduan
+        </a>
+        <a href="#faq" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-brand-50 hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm">
+          <i data-lucide="help-circle" class="w-3.5 h-3.5 text-slate-500"></i>
+          FAQ & Bantuan
+        </a>
+      </div>
+    </div>
+
+    <!-- CONTENT SECTIONS -->
+    <div class="space-y-12">
+
+      <!-- SECTION 1: PROFIL & DATA KELUARGA -->
+      <section id="profil" class="tutorial-section bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100">
+          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i data-lucide="user" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">FITUR 1</span>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Manajemen Profil & Data Keluarga</h2>
+            </div>
+            <p class="text-sm text-slate-500 mt-0.5">Memperbarui informasi kependudukan, data pasangan, dan daftar anggota keluarga.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+            <div class="w-8 h-8 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-sm mb-3">1</div>
+            <h3 class="font-bold text-slate-800 text-base mb-1.5">Buka Menu Profil</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Klik menu <strong>Profil Saya</strong> di halaman utama portal atau klik ikon foto profil Anda di pojok kanan atas.
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+            <div class="w-8 h-8 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-sm mb-3">2</div>
+            <h3 class="font-bold text-slate-800 text-base mb-1.5">Lengkapi Data Identitas</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Pastikan <strong>Nomor Rumah</strong>, <strong>NIK</strong>, dan <strong>Nomor Kartu Keluarga (KK)</strong> terisi dengan valid untuk keperluan administrasi kependudukan RT.
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+            <div class="w-8 h-8 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-sm mb-3">3</div>
+            <h3 class="font-bold text-slate-800 text-base mb-1.5">Isi Data Keluarga & Password</h3>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Jika sudah berkeluarga, lengkapi data pasangan dan anak-anak. Anda juga dapat mengganti kata sandi secara berkala demi keamanan akun.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-blue-50/70 border border-blue-100 rounded-2xl p-4 flex items-start gap-3 text-blue-900">
+          <i data-lucide="lightbulb" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+          <div class="text-xs sm:text-sm leading-relaxed">
+            <strong>Tips:</strong> Data yang akurat sangat membantu pengurus RT dalam verifikasi surat keterangan warga dan penyaluran program bantuan lingkungan tepat sasaran.
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: PENGUMUMAN & PESAN -->
+      <section id="pesan" class="tutorial-section bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100">
+          <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i data-lucide="megaphone" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md">FITUR 2</span>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Pengumuman & Pesan Warga</h2>
+            </div>
+            <p class="text-sm text-slate-500 mt-0.5">Membaca maklumat RT, kabar kegiatan lingkungan, siaran broadcast, dan pesan pribadi.</p>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="border border-slate-200 rounded-2xl p-5 hover:border-purple-200 transition-colors">
+              <div class="flex items-center gap-2 mb-2 font-bold text-slate-800">
+                <span class="w-3 h-3 bg-brand-600 rounded-full"></span>
+                <span>Pengumuman di Beranda Portal</span>
+              </div>
+              <p class="text-sm text-slate-600 leading-relaxed mb-3">
+                Pengumuman terbaru ditampilkan di beranda dengan cuplikan 2 baris. Klik tombol <strong>Lihat Selengkapnya</strong> untuk membuka jendela pop-up yang memuat rincian lengkap tanggal, pembuat pengumuman, dan koridor sasaran.
+              </p>
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[11px] font-bold rounded-full">🌐 Seluruh RT</span>
+                <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-full">📍 Khusus Koridor</span>
+              </div>
+            </div>
+
+            <div class="border border-slate-200 rounded-2xl p-5 hover:border-purple-200 transition-colors">
+              <div class="flex items-center gap-2 mb-2 font-bold text-slate-800">
+                <span class="w-3 h-3 bg-purple-600 rounded-full"></span>
+                <span>Menu Pesan & Arsip Pengumuman</span>
+              </div>
+              <p class="text-sm text-slate-600 leading-relaxed mb-3">
+                Buka menu <strong>Pesan</strong> di portal untuk melihat dua tab terpisah:
+              </p>
+              <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                <li><strong>Pesan Masuk:</strong> Pesan broadcast pengurus dan pesan personal ke Anda.</li>
+                <li><strong>Arsip Pengumuman:</strong> Seluruh riwayat pengumuman lengkap dengan fitur pencarian judul/isi dan halaman pagination.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: DOKUMEN & SURAT -->
+      <section id="dokumen" class="tutorial-section bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100">
+          <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i data-lucide="file-text" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">FITUR 3</span>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Pengajuan Dokumen & Surat Pengantar</h2>
+            </div>
+            <p class="text-sm text-slate-500 mt-0.5">Membuat permohonan surat keterangan RT secara digital tanpa perlu antre.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center flex flex-col items-center">
+            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-base mb-3">
+              1
+            </div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">Pilih Jenis Surat</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Buka menu Dokumen, lalu klik <strong>Ajukan Dokumen Baru</strong>. Pilih jenis surat (KTP/KK, Domisili, Keterangan Usaha, dll).
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center flex flex-col items-center">
+            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-base mb-3">
+              2
+            </div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">Unggah Berkas</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Unggah foto/file berkas pendukung (foto KTP/KK/bukti alamat) dalam format JPG, PNG, atau PDF yang jelas terbaca.
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center flex flex-col items-center">
+            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-base mb-3">
+              3
+            </div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">Verifikasi Pengurus</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Pengurus RT akan memeriksa kelengkapan data. Anda dapat memantau status secara berkala (Pending / Diproses).
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-center flex flex-col items-center">
+            <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-base mb-3">
+              4
+            </div>
+            <h3 class="font-bold text-slate-800 text-sm mb-1">Unduh Dokumen Jadi</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Setelah disetujui (Approved), Anda dapat langsung mengunduh surat pengantar resmi yang sudah ditandatangani.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: IURAN & KAS RT -->
+      <section id="iuran" class="tutorial-section bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100">
+          <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i data-lucide="wallet" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">FITUR 4</span>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Iuran Warga & Transparansi Kas Lingkungan</h2>
+            </div>
+            <p class="text-sm text-slate-500 mt-0.5">Membayar iuran kebersihan/keamanan dan melihat laporan kas secara terbuka.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="border border-slate-200 rounded-2xl p-5">
+            <h3 class="font-bold text-slate-800 text-base mb-3 flex items-center gap-2">
+              <i data-lucide="credit-card" class="w-5 h-5 text-amber-500"></i>
+              Cara Bayar Iuran Bulanan
+            </h3>
+            <ol class="text-sm text-slate-600 space-y-2.5 list-decimal list-inside leading-relaxed">
+              <li>Masuk ke menu <strong>Iuran & Kas</strong> di portal.</li>
+              <li>Pilih bulan tagihan yang ingin dibayarkan, atau pilih fitur <strong>Bayar Sekaligus</strong> untuk membayar beberapa bulan sekaligus.</li>
+              <li>Lakukan transfer sesuai nominal ke rekening bank resmi kas RT yang tertera di layar.</li>
+              <li>Unggah foto bukti struk / screenshot transfer berhasil, lalu klik <strong>Kirim Konfirmasi</strong>.</li>
+              <li>Bendahara RT akan memverifikasi dan status tagihan akan otomatis berubah menjadi <span class="text-emerald-600 font-bold">LUNAS</span>.</li>
+            </ol>
+          </div>
+
+          <div class="border border-slate-200 rounded-2xl p-5">
+            <h3 class="font-bold text-slate-800 text-base mb-3 flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-5 h-5 text-amber-500"></i>
+              Melihat Transparansi Kas RT
+            </h3>
+            <p class="text-sm text-slate-600 leading-relaxed mb-3">
+              Semua warga berhak mengetahui penggunaan dana lingkungan. Pada menu Keuangan, Anda dapat melihat:
+            </p>
+            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+              <li><strong>Saldo Kas Saat Ini:</strong> Total dana kas umum RT yang tersedia.</li>
+              <li><strong>Pemasukan:</strong> Rekap iuran warga yang masuk dan donasi kegiatan.</li>
+              <li><strong>Pengeluaran:</strong> Biaya operasional kebersihan sampah, honor satpam, pemeliharaan lampu jalan, dan perbaikan fasilitas lingkungan.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: LAPOR RT -->
+      <section id="lapor" class="tutorial-section bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100">
+          <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i data-lucide="alert-circle" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">FITUR 5</span>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Lapor RT (Aspirasi & Pengaduan Warga)</h2>
+            </div>
+            <p class="text-sm text-slate-500 mt-0.5">Kanal resmi menyampaikan keluhan fasilitas rusak, masalah ketertiban, atau ide kegiatan warga.</p>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-sm text-slate-600 leading-relaxed">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="bg-rose-50/50 p-5 rounded-2xl border border-rose-100">
+              <h4 class="font-bold text-rose-900 mb-2">1. Buat Laporan Baru</h4>
+              <p class="text-xs text-slate-600">
+                Pilih kategori laporan (Keamanan, Kebersihan, Fasilitas Rusak, atau Aspirasi Sosial), tuliskan judul dan rincian masalah dengan jelas.
+              </p>
+            </div>
+            <div class="bg-rose-50/50 p-5 rounded-2xl border border-rose-100">
+              <h4 class="font-bold text-rose-900 mb-2">2. Lampirkan Bukti Foto</h4>
+              <p class="text-xs text-slate-600">
+                Sertakan foto dokumentasi lokasi atau kondisi nyata agar pengurus RT dapat langsung mengidentifikasi kebutuhan penanganan.
+              </p>
+            </div>
+            <div class="bg-rose-50/50 p-5 rounded-2xl border border-rose-100">
+              <h4 class="font-bold text-rose-900 mb-2">3. Tindak Lanjut Dua Arah</h4>
+              <p class="text-xs text-slate-600">
+                Pengurus RT akan menanggapi langsung pada thread laporan. Anda dapat berbalas komentar sampai masalah selesai ditangani (Resolved).
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: FAQ & BANTUAN -->
+      <section id="faq" class="tutorial-section bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100">
+          <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm">
+            <i data-lucide="help-circle" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold text-slate-900">Pertanyaan yang Sering Diajukan (FAQ)</h2>
+            <p class="text-sm text-slate-500 mt-0.5">Solusi cepat untuk kendala yang sering dialami warga.</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="border border-slate-200 rounded-2xl p-5">
+            <h3 class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-2">
+              <i data-lucide="help-circle" class="w-4 h-4 text-brand-600"></i>
+              Bagaimana jika saya lupa kata sandi akun?
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Hubungi pengurus RT atau koordinator koridor Anda. Pengurus dapat membuatkan tautan aktivasi ulang (*activation token*) agar Anda dapat mengatur kata sandi baru.
+            </p>
+          </div>
+
+          <div class="border border-slate-200 rounded-2xl p-5">
+            <h3 class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-2">
+              <i data-lucide="help-circle" class="w-4 h-4 text-brand-600"></i>
+              Berapa lama proses verifikasi iuran atau surat pengantar?
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Verifikasi biasanya diproses oleh Bendahara atau Ketua RT dalam kurun waktu 1x24 jam pada hari kerja. Anda dapat memeriksa status terbarunya langsung melalui menu portal masing-masing.
+            </p>
+          </div>
+
+          <div class="border border-slate-200 rounded-2xl p-5">
+            <h3 class="font-bold text-slate-800 text-sm mb-1.5 flex items-center gap-2">
+              <i data-lucide="help-circle" class="w-4 h-4 text-brand-600"></i>
+              Apakah data NIK dan data keluarga saya aman?
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Ya, seluruh data kependudukan disimpan secara terenkripsi di server RT Connect dan hanya dapat diakses oleh pengurus RT yang memiliki hak otorisasi resmi untuk keperluan administrasi warga.
+            </p>
+          </div>
+        </div>
+
+        <!-- Hotline Contact Card -->
+        <div class="mt-8 bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">
+              <i data-lucide="phone-call" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-base">Masih Mengalami Kendala?</h4>
+              <p class="text-xs text-emerald-100">Hubungi Hotline Pengurus RT 04 RW 18 jika Anda memerlukan bantuan lebih lanjut.</p>
+            </div>
+          </div>
+          <a href="/portal/reports/create" class="px-5 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 rounded-xl font-bold text-xs transition-colors shadow-sm whitespace-nowrap">
+            Kirim Aduan / Lapor RT
+          </a>
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Lucide script -->
+  <script>
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
