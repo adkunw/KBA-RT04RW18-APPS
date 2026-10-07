@@ -2,6 +2,8 @@ const { z } = require("zod");
 const logger = require("../utils/logger");
 const messageService = require("../services/message.service");
 
+const prisma = require("../config/database");
+
 // Validation
 const createMessageSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title too long"),
@@ -9,6 +11,8 @@ const createMessageSchema = z.object({
   type: z.enum(["personal", "broadcast", "announcement"], {
     errorMap: () => ({ message: "Invalid message type" }),
   }),
+  targetScope: z.enum(["all", "corridor"]).optional(),
+  corridorId: z.string().optional().nullable(),
   recipientIds: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
@@ -44,12 +48,33 @@ const listMessages = async (req, res) => {
  */
 const showCreateForm = async (req, res) => {
   try {
+    const permissions = req.session.userPermissions || [];
+    const userCorridorId = req.session.userCorridorId || null;
+
+    const canAnnounceGlobal = permissions.includes("message.announcement");
+    const canAnnounceCorridor = permissions.includes("message.announcement_corridor");
+    const canBroadcastGlobal = permissions.includes("message.broadcast");
+    const canBroadcastCorridor = permissions.includes("message.broadcast_corridor");
+    const canPersonal = permissions.includes("message.create") || permissions.includes("message.create_corridor");
+
+    // Fetch active corridors for selector (if user has global permission or needs their own)
+    const corridors = await prisma.corridor.findMany({ orderBy: { name: "asc" } });
+    const userCorridor = userCorridorId ? corridors.find(c => c.id === userCorridorId) : null;
+
     const activeUsers = await messageService.getActiveUsers(req.session.userId);
     const flash = req.flash();
 
     res.render("admin/messages/create", {
       title: "Compose Message",
       activeUsers,
+      corridors,
+      userCorridor,
+      userCorridorId,
+      canAnnounceGlobal,
+      canAnnounceCorridor,
+      canBroadcastGlobal,
+      canBroadcastCorridor,
+      canPersonal,
       user: { id: req.session.userId, name: req.session.userName },
       error: flash.error?.[0] || null,
     });
@@ -71,24 +96,80 @@ const createMessage = async (req, res) => {
       return res.redirect("/admin/messages/create");
     }
 
-    let { title, content, type, recipientIds } = validation.data;
+    let { title, content, type, targetScope, corridorId, recipientIds } = validation.data;
+    const permissions = req.session.userPermissions || [];
+    const userCorridorId = req.session.userCorridorId || null;
 
-    // Normalize recipientIds to array
-    if (type === "personal") {
+    let finalCorridorId = null;
+
+    if (type === "announcement") {
+      const canGlobal = permissions.includes("message.announcement");
+      const canCorridor = permissions.includes("message.announcement_corridor");
+
+      if (!canGlobal && !canCorridor) {
+        req.flash("error", "Anda tidak memiliki izin membuat Announcement.");
+        return res.redirect("/admin/messages/create");
+      }
+
+      if (!canGlobal && canCorridor) {
+        // Enforce corridor to user's corridor
+        if (!userCorridorId) {
+          req.flash("error", "Akun Anda belum memiliki penugasan koridor.");
+          return res.redirect("/admin/messages/create");
+        }
+        finalCorridorId = userCorridorId;
+      } else if (canGlobal) {
+        // Global permission can choose all or specific corridor
+        if (targetScope === "corridor") {
+          finalCorridorId = corridorId || null;
+        } else {
+          finalCorridorId = null;
+        }
+      }
+    } else if (type === "broadcast") {
+      const canGlobal = permissions.includes("message.broadcast");
+      const canCorridor = permissions.includes("message.broadcast_corridor");
+
+      if (!canGlobal && !canCorridor) {
+        req.flash("error", "Anda tidak memiliki izin membuat Broadcast.");
+        return res.redirect("/admin/messages/create");
+      }
+
+      if (!canGlobal && canCorridor) {
+        // Enforce corridor to user's corridor
+        if (!userCorridorId) {
+          req.flash("error", "Akun Anda belum memiliki penugasan koridor.");
+          return res.redirect("/admin/messages/create");
+        }
+        finalCorridorId = userCorridorId;
+      } else if (canGlobal) {
+        // Global permission can choose all or specific corridor
+        if (targetScope === "corridor") {
+          finalCorridorId = corridorId || null;
+        } else {
+          finalCorridorId = null;
+        }
+      }
+    } else if (type === "personal") {
+      const canPersonal = permissions.includes("message.create") || permissions.includes("message.create_corridor");
+      if (!canPersonal) {
+        req.flash("error", "Anda tidak memiliki izin membuat Pesan Personal.");
+        return res.redirect("/admin/messages/create");
+      }
+
       if (!recipientIds) {
         req.flash("error", "Please select at least one recipient");
         return res.redirect("/admin/messages/create");
       }
       recipientIds = Array.isArray(recipientIds) ? recipientIds : [recipientIds];
-    } else {
-      recipientIds = [];
     }
 
     await messageService.createMessage(req.session.userId, {
       title,
       content,
       type,
-      recipientIds,
+      recipientIds: type === "personal" ? recipientIds : [],
+      corridorId: finalCorridorId,
     });
 
     const typeLabels = { personal: "Personal message", broadcast: "Broadcast", announcement: "Announcement" };

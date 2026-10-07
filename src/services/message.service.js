@@ -4,13 +4,13 @@ const logger = require("../utils/logger");
 /**
  * Create a new message / announcement
  * @param {string} senderId
- * @param {object} data - { title, content, type, recipientIds }
+ * @param {object} data - { title, content, type, recipientIds, corridorId }
  */
-const createMessage = async (senderId, { title, content, type, recipientIds = [] }) => {
+const createMessage = async (senderId, { title, content, type, recipientIds = [], corridorId = null }) => {
   return await prisma.$transaction(async (tx) => {
     // Create the message
     const message = await tx.message.create({
-      data: { senderId, title, content, type },
+      data: { senderId, title, content, type, corridorId },
     });
 
     if (type === "personal") {
@@ -26,12 +26,18 @@ const createMessage = async (senderId, { title, content, type, recipientIds = []
         skipDuplicates: true,
       });
     } else if (type === "broadcast") {
-      // Insert ALL active users as recipients (excluding the sender)
+      // Insert active users as recipients (excluding the sender)
+      // If corridorId is present, filter active users belonging to that corridor
+      const userFilter = {
+        status: "active",
+        id: { not: senderId },
+      };
+      if (corridorId) {
+        userFilter.corridorId = corridorId;
+      }
+
       const activeUsers = await tx.user.findMany({
-        where: {
-          status: "active",
-          id: { not: senderId },
-        },
+        where: userFilter,
         select: { id: true },
       });
       if (activeUsers.length > 0) {
@@ -44,13 +50,14 @@ const createMessage = async (senderId, { title, content, type, recipientIds = []
         });
       }
     }
-    // type === "announcement": no recipients needed — public
+    // type === "announcement": no recipients needed in inbox
 
     logger.info("Message created", {
       messageId: message.id,
       type,
       senderId,
-      recipientCount: type === "announcement" ? "all (public)" : recipientIds.length,
+      corridorId,
+      recipientCount: type === "announcement" ? (corridorId ? "corridor" : "all (public)") : recipientIds.length,
     });
 
     return message;
@@ -58,13 +65,18 @@ const createMessage = async (senderId, { title, content, type, recipientIds = []
 };
 
 /**
- * List all messages (admin view), optionally filtered by type
+ * List all messages (admin view), optionally filtered by type and corridorId
  */
-const listMessages = async (type = null) => {
+const listMessages = async (type = null, corridorId = null) => {
+  const where = {};
+  if (type) where.type = type;
+  if (corridorId) where.corridorId = corridorId;
+
   return await prisma.message.findMany({
-    where: type ? { type } : {},
+    where,
     include: {
       sender: { select: { id: true, name: true } },
+      corridor: { select: { id: true, name: true } },
       _count: { select: { recipients: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -79,6 +91,7 @@ const getMessageById = async (messageId) => {
     where: { id: messageId },
     include: {
       sender: { select: { id: true, name: true } },
+      corridor: { select: { id: true, name: true } },
       recipients: {
         include: {
           user: { select: { id: true, name: true, phone: true } },
@@ -98,6 +111,56 @@ const deleteMessage = async (messageId) => {
 };
 
 /**
+ * Get paginated inbox messages for a specific user (personal + broadcast) with search
+ * @param {object} params - { userId, page, limit, search }
+ */
+const getPaginatedInboxForUser = async ({ userId, page = 1, limit = 10, search = "" }) => {
+  const skip = (page - 1) * limit;
+
+  const where = {
+    userId,
+  };
+
+  if (search && search.trim().length > 0) {
+    const term = search.trim();
+    where.message = {
+      OR: [
+        { title: { contains: term, mode: "insensitive" } },
+        { content: { contains: term, mode: "insensitive" } },
+        { sender: { name: { contains: term, mode: "insensitive" } } },
+      ],
+    };
+  }
+
+  const [messages, totalCount] = await Promise.all([
+    prisma.messageRecipient.findMany({
+      where,
+      include: {
+        message: {
+          include: {
+            sender: { select: { id: true, name: true } },
+            corridor: { select: { id: true, name: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.messageRecipient.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / limit) || 1;
+
+  return {
+    messages,
+    totalCount,
+    totalPages,
+    currentPage: page,
+  };
+};
+
+/**
  * Get inbox messages for a specific user (personal + broadcast)
  */
 const getInboxForUser = async (userId) => {
@@ -107,6 +170,7 @@ const getInboxForUser = async (userId) => {
       message: {
         include: {
           sender: { select: { id: true, name: true } },
+          corridor: { select: { id: true, name: true } },
         },
       },
     },
@@ -124,6 +188,7 @@ const getInboxMessage = async (messageId, userId) => {
       message: {
         include: {
           sender: { select: { id: true, name: true } },
+          corridor: { select: { id: true, name: true } },
         },
       },
     },
@@ -148,13 +213,34 @@ const markAsRead = async (messageId, userId) => {
 
 /**
  * Get latest announcements (for portal home)
+ * Shows global announcements (corridorId: null) and corridor announcements matching user's corridor,
+ * or all announcements if canReadAll is true.
  * @param {number} limit
+ * @param {string|null} userCorridorId
+ * @param {boolean} canReadAll
  */
-const getAnnouncements = async (limit = 5) => {
+const getAnnouncements = async (limit = 5, userCorridorId = null, canReadAll = false) => {
+  const where = {
+    type: "announcement",
+  };
+
+  if (!canReadAll) {
+    if (userCorridorId) {
+      where.OR = [
+        { corridorId: null },
+        { corridorId: userCorridorId },
+      ];
+    } else {
+      // If user has no corridor, only show global announcements
+      where.corridorId = null;
+    }
+  }
+
   return await prisma.message.findMany({
-    where: { type: "announcement" },
+    where,
     include: {
       sender: { select: { id: true, name: true } },
+      corridor: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: "desc" },
     take: limit,
@@ -179,9 +265,87 @@ const getActiveUsers = async (excludeId = null) => {
       status: "active",
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },
-    select: { id: true, name: true, phone: true },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      houseNumber: true,
+      corridor: { select: { id: true, name: true } },
+    },
     orderBy: { name: "asc" },
   });
+};
+
+/**
+ * Get paginated announcements (for portal messages archive)
+ * @param {object} params - { page, limit, userCorridorId, search, canReadAll }
+ */
+const getPaginatedAnnouncements = async ({ page = 1, limit = 10, userCorridorId = null, search = "", canReadAll = false }) => {
+  const skip = (page - 1) * limit;
+
+  const where = {
+    type: "announcement",
+  };
+
+  // Corridor scope filter
+  if (!canReadAll) {
+    if (userCorridorId) {
+      where.OR = [
+        { corridorId: null },
+        { corridorId: userCorridorId },
+      ];
+    } else {
+      where.corridorId = null;
+    }
+  }
+
+  // Search filter
+  if (search && search.trim().length > 0) {
+    const term = search.trim();
+    const searchFilter = [
+      { title: { contains: term, mode: "insensitive" } },
+      { content: { contains: term, mode: "insensitive" } },
+    ];
+
+    if (where.OR) {
+      where.AND = [
+        { OR: where.OR },
+        { OR: searchFilter },
+      ];
+      delete where.OR;
+    } else if (where.corridorId === null) {
+      where.AND = [
+        { corridorId: null },
+        { OR: searchFilter },
+      ];
+      delete where.corridorId;
+    } else {
+      where.OR = searchFilter;
+    }
+  }
+
+  const [announcements, totalCount] = await Promise.all([
+    prisma.message.findMany({
+      where,
+      include: {
+        sender: { select: { id: true, name: true } },
+        corridor: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.message.count({ where }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / limit) || 1;
+
+  return {
+    announcements,
+    totalCount,
+    totalPages,
+    currentPage: page,
+  };
 };
 
 module.exports = {
@@ -190,9 +354,11 @@ module.exports = {
   getMessageById,
   deleteMessage,
   getInboxForUser,
+  getPaginatedInboxForUser,
   getInboxMessage,
   markAsRead,
   getAnnouncements,
+  getPaginatedAnnouncements,
   getUnreadCount,
   getActiveUsers,
 };

@@ -25,8 +25,11 @@ const updateProfileSchema = z.object({
  */
 const getPortal = async (req, res) => {
   try {
+    const userCorridorId = req.session.userCorridorId || null;
+    const canReadAll = req.session.userPermissions?.includes("message.announcement_read_all") || false;
+
     const [announcements, unreadCount, settings] = await Promise.all([
-      messageService.getAnnouncements(5),
+      messageService.getAnnouncements(5, userCorridorId, canReadAll),
       messageService.getUnreadCount(req.session.userId),
       settingService.getAllSettings()
     ]);
@@ -58,28 +61,46 @@ const getPortal = async (req, res) => {
   }
 };
 
-/**
- * GET /portal/messages - Warga inbox
- */
 const getInbox = async (req, res) => {
   try {
-    const messages = await messageService.getInboxForUser(req.session.userId);
-    const unreadCount = await messageService.getUnreadCount(req.session.userId);
+    const activeTab = req.query.tab === "announcements" ? "announcements" : "inbox";
+    const page = parseInt(req.query.page) || 1;
+    const search = req.query.search || "";
+    const userCorridorId = req.session.userCorridorId || null;
+    const canReadAll = req.session.userPermissions?.includes("message.announcement_read_all") || false;
+
+    const [paginatedInbox, unreadCount, paginatedAnnouncements] = await Promise.all([
+      activeTab === "inbox"
+        ? messageService.getPaginatedInboxForUser({ userId: req.session.userId, page, limit: 6, search })
+        : { messages: [], totalCount: 0, totalPages: 1, currentPage: 1 },
+      messageService.getUnreadCount(req.session.userId),
+      activeTab === "announcements"
+        ? messageService.getPaginatedAnnouncements({ page, limit: 6, userCorridorId, search, canReadAll })
+        : { announcements: [], totalCount: 0, totalPages: 1, currentPage: 1 }
+    ]);
+
     const hasAdminAccess = req.session.userPermissions?.includes("dashboard.view") || false;
     const flash = req.flash();
 
     res.render("portal/messages/index", {
-      title: "My Messages",
-      user: { id: req.session.userId, name: req.session.userName },
-      messages,
+      title: activeTab === "announcements" ? "Pengumuman - RT Management" : "Pesan Saya - RT Management",
+      user: { 
+        id: req.session.userId, 
+        name: req.session.userName,
+        language: req.session.userLanguage || "id"
+      },
+      activeTab,
+      inboxData: paginatedInbox,
       unreadCount,
+      announcementsData: paginatedAnnouncements,
+      search,
       hasAdminAccess,
       error: flash.error?.[0] || null,
       success: flash.success?.[0] || null,
     });
   } catch (error) {
-    logger.error("Error loading inbox", { error: error.message, stack: error.stack });
-    req.flash("error", "Failed to load inbox");
+    logger.error("Error loading portal messages", { error: error.message, stack: error.stack });
+    req.flash("error", "Failed to load messages");
     res.redirect("/portal");
   }
 };

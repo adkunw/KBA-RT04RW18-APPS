@@ -139,6 +139,7 @@ Menyimpan informasi inti dari sebuah pesan atau pengumuman.
 |---|---|---|---|
 | `id` | String | PK, cuid | Primary key |
 | `senderId` | String | FK | Reference ke tabel `users` (pengirim pesan) |
+| `corridorId` | String? | FK | Opsional. Reference ke tabel `corridors` jika ditargetkan khusus koridor |
 | `title` | String | | Judul pesan / pengumuman |
 | `content` | String | | Isi lengkap pesan |
 | `type` | MessageType | DEFAULT(personal)| Tipe pesan (personal, broadcast, announcement) |

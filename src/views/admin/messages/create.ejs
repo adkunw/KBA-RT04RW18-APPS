@@ -1,4 +1,4 @@
-﻿<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
+<%- include('../_sidebar.ejs', { currentPage: 'messages' }) %>
 
  <main class="admin-main flex flex-col">
  <!-- TOP HEADER -->
@@ -38,61 +38,167 @@
 
  <div style="max-width:680px;">
  <form method="POST" action="/admin/messages" id="compose-form">
+ <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
 
  <!-- TYPE SELECTOR -->
  <div class="card" style="margin-bottom:1.25rem;">
  <h3 style="margin-bottom:1rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">Message Type</h3>
- <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+ <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:0.75rem;">
 
+ <% if (canAnnounceGlobal || canAnnounceCorridor) { %>
  <label id="type-announcement" style="cursor:pointer;">
- <input type="radio" name="type" value="announcement" required style="display:none;" onchange="handleTypeChange(this)">
+ <input type="radio" name="type" value="announcement" required style="display:none;" onchange="handleTypeChange(this)"
+        data-can-global="<%= canAnnounceGlobal %>" data-can-corridor="<%= canAnnounceCorridor %>">
  <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
- <div style="font-size:1.75rem;margin-bottom:0.5rem;"></div>
+ <div style="font-size:1.75rem;margin-bottom:0.5rem;"><i data-lucide="megaphone" class="w-6 h-6 mx-auto text-brand-600"></i></div>
  <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Announcement</div>
- <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Tampil di portal semua warga</div>
+ <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Tampil di portal warga</div>
  </div>
  </label>
+ <% } %>
 
+ <% if (canBroadcastGlobal || canBroadcastCorridor) { %>
  <label id="type-broadcast" style="cursor:pointer;">
- <input type="radio" name="type" value="broadcast" required style="display:none;" onchange="handleTypeChange(this)">
+ <input type="radio" name="type" value="broadcast" required style="display:none;" onchange="handleTypeChange(this)"
+        data-can-global="<%= canBroadcastGlobal %>" data-can-corridor="<%= canBroadcastCorridor %>">
  <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
- <div style="font-size:1.75rem;margin-bottom:0.5rem;"></div>
+ <div style="font-size:1.75rem;margin-bottom:0.5rem;"><i data-lucide="radio" class="w-6 h-6 mx-auto text-purple-600"></i></div>
  <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Broadcast</div>
- <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Inbox semua warga aktif</div>
+ <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Inbox warga aktif</div>
  </div>
  </label>
+ <% } %>
 
+ <% if (canPersonal) { %>
  <label id="type-personal" style="cursor:pointer;">
  <input type="radio" name="type" value="personal" required style="display:none;" onchange="handleTypeChange(this)">
  <div class="type-card" style="border:2px solid var(--gray-300);border-radius:8px;padding:1rem;text-align:center;transition:all 0.15s ease;">
- <div style="font-size:1.75rem;margin-bottom:0.5rem;"></div>
+ <div style="font-size:1.75rem;margin-bottom:0.5rem;"><i data-lucide="user" class="w-6 h-6 mx-auto text-emerald-600"></i></div>
  <div style="font-weight:600;color:var(--gray-900);font-size:0.875rem;">Personal</div>
  <div style="font-size:0.75rem;color:var(--gray-600);margin-top:0.25rem;">Warga tertentu saja</div>
  </div>
  </label>
+ <% } %>
 
  </div>
+ </div>
+
+ <!-- AUDIENCE / TARGET SCOPE SECTION (For Announcement & Broadcast) -->
+ <div id="scope-section" class="card" style="margin-bottom:1.25rem;display:none;background:#FFFFFF;border-radius:12px;border:1px solid #E2E8F0;padding:1.25rem;">
+   <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">
+     <i data-lucide="target" class="w-4 h-4 text-brand-600"></i>
+     <h3 style="margin:0;font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#475569;">
+       Target Penerima
+     </h3>
+   </div>
+
+   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:0.75rem;">
+     
+     <!-- Radio Option: Global (Seluruh Warga RT) -->
+     <div id="scope-global-container">
+       <label for="scope-all" id="label-scope-all" style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.875rem 1rem;background:#F8FAFC;border:2px solid #3B82F6;border-radius:10px;cursor:pointer;transition:all 0.2s ease;margin-bottom:0;">
+         <input type="radio" name="targetScope" id="scope-all" value="all" checked onchange="handleScopeChange(this)" style="width:18px;height:18px;margin-top:2px;accent-color:#2563EB;cursor:pointer;">
+         <div>
+           <div style="font-weight:600;font-size:0.875rem;color:#0F172A;display:flex;align-items:center;gap:0.4rem;">
+             Seluruh Warga RT
+           </div>
+           <div style="font-size:0.75rem;color:#64748B;margin-top:2px;">
+             Terkirim ke semua warga di wilayah RT 04 / RW 18
+           </div>
+         </div>
+       </label>
+     </div>
+
+     <!-- Radio Option: Corridor (Khusus Warga Koridor) -->
+     <div>
+       <label for="scope-corridor" id="label-scope-corridor" style="display:flex;align-items:flex-start;gap:0.75rem;padding:0.875rem 1rem;background:#F8FAFC;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer;transition:all 0.2s ease;margin-bottom:0;">
+         <input type="radio" name="targetScope" id="scope-corridor" value="corridor" onchange="handleScopeChange(this)" style="width:18px;height:18px;margin-top:2px;accent-color:#2563EB;cursor:pointer;">
+         <div>
+           <div style="font-weight:600;font-size:0.875rem;color:#0F172A;display:flex;align-items:center;gap:0.4rem;">
+             Khusus Warga Koridor
+           </div>
+           <div style="font-size:0.75rem;color:#64748B;margin-top:2px;">
+             Terkirim hanya untuk warga di koridor tertentu
+           </div>
+         </div>
+       </label>
+     </div>
+
+   </div>
+
+   <!-- Dropdown Pemilihan Koridor -->
+   <div id="corridor-select-wrapper" style="margin-top:1rem;padding-top:1rem;border-top:1px dashed #E2E8F0;display:none;">
+     <label for="corridorId" style="font-size:0.8rem;font-weight:600;color:#334155;margin-bottom:0.375rem;display:flex;align-items:center;gap:0.35rem;">
+       <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-600"></i> Pilih Koridor Tujuan
+     </label>
+     <% if (typeof userCorridor !== 'undefined' && userCorridor) { %>
+       <p style="font-size:0.75rem;color:#64748B;margin-bottom:0.5rem;">Koridor penugasan Anda: <strong style="color:#1E293B;"><%= userCorridor.name %></strong></p>
+     <% } %>
+     <select id="corridorId" name="corridorId" style="width:100%;font-size:0.875rem;border:1px solid #CBD5E1;border-radius:8px;padding:0.625rem 0.875rem;background:#FFFFFF;color:#0F172A;">
+       <% if (typeof corridors !== 'undefined' && corridors.length > 0) { %>
+         <% corridors.forEach(c => { %>
+           <option value="<%= c.id %>" <%= (typeof userCorridorId !== 'undefined' && userCorridorId === c.id) ? 'selected' : '' %>>
+             Koridor <%= c.name %>
+           </option>
+         <% }); %>
+       <% } else { %>
+         <option value="">-- Belum ada master data koridor --</option>
+       <% } %>
+     </select>
+   </div>
+
  </div>
 
  <!-- RECIPIENT SELECTOR (only for Personal) -->
- <div id="recipient-section" class="card" style="margin-bottom:1.25rem;display:none;">
- <h3 style="margin-bottom:0.75rem;font-size:0.875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-600);">
- Select Recipients
- </h3>
- <div style="max-height:220px;overflow-y:auto;border:1px solid var(--gray-300);border-radius:6px;padding:0.5rem;">
- <% if (activeUsers.length === 0) { %>
- <p style="color:var(--gray-600);font-size:0.875rem;padding:0.5rem;">No active users available</p>
- <% } else { %>
- <% activeUsers.forEach(u => { %>
- <label style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.625rem;border-radius:4px;cursor:pointer;">
- <input type="checkbox" name="recipientIds" value="<%= u.id %>" style="width:auto;accent-color:var(--primary);">
- <span style="font-size:0.875rem;color:var(--gray-900);"><%= u.name %></span>
- <span style="font-size:0.8rem;color:var(--gray-600);">(<%= u.phone %>)</span>
- </label>
- <% }); %>
- <% } %>
- </div>
- <p style="font-size:0.8rem;color:var(--gray-600);margin-top:0.5rem;margin-bottom:0;">Check all users who should receive this message.</p>
+ <div id="recipient-section" class="card" style="margin-bottom:1.25rem;display:none;background:#FFFFFF;border-radius:12px;border:1px solid #E2E8F0;padding:1.25rem;">
+   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">
+     <div style="display:flex;align-items:center;gap:0.5rem;">
+       <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
+       <h3 style="margin:0;font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#475569;">
+         Pilih Penerima (<span id="selected-count">0</span> terpilih)
+       </h3>
+     </div>
+     <div style="display:flex;align-items:center;gap:0.5rem;">
+       <button type="button" onclick="toggleSelectAllUsers(true)" style="background:none;border:none;color:#2563EB;font-size:0.75rem;font-weight:600;cursor:pointer;padding:0.2rem 0.4rem;">Pilih Semua</button>
+       <span style="color:#CBD5E1;">•</span>
+       <button type="button" onclick="toggleSelectAllUsers(false)" style="background:none;border:none;color:#64748B;font-size:0.75rem;font-weight:600;cursor:pointer;padding:0.2rem 0.4rem;">Batal Pilih</button>
+     </div>
+   </div>
+
+   <!-- Search Box for Recipients -->
+   <div style="position:relative;margin-bottom:0.75rem;">
+     <input type="text" id="recipient-search" placeholder="🔍 Cari nama atau no. telepon warga..." oninput="filterRecipients()"
+            style="width:100%;padding:0.5rem 0.75rem;font-size:0.875rem;border:1px solid #CBD5E1;border-radius:8px;background:#F8FAFC;">
+   </div>
+
+   <div id="recipients-list" style="max-height:240px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:8px;padding:0.375rem;background:#FFFFFF;">
+     <% if (activeUsers.length === 0) { %>
+       <p style="color:#64748B;font-size:0.875rem;padding:0.75rem;text-align:center;margin:0;">Tidak ada warga aktif tersedia</p>
+     <% } else { %>
+       <% activeUsers.forEach(u => { %>
+         <label class="recipient-row" data-name="<%= (u.name || '').toLowerCase() %>" data-phone="<%= (u.phone || '').toLowerCase() %>"
+                style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;padding:0.5rem 0.75rem;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:background 0.15s ease;"
+                onmouseover="this.style.background='#F1F5F9'" onmouseout="this.style.background='transparent'">
+           <div style="display:flex;align-items:center;gap:0.65rem;min-width:0;">
+             <input type="checkbox" name="recipientIds" value="<%= u.id %>" onchange="updateSelectedCount()"
+                    style="width:16px;height:16px;accent-color:#2563EB;cursor:pointer;margin:0;flex-shrink:0;">
+             <div style="min-width:0;">
+               <div style="font-size:0.875rem;font-weight:600;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                 <%= u.name %>
+               </div>
+               <div style="font-size:0.75rem;color:#64748B;">
+                 <%= u.phone %> <% if (u.corridor) { %> • <span style="color:#2563EB;">Koridor <%= u.corridor.name %></span><% } %>
+               </div>
+             </div>
+           </div>
+         </label>
+       <% }); %>
+     <% } %>
+     <div id="no-recipient-found" style="display:none;color:#64748B;font-size:0.85rem;padding:1.5rem;text-align:center;">
+       Tidak ada warga yang sesuai dengan pencarian
+     </div>
+   </div>
+   <p style="font-size:0.75rem;color:#64748B;margin-top:0.5rem;margin-bottom:0;">Centang satu atau beberapa warga yang ingin Anda kirimkan pesan pribadi.</p>
  </div>
 
  <!-- MESSAGE CONTENT -->
@@ -122,21 +228,109 @@
 function handleTypeChange(radio) {
  // Highlight selected type card
  document.querySelectorAll('.type-card').forEach(card => {
- card.style.borderColor = 'var(--gray-300)';
- card.style.background = 'white';
+   card.style.borderColor = 'var(--gray-300)';
+   card.style.background = 'white';
  });
  radio.closest('label').querySelector('.type-card').style.borderColor = 'var(--primary)';
  radio.closest('label').querySelector('.type-card').style.background = 'var(--primary-light)';
 
- // Show/hide recipient section
  const recipientSection = document.getElementById('recipient-section');
+ const scopeSection = document.getElementById('scope-section');
+ const globalScopeContainer = document.getElementById('scope-global-container');
+ const scopeAllRadio = document.getElementById('scope-all');
+ const scopeCorridorRadio = document.getElementById('scope-corridor');
+ const corridorSelectWrapper = document.getElementById('corridor-select-wrapper');
+
  if (radio.value === 'personal') {
- recipientSection.style.display = 'block';
+   recipientSection.style.display = 'block';
+   scopeSection.style.display = 'none';
  } else {
- recipientSection.style.display = 'none';
- // Uncheck all recipients when not personal
- document.querySelectorAll('input[name="recipientIds"]').forEach(cb => cb.checked = false);
+   recipientSection.style.display = 'none';
+   document.querySelectorAll('input[name="recipientIds"]').forEach(cb => cb.checked = false);
+   updateSelectedCount();
+
+   // Configure Scope Section for Announcement or Broadcast
+   scopeSection.style.display = 'block';
+   const canGlobal = radio.getAttribute('data-can-global') === 'true';
+   const canCorridor = radio.getAttribute('data-can-corridor') === 'true';
+
+   if (canGlobal) {
+     globalScopeContainer.style.display = 'block';
+     scopeAllRadio.disabled = false;
+     scopeAllRadio.checked = true;
+     handleScopeChange(scopeAllRadio);
+   } else if (canCorridor) {
+     globalScopeContainer.style.display = 'none';
+     scopeAllRadio.disabled = true;
+     scopeCorridorRadio.checked = true;
+     handleScopeChange(scopeCorridorRadio);
+   }
  }
+}
+
+function handleScopeChange(radio) {
+  const corridorSelectWrapper = document.getElementById('corridor-select-wrapper');
+  const labelAll = document.getElementById('label-scope-all');
+  const labelCorridor = document.getElementById('label-scope-corridor');
+
+  if (radio.value === 'corridor') {
+    corridorSelectWrapper.style.display = 'block';
+    if (labelCorridor) {
+      labelCorridor.style.borderColor = '#3B82F6';
+      labelCorridor.style.background = '#EFF6FF';
+    }
+    if (labelAll) {
+      labelAll.style.borderColor = '#E2E8F0';
+      labelAll.style.background = '#F8FAFC';
+    }
+  } else {
+    corridorSelectWrapper.style.display = 'none';
+    if (labelAll) {
+      labelAll.style.borderColor = '#3B82F6';
+      labelAll.style.background = '#EFF6FF';
+    }
+    if (labelCorridor) {
+      labelCorridor.style.borderColor = '#E2E8F0';
+      labelCorridor.style.background = '#F8FAFC';
+    }
+  }
+}
+
+// Live search for personal recipients
+function filterRecipients() {
+  const searchInput = document.getElementById('recipient-search').value.toLowerCase().trim();
+  const rows = document.querySelectorAll('.recipient-row');
+  let matchCount = 0;
+
+  rows.forEach(row => {
+    const name = row.getAttribute('data-name') || '';
+    const phone = row.getAttribute('data-phone') || '';
+    if (name.includes(searchInput) || phone.includes(searchInput)) {
+      row.style.display = 'flex';
+      matchCount++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  const emptyMsg = document.getElementById('no-recipient-found');
+  if (emptyMsg) {
+    emptyMsg.style.display = matchCount === 0 ? 'block' : 'none';
+  }
+}
+
+function toggleSelectAllUsers(selectAll) {
+  const visibleCheckboxes = document.querySelectorAll('.recipient-row:not([style*="display: none"]) input[name="recipientIds"]');
+  visibleCheckboxes.forEach(cb => {
+    cb.checked = selectAll;
+  });
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const checked = document.querySelectorAll('input[name="recipientIds"]:checked').length;
+  const countEl = document.getElementById('selected-count');
+  if (countEl) countEl.textContent = checked;
 }
 </script>
 </body>

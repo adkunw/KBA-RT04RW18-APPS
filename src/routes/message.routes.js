@@ -5,8 +5,30 @@ const { requireAnyPermission } = require("../middlewares/rbacMiddleware");
 
 const router = express.Router();
 
-const canRead = [isAuthenticated, requireAnyPermission(["message.read", "message.create"])];
-const canCreate = [isAuthenticated, requireAnyPermission(["message.create"])];
+const canRead = [
+  isAuthenticated,
+  requireAnyPermission([
+    "message.read",
+    "message.create",
+    "message.create_corridor",
+    "message.announcement",
+    "message.announcement_corridor",
+    "message.broadcast",
+    "message.broadcast_corridor",
+  ]),
+];
+
+const canCreate = [
+  isAuthenticated,
+  requireAnyPermission([
+    "message.create",
+    "message.create_corridor",
+    "message.announcement",
+    "message.announcement_corridor",
+    "message.broadcast",
+    "message.broadcast_corridor",
+  ]),
+];
 
 // GET  /admin/messages          - List all messages
 router.get("/", ...canRead, messageController.listMessages);

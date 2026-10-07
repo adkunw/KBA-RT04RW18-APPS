@@ -108,11 +108,18 @@
                 <% } else { %>
                   <span class="badge badge-created"> Personal</span>
                 <% } %>
+                <% if (msg.corridor) { %>
+                  <div style="margin-top:0.25rem;">
+                    <span class="inline-flex items-center text-[10px] font-semibold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200">
+                      📍 <%= msg.corridor.name %>
+                    </span>
+                  </div>
+                <% } %>
               </td>
               <td style="color:var(--gray-600);font-size:0.875rem;"><%= msg.sender.name %></td>
               <td style="text-align:center;color:var(--gray-600);font-size:0.875rem;">
                 <% if (msg.type === 'announcement') { %>
-                  <span style="color:var(--gray-600);font-style:italic;">Public</span>
+                  <span style="color:var(--gray-600);font-style:italic;"><%= msg.corridor ? 'Warga ' + msg.corridor.name : 'Public' %></span>
                 <% } else { %>
                   <span style="font-weight:600;color:var(--primary);"><%= msg._count.recipients %></span>
                 <% } %>

@@ -26,6 +26,11 @@ async function main() {
     { name: "warga.read_corridor" },
     { name: "finance.manage_corridor" },
     { name: "message.create_corridor" },
+    { name: "message.announcement" },
+    { name: "message.announcement_corridor" },
+    { name: "message.broadcast" },
+    { name: "message.broadcast_corridor" },
+    { name: "message.announcement_read_all" },
   ];
 
   const createdPermissions = await Promise.all(
@@ -108,6 +113,9 @@ async function main() {
       "warga.update",
       "message.create",
       "message.read",
+      "message.announcement",
+      "message.broadcast",
+      "message.announcement_read_all",
       "document.manage",
       "report.delete_any",
     ].includes(p.name)

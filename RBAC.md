@@ -91,6 +91,11 @@ resource.action
 - message.create
 - message.read
 - message.create_corridor
+- message.announcement
+- message.announcement_corridor
+- message.broadcast
+- message.broadcast_corridor
+- message.announcement_read_all (Membaca seluruh pengumuman dari koridor manapun)
 
 ---
 
@@ -140,6 +145,9 @@ resource.action
 - warga.update
 - message.create
 - message.read
+- message.announcement
+- message.broadcast
+- message.announcement_read_all
 - report.create
 - report.read
 - report.update
@@ -168,6 +176,8 @@ resource.action
 - dashboard.view
 - warga.read_corridor (Melihat warga di koridornya)
 - message.create_corridor (Mengirim pengumuman/pesan ke warga koridornya)
+- message.announcement_corridor (Membuat pengumuman khusus warga koridornya)
+- message.broadcast_corridor (Mengirim siaran pesan ke inbox warga koridornya)
 - message.read
 - finance.manage_corridor (Mengelola keuangan kas koridornya)
 - report.create

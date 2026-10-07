@@ -71,6 +71,7 @@ model Corridor {
   financeExpenses  FinanceExpense[]
   financeHandovers FinanceHandover[]
   bulkPaymentCredits BulkPaymentCredit[]
+  messages         Message[]
 
   @@map("corridors")
 }
@@ -158,10 +159,12 @@ model Message {
   title     String
   content   String
   type      MessageType @default(personal)
+  corridorId String?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
   sender     User               @relation(fields: [senderId], references: [id])
+  corridor   Corridor?          @relation(fields: [corridorId], references: [id])
   recipients MessageRecipient[]
 
   @@map("messages")
